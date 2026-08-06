@@ -1,0 +1,10 @@
+<!-- @dsCard group="Brand" viewport="700x150" subtitle="Press/hover motion timing" name="Motion" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;padding:20px;font-family:var(--font-sans);background:var(--surface-app);display:flex;gap:16px;align-items:center}
+.btn{height:48px;padding:0 20px;border-radius:var(--radius-pill);background:var(--action-primary-bg);color:var(--action-primary-text);font-weight:600;display:flex;align-items:center;border:none;cursor:pointer;transition:transform var(--duration-fast) var(--ease-out)}
+.btn:active{transform:scale(0.95)}
+.note{font-size:12px;color:var(--text-tertiary)}
+</style></head><body>
+<button class="btn">Press me</button>
+<div class="note">120ms ease-out scale to 0.92–0.97 on press. No bounce/spring anywhere in the system.</div>
+</body></html>
