@@ -5,7 +5,7 @@ import Image from "next/image";
 import StartStoreModal from "./StartStoreModal";
 
 const DEMO_VIDEO_URL =
-  "https://terra01.s3.amazonaws.com/images/%40a1infotechltd%20-%20R%C3%A2%C2%A4%C2%93Download.MP4";
+  "https://media.istockphoto.com/id/1405993999/video/vfx-animated-background-with-virtual-social-media-reality-interconnected-by-internet-into.mp4";
 
 export default function WhoWeAre() {
   const [videoOpen, setVideoOpen] = useState(false);
