@@ -13,7 +13,7 @@ export default function WhoWeAre() {
 
   return (
     <>
-      <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk">
+      <section id="about" className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Left Side - Video Player Card */}
           <div className="lg:col-span-6 w-full">

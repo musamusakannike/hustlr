@@ -178,6 +178,19 @@ export const PRICING_PLANS = [
   },
 ];
 
+export const LOGO_PATH = "/nav-icon.webp";
+
+export const ECOSYSTEM_FEATURES = [
+  { iconType: "template", label: "Brand Templates" },
+  { iconType: "site", label: "Custom Brand Sites" },
+  { iconType: "drop", label: "Product Drops" },
+  { iconType: "merch", label: "Merch & Drops" },
+  { iconType: "orders", label: "Unified Orders" },
+  { iconType: "dashboard", label: "Dashboard" },
+  { iconType: "growth", label: "Growth Analytics" },
+  { iconType: "payments", label: "Integrated Payments" },
+];
+
 export const FAQS = [
   {
     question: "How long does it take to create a store on Hustlr?",
@@ -198,5 +211,10 @@ export const FAQS = [
     question: "How do payouts work when I withdraw my earnings?",
     answer:
       "Once escrow is released to your wallet balance, you can click 'Withdraw' anytime to send funds directly to any Nigerian bank account via Paystack transfer.",
+  },
+  {
+    question: "Can I run limited-time merch drops for my brand?",
+    answer:
+      "Yes. Schedule a drop, open it to pre-orders, and let variants (sizes, colors, editions) sell through automatically. Buyer payments sit in escrow until you fulfil, so hype never turns into chargeback risk.",
   },
 ];

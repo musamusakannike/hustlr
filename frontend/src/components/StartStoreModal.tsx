@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { APP_NAME } from "@/constants/app.constants";
+import { APP_NAME, LOGO_PATH } from "@/constants/app.constants";
 
 interface StartStoreModalProps {
   isOpen: boolean;
@@ -50,7 +50,7 @@ export default function StartStoreModal({
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden relative border border-neutral-200">
               <Image
-                src="/nav-icon-large.png"
+                src={LOGO_PATH}
                 alt={`${APP_NAME} Logo`}
                 fill
                 className="object-cover"

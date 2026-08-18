@@ -4,40 +4,37 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import StartStoreModal from "./StartStoreModal";
-import { APP_NAME, NAV_LINKS } from "@/constants/app.constants";
+import { APP_NAME, NAV_LINKS, LOGO_PATH } from "@/constants/app.constants";
 
 export default function Footer() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
-      <footer className="bg-[#0A0E11] text-white pt-36 sm:pt-44 md:pt-48 pb-12 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk border-t border-neutral-900">
+      <footer className="bg-light text-black pt-36 sm:pt-44 md:pt-48 pb-12 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk border-t border-black/10">
         <div className="max-w-7xl mx-auto flex flex-col gap-8 sm:gap-10">
           {/* Top Row: Logo Branding + Main Nav Links */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-8">
+          <div className="flex flex-col md:flex-row items-center md:items-center justify-between gap-6 md:gap-8">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-8 h-8 flex items-center justify-center rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
+            <Link href="/" className="group">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl overflow-hidden group-hover:scale-105 transition-transform">
                 <Image
-                  src="/nav-icon-large.png"
+                  src={LOGO_PATH}
                   alt={`${APP_NAME} Logo`}
-                  width={32}
-                  height={32}
+                  width={80}
+                  height={80}
                   className="object-contain"
                 />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-white font-archivo">
-                {APP_NAME}
-              </span>
             </Link>
 
             {/* Navigation Links */}
-            <nav className="flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 text-sm sm:text-base font-medium text-neutral-400">
+            <nav className="flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 text-sm sm:text-base font-medium text-black/60">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-black transition-colors"
                 >
                   {link.name}
                 </a>
@@ -45,7 +42,7 @@ export default function Footer() {
 
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="hover:text-[#FAD4D8] transition-colors cursor-pointer text-[#800A1D] font-semibold"
+                className="hover:text-primary-hover transition-colors cursor-pointer text-primary font-semibold"
               >
                 Register Store
               </button>
@@ -53,23 +50,23 @@ export default function Footer() {
           </div>
 
           {/* Horizontal Separator */}
-          <hr className="border-t border-neutral-800/80 my-0 w-full" />
+          <hr className="border-t border-black/10 my-0 w-full" />
 
           {/* Bottom Metadata Row */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 text-neutral-500 text-xs sm:text-sm font-normal">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-6 text-black/50 text-xs sm:text-sm font-normal">
             {/* Copyright */}
-            <p className="text-neutral-500">
+            <p className="text-black/50">
               © {new Date().getFullYear()} {APP_NAME} Inc. All rights reserved. Built for African Commerce.
             </p>
 
             {/* Social Media Icons */}
-            <div className="flex items-center gap-5 sm:gap-6 text-neutral-400">
+            <div className="flex items-center gap-5 sm:gap-6 text-black/50">
               {/* Facebook */}
               <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
+                className="hover:text-black transition-colors"
                 aria-label="Facebook"
               >
                 <svg className="w-4 h-4 fill-currentColor" viewBox="0 0 24 24">
@@ -82,7 +79,7 @@ export default function Footer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
+                className="hover:text-black transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-4 h-4 fill-currentColor" viewBox="0 0 24 24">
@@ -95,7 +92,7 @@ export default function Footer() {
                 href="https://x.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
+                className="hover:text-black transition-colors"
                 aria-label="Twitter"
               >
                 <svg className="w-4 h-4 fill-currentColor" viewBox="0 0 24 24">
@@ -105,14 +102,14 @@ export default function Footer() {
             </div>
 
             {/* Policy Links */}
-            <div className="flex items-center gap-6 text-neutral-400 font-normal">
-              <a href="#hero" className="hover:text-white transition-colors">
+            <div className="flex items-center gap-6 text-black/60 font-normal">
+              <a href="#hero" className="hover:text-black transition-colors">
                 Terms of Service
               </a>
-              <a href="#hero" className="hover:text-white transition-colors">
+              <a href="#hero" className="hover:text-black transition-colors">
                 Privacy Policy
               </a>
-              <a href="#hero" className="hover:text-white transition-colors">
+              <a href="#hero" className="hover:text-black transition-colors">
                 KYC Policy
               </a>
             </div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import StartStoreModal from "./StartStoreModal";
-import { APP_NAME, NAV_LINKS } from "@/constants/app.constants";
+import { APP_NAME, NAV_LINKS, LOGO_PATH } from "@/constants/app.constants";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl overflow-hidden shadow-xs group-hover:scale-105 transition-transform">
               <Image
-                src="/nav-icon-large.png"
+                src={LOGO_PATH}
                 alt={`${APP_NAME} Logo`}
                 width={40}
                 height={40}
@@ -139,7 +139,7 @@ export default function Navbar() {
           >
             <div className="relative w-8 h-8 flex items-center justify-center rounded-lg overflow-hidden">
               <Image
-                src="/nav-icon-large.png"
+                src={LOGO_PATH}
                 alt={`${APP_NAME} Logo`}
                 width={32}
                 height={32}

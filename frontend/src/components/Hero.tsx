@@ -1,105 +1,147 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import StartStoreModal from "./StartStoreModal";
-import { APP_NAME } from "@/constants/app.constants";
+import { APP_NAME, LOGO_PATH, SUPPORT_EMAIL } from "@/constants/app.constants";
+
+const HERO_NAV_LINKS = [
+  { name: "Home", href: "#hero" },
+  { name: "Features", href: "#features" },
+  { name: "Templates", href: "#templates" },
+];
+
+const MORE_LINKS = [
+  { name: "FAQs", href: "#faqs" },
+  { name: "Contact Us", href: `mailto:${SUPPORT_EMAIL}` },
+  { name: "About Us", href: "#about" },
+];
 
 export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <section
       id="hero"
-      className="relative w-full font-space-grotesk overflow-hidden bg-[#EFEFEF]"
+      className="relative w-full font-space-grotesk overflow-hidden bg-bg-soft"
     >
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-80px)] lg:min-h-screen">
-        {/* Left Column - Light Content Section */}
-        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-between p-6 sm:p-10 md:p-12 lg:p-14 xl:p-18 bg-[#EFEFEF] text-[#0A0E11] z-10">
-          {/* Top Header / Inline Navigation */}
-          <div className="flex items-center justify-between gap-4 w-full mb-10 lg:mb-14">
-            {/* Brand Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl overflow-hidden shadow-xs group-hover:scale-105 transition-transform">
-                <Image
-                  src="/nav-icon-large.png"
-                  alt={`${APP_NAME} Logo`}
-                  width={40}
-                  height={40}
-                  className="object-contain"
+      <div className="w-full flex flex-col items-center px-6 sm:px-10 lg:px-16 pt-4 sm:pt-5 pb-14 sm:pb-20">
+        {/* Centered Logo */}
+        <Link href="/" className="group flex flex-col items-center">
+          <div className="relative h-12 sm:h-14 w-auto group-hover:scale-105 transition-transform">
+            <Image
+              src={LOGO_PATH}
+              alt={`${APP_NAME} Logo`}
+              width={180}
+              height={120}
+              className="w-auto h-12 sm:h-14 object-contain"
+            />
+          </div>
+        </Link>
+
+        {/* Centered Nav Links */}
+        <nav className="mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-x-10 sm:gap-x-14 gap-y-2 text-sm sm:text-lg font-bold text-text/80">
+          {HERO_NAV_LINKS.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              className="hover:text-primary transition-colors"
+            >
+              {link.name}
+            </a>
+          ))}
+
+          {/* More Dropdown */}
+          <div ref={moreRef} className="relative">
+            <button
+              onClick={() => setIsMoreOpen((open) => !open)}
+              aria-expanded={isMoreOpen}
+              aria-haspopup="true"
+              className="inline-flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer"
+            >
+              <span>More</span>
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isMoreOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
                 />
-              </div>
-              <span className="font-bold text-2xl tracking-tight text-[#0A0E11] font-archivo">
-                {APP_NAME}
-              </span>
-            </Link>
+              </svg>
+            </button>
 
-            {/* Inline Nav Links */}
-            <nav className="flex items-center gap-2.5 sm:gap-3.5 text-sm sm:text-base font-medium text-[#222222]">
-              <a href="#hero" className="hover:text-[#800A1D] transition-colors">
-                Home
-              </a>
-
-              <span className="text-neutral-400 font-bold select-none">•</span>
-
-              <a
-                href="#features"
-                className="hover:text-[#800A1D] transition-colors"
-              >
-                Features
-              </a>
-
-              <span className="text-neutral-400 font-bold select-none">•</span>
-
-              <a
-                href="#templates"
-                className="hover:text-[#800A1D] transition-colors inline-flex items-center gap-1"
-              >
-                Templates
-                <svg
-                  className="w-3.5 h-3.5 ml-0.5 inline-block"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+            <div
+              className={`absolute left-1/2 -translate-x-1/2 top-full mt-3 w-48 z-50 bg-light rounded-xl shadow-lg border border-black/5 py-2 transition-all duration-200 origin-top ${
+                isMoreOpen
+                  ? "opacity-100 scale-100 pointer-events-auto"
+                  : "opacity-0 scale-95 pointer-events-none"
+              }`}
+            >
+              {MORE_LINKS.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setIsMoreOpen(false)}
+                  className="block px-4 py-2.5 text-sm font-medium text-text/80 hover:text-primary hover:bg-primary-light/40 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7 17L17 7M17 7H7M17 7V17"
-                  />
-                </svg>
-              </a>
-            </nav>
+                  {link.name}
+                </a>
+              ))}
+            </div>
           </div>
 
-          {/* Main Hero Content */}
-          <div className="flex flex-col items-start my-auto py-4 max-w-xl">
-            {/* Main Headline */}
-            <h1 className="text-[#0A0E11] text-[36px] sm:text-[46px] md:text-[52px] lg:text-[50px] xl:text-[56px] font-bold leading-[1.12] tracking-tight">
+          {/* Get Started */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
+          >
+            Get Started
+          </button>
+        </nav>
+
+        {/* Content + Image Row on PC */}
+        <div className="w-full mt-10 sm:mt-14 lg:mt-16 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-16">
+          {/* Left - Hero Content */}
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <h1 className="text-text text-[34px] sm:text-[44px] lg:text-[42px] xl:text-[48px] font-bold leading-[1.14] tracking-tight max-w-xl">
               Your Multi-Tenant{" "}
               <span className="inline-block align-middle ml-1">
-                {/* Store Shopping Bag Icon */}
                 <svg
-                  className="w-7 h-7 sm:w-9 sm:h-9 text-[#800A1D] inline-block mb-1"
+                  className="w-6 h-6 sm:w-8 sm:h-8 text-primary inline-block mb-1"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
                   <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h6v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z" />
                 </svg>
-              </span>
-              <br />
-              Platform for Online Stores,
-              <br />
-              Payments &{" "}
-              <span className="relative inline-block px-3 py-0.5 mt-1 bg-[#FAD4D8] text-[#800A1D] rounded-md shadow-xs font-semibold">
+              </span>{" "}
+              Platform for Online Stores, Payments &{" "}
+              <span className="relative inline-block px-3 py-0.5 mt-1 bg-primary-light text-primary rounded-md shadow-xs font-semibold">
                 Custom Domains
               </span>
             </h1>
 
             {/* Maroon Zig-Zag Graphic Icon */}
-            <div className="my-6">
+            <div className="my-5 sm:my-6">
               <svg
                 width="46"
                 height="16"
@@ -117,18 +159,16 @@ export default function Hero() {
               </svg>
             </div>
 
-            {/* Paragraph Description */}
-            <p className="text-[#525252] text-base sm:text-lg md:text-[19px] leading-[1.65] font-normal mb-8 max-w-lg">
+            <p className="text-text/60 text-base sm:text-lg leading-[1.65] font-normal mb-8 max-w-xl">
               Empowering merchants across Africa to launch customized e-commerce
               storefronts in minutes. Accept Paystack escrow payments, manage
               inventory, and scale your brand with zero technical hassle.
             </p>
 
-            {/* Call to Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-3 bg-[#800A1D] hover:bg-[#660817] text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
+                className="inline-flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <span>Start Your Free Store</span>
                 <svg
@@ -148,26 +188,24 @@ export default function Hero() {
 
               <a
                 href="#templates"
-                className="inline-flex items-center gap-2 bg-white text-[#0A0E11] hover:bg-neutral-100 border border-neutral-300 px-6 py-3.5 rounded-xl font-semibold text-base transition-all duration-200 shadow-xs"
+                className="inline-flex items-center gap-2 bg-light text-text hover:bg-black/5 border border-black/10 px-6 py-3.5 rounded-xl font-semibold text-base transition-all duration-200 shadow-xs"
               >
                 <span>Explore Templates</span>
               </a>
             </div>
           </div>
 
-          {/* Footer spacer */}
-          <div className="hidden lg:block pt-4" />
-        </div>
-
-        {/* Right Column - Dark Hero Image Container */}
-        <div className="lg:col-span-6 xl:col-span-6 relative w-full min-h-[420px] sm:min-h-[520px] lg:min-h-full bg-[#0A0E11] flex items-center justify-center overflow-hidden">
-          <Image
-            src="/hero.png"
-            alt={`${APP_NAME} Multi-Tenant E-Commerce Dashboard`}
-            fill
-            className="object-cover object-center"
-            priority
-          />
+          {/* Right - Hero Image */}
+          <div className="relative w-full mt-10 sm:mt-12 lg:mt-0 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-xl">
+            <Image
+              src="/hero.png"
+              alt={`${APP_NAME} Multi-Tenant E-Commerce Dashboard`}
+              fill
+              className="object-cover object-center"
+              preload
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
         </div>
       </div>
 

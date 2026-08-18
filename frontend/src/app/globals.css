@@ -6,6 +6,7 @@
   --color-primary-light: #FAD4D8;
   --color-text: #0A0E11;
   --color-bg: #FFFFFF;
+  --color-bg-soft: #EFEFEF;
   --color-light: #FFFFFF;
   --color-black: #0A0E11;
 
@@ -49,4 +50,66 @@ button {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Orbit ecosystem */
+.orbit-stage {
+  --orbit-size: min(88vw, 600px);
+  --orbit-r: calc(var(--orbit-size) / 2 - 48px);
+  width: var(--orbit-size);
+  height: var(--orbit-size);
+}
+
+@media (min-width: 640px) {
+  .orbit-stage {
+    --orbit-size: min(80vw, 600px);
+    --orbit-r: calc(var(--orbit-size) / 2 - 76px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .orbit-stage {
+    --orbit-size: min(48vw, 560px);
+    --orbit-r: calc(var(--orbit-size) / 2 - 76px);
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-spin-reverse {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.orbit-ring {
+  animation: orbit-spin 60s linear infinite;
+}
+
+.orbit-ring:hover,
+.orbit-ring:focus-within,
+.orbit-ring:hover .orbit-chip,
+.orbit-ring:focus-within .orbit-chip {
+  animation-play-state: paused;
+}
+
+.orbit-chip {
+  animation: orbit-spin-reverse 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-ring,
+  .orbit-chip {
+    animation: none;
+  }
 }
