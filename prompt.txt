@@ -1,0 +1,1363 @@
+Using node.js, express, mongoose (for MongoDB), typescript, jsonwebtoken, bcryptjs, dotenv, aws s3 sdk (for cloudflare r2), morgan (dev logs), helmet, axios, cors, joi, multer, resend, nodemailer, pdfkit (receipt/invoice generation), firebase-admin (for handling google oauth), express-rate-limit, nodemon (for good development experience) and any other package needed, and using pnpm for package manaagement build the server for my Multi-Tenant E-commerce platform; "Hustlr".
+
+Throughout the codebase, make sure the mentions of the app name are from a global constant variable in order to make it easy to rebrand the whole app name at once. Also add an AGENTS.md file which guides AI agents on how to edit this codebase. For every new or updated routes, there must be a corresponding update to the postman collection json file to make it easy to test the route. All the routes in the postman collection must be accompanied with sample request bodies for testing purposes. There should also be a complete markdown documentation of features and readme markdown for how to run the server.The file/folder structure should feature an src folder which has the following folders: config, controllers, middlewares, models, routes, scripts, services, utils, validations and any other needed folder. The convention for naming any file in the codebase (apart from the entry file, server.ts) is filename.filetype.extension. e.g db.config.ts, user.controller.ts, auth.route.ts, transaction.model.ts …., Make sure the .env.example is also up to date at all times. In case there's any update needing .env changes, update the .env.example to follow suit. All those rules must also be in the AGENTS.md file
+
+Keep in mind that the frontend of this app would be using next.js. The main idea of the app is that a store-owner (seller) can register on our website "Hustlr", and get to build up his own storefront and template for his website and his store would be hosted on a "subdomain.domain.online" e.g musa-store.hustlr.online. 
+
+To make it easier for implement, I would be giving you a codebase for a project; "Africlana" in the folder you're currently in. Africlana is majorly an e-commerce mobile app where multiple sellers register on the same platform and buyers can buy products from sellers on that same platform. Although its different from the Hustlr idea where a seller owns his own website where users can buy from him, we can still use functionalities similar to it on the hustlr platform. Another difference is that africlana is a mobile app while hustlr is a web app.Typical flow:There are 3 major roles: "admin", "seller" and "buyer". Admin are people/accounts managing the hustlr platform, sellers are those that have stores on hustlr, and buyers are customers patronizing a seller. Take into consideration that a buyer can be a buyer of multiple sellers, a seller can be a buyer of another seller's store. Even an admin can have a seller account, and different buyer accounts for different sellers. All managed in one mongoldb database. The account instance I use to login on a particular seller's website is different from that I used to login on another seller's website.
+A seller registers on hustlr (normal username+password+mail verification required or simply using google oauth), and then setup their store details:Store name, Store icon upload, About store, Store social links (facebook, X, instagram, WhatsApp phone number, … all optional), color choices and any more details that can be collected which is expected to be on the seller's website.Admins can create website templates for sellers which a seller can pick from during store setup. The website templates are dynamic by color variables, images and text contents. Some are labelled pro, pro+ (more explanation on pro later)
+Before a seller can go live, they have to verify their KYC, the kya flow on our platform is same as that of africlana. The user uploads his/her documents and details and the admins receive mail notifications, they can check the admin dashboard and accept/request for more/reject a kyc, just like Africlana. A seller can only go live when they have verified their kyc. To go live, there are three different plans "free", "pro" and "pro+". For now, the only feature differentiating pro+ sellers from pro sellers are the access to website templates.
+
+--- START OF FULL FEATURE SPECIFICATION ---
+
+===========================================
+SECTION 1: AUTHENTICATION & ACCOUNTS SYSTEM
+===========================================
+
+There are two completely different authentication contexts on Hustlr:
+
+(A) SELLER AUTHENTICATION (hustlr.online main platform)
+(B) BUYER AUTHENTICATION (on a seller's subdomain, e.g. musa-store.hustlr.online)
+
+--- (A) Seller Authentication ---
+
+A seller registers on the main hustlr.online website. The registration flow works like this:
+
+Step 1: The seller fills in their name, email, and password. The server validates the input using Joi, hashes the password with bcryptjs, creates a new User document with role "seller" and isVerified = false, and sends a 6-digit OTP to the seller's email via Resend/Nodemailer. The OTP has a 10-minute expiry. The email should be a beautifully designed HTML email with the Hustlr branding.
+
+Step 2: The seller enters the OTP on the frontend. The server checks the OTP matches and hasn't expired, then sets isVerified = true. The server responds with a JWT token (signed using jsonwebtoken with the JWT_SECRET from .env) so the seller is automatically logged in after verification.
+
+Step 3: If the seller doesn't verify in time, they can request a new OTP via a "Resend OTP" endpoint. This invalidates the old OTP and sends a fresh one.
+
+Alternative: Google OAuth. The seller clicks "Sign in with Google". The frontend gets a Firebase ID token via firebase-admin, sends it to the server. The server verifies the token using firebase-admin, extracts the email and name, checks if a seller account with that email already exists (logs them in if so), or creates a new seller account with isVerified = true (since Google already verified the email) and googleId set. Returns a JWT.
+
+Login: Seller logs in with email + password. Server finds the user by email where role = "seller", compares password hash with bcryptjs, returns a JWT. If the seller registered via Google, they must login via Google (no password set).
+
+Forgot Password: Seller enters their email. Server generates a 6-digit OTP, stores it hashed with an expiry (10 minutes) on the user document (resetPasswordOtp, resetPasswordOtpExpires), and sends it to the email. The seller enters the OTP + new password. Server verifies the OTP, hashes the new password, clears the reset fields, and responds with success.
+
+--- (B) Buyer Authentication (Per-Store) ---
+
+This is the critical multi-tenant part. A buyer account is scoped to a specific seller's store. When a buyer visits musa-store.hustlr.online and registers, they create a BuyerProfile that is tied to that specific store (storeId). 
+
+The BuyerProfile model is separate from the main User model. It stores:
+- storeId (reference to the Store this buyer belongs to)
+- email
+- passwordHash (optional, null for Google OAuth buyers)
+- name
+- googleId (optional)
+- avatar (optional)
+- isVerified (boolean)
+- referralCode (auto-generated, unique per buyer per store, like Africlana's approach)
+- referredBy (optional, reference to another BuyerProfile in the same store)
+- shippingAddresses (array of saved addresses with fullName, streetAddress, city, state, zipCode, country, phoneNumber, isDefault)
+- banned, bannedAt, banReason (for store-level banning by seller)
+- verificationOtp, verificationOtpExpires (for email verification)
+- resetPasswordOtp, resetPasswordOtpExpires (for forgot password)
+
+The registration flow is the same pattern as seller auth (email+password with OTP verification, or Google OAuth), but the key difference is:
+- Every request from a buyer's frontend includes a storeId (derived from the subdomain). The server middleware resolves the subdomain to a storeId.
+- The buyer account only exists within that store's context. Example: If I register as a buyer on musa-store.hustlr.online, my BuyerProfile has storeId = Musa's store ID. If I then go to ada-fashion.hustlr.online, I'd need to create a separate BuyerProfile for Ada's store.
+- JWT tokens for buyers include both the buyerProfileId and the storeId in the payload. The auth middleware verifies both.
+
+The subdomain resolution middleware works like this: Every incoming request to a seller's store goes through a "resolveStore" middleware. This middleware extracts the subdomain from the Host header (e.g., "musa-store" from "musa-store.hustlr.online"), looks up the Store document by its slug field, and attaches the store info to the request object. If no store is found, return 404. If the store is not live (subscription expired, KYC not approved, etc.), return 403 with an appropriate message. If the store is live and found, proceed.
+
+
+===========================================
+SECTION 2: STORE SETUP & CONFIGURATION
+===========================================
+
+After a seller registers and verifies their email, they need to set up their store. The Store model stores:
+
+- sellerId (reference to the User who owns this store)
+- name (store name, e.g. "Musa's Fashion Hub")
+- slug (URL-safe version of the name, auto-generated, unique, e.g. "musas-fashion-hub". This becomes the subdomain)
+- description (about the store)
+- logo (URL to uploaded image on R2)
+- banner (URL to uploaded banner image on R2)
+- favicon (URL to uploaded favicon on R2)
+- socialLinks: { facebook, twitter, instagram, whatsappNumber, tiktok, youtube } (all optional strings)
+- colorScheme: { primary, secondary, accent, background, text } (hex color codes chosen by seller, these feed into the website template's CSS variables)
+- templateId (reference to the WebsiteTemplate the seller chose)
+- currency (string, default "NGN" for now, but designed so sellers can eventually set their own currency)
+- currencySymbol (string, default "₦")
+- contactEmail (public-facing email shown on the store website, defaults to seller's email)
+- contactPhone (optional)
+- address (optional physical address)
+- isLive (boolean, false by default. Set to true only when KYC is approved AND subscription is active)
+- customDomain (optional string, e.g. "www.musastore.com", only for pro+ plans)
+- customDomainVerified (boolean, whether DNS verification passed)
+- metaTitle (SEO title for the store homepage)
+- metaDescription (SEO description)
+- shippingPolicy (rich text, the seller's shipping policy page content)
+- returnPolicy (rich text, the seller's return/refund policy page content)
+- termsOfService (rich text, store-specific terms)
+- privacyPolicy (rich text)
+
+The store setup flow is multi-step on the frontend, but on the backend it's a single PUT /store/setup endpoint that accepts partial updates (so the seller can save progress). The backend validates whatever fields are provided and updates the Store document.
+
+Image uploads (logo, banner, favicon) go through the existing R2 upload pipeline: multer handles the multipart form data, the upload utility streams the file to Cloudflare R2 via the AWS S3 SDK, and returns the public URL.
+
+Slug generation: When the seller sets their store name for the first time, the server auto-generates a slug from the name (lowercase, replace spaces with hyphens, remove special characters). If the slug already exists in the database, append a random 4-character suffix. The seller can also manually customize their slug (validated to only contain lowercase letters, numbers, and hyphens).
+
+
+===========================================
+SECTION 3: WEBSITE TEMPLATES
+===========================================
+
+Admins create and manage website templates that sellers can choose from. The WebsiteTemplate model stores:
+
+- name (e.g. "Modern Minimal", "Bold Showcase", "Classic Storefront")
+- slug (URL-safe identifier)
+- description (what this template looks like, its vibe)
+- previewImageUrl (screenshot/preview of the template uploaded to R2)
+- tier ("free" | "pro" | "pro+") — which subscription plan is required to use this template
+- category ("fashion" | "electronics" | "food" | "general" | "art" | etc. — to help sellers find relevant templates)
+- isActive (boolean, admin can disable a template)
+- colorVariables (array of { variableName: string, defaultValue: string, label: string } — defines which CSS variables the template uses and their defaults, e.g. { variableName: "--primary-color", defaultValue: "#FF5733", label: "Primary Color" })
+- layoutSections (array of { sectionId: string, sectionName: string, isRequired: boolean } — describes the sections of the template like "hero", "featured-products", "testimonials", "newsletter-signup", etc.)
+- createdAt, updatedAt
+
+Admin template management flow:
+1. Admin hits POST /admin/templates with the template details and preview image. 
+2. Admin can update a template via PUT /admin/templates/:templateId.
+3. Admin can list all templates via GET /admin/templates (with filters by tier, category, isActive).
+4. Admin can soft-delete (deactivate) a template via PATCH /admin/templates/:templateId/deactivate. Sellers currently using this template keep their existing setup, but new sellers can't pick it.
+
+Seller template selection flow:
+1. During store setup, the seller hits GET /templates?tier=free (or tier=pro or tier=pro+). The server returns templates the seller is eligible for based on their subscription plan. Free sellers see only free templates. Pro sellers see free + pro templates. Pro+ sellers see all templates.
+2. The seller picks a template. The server saves the templateId on the Store document.
+3. The seller can switch templates anytime via PUT /store/template. If they try to switch to a pro+ template but are on a pro plan, the server rejects it with a 403.
+
+
+===========================================
+SECTION 4: KYC (KNOW YOUR CUSTOMER)
+===========================================
+
+Before a seller can go live, they must complete KYC verification. The KYC flow on Hustlr mirrors Africlana's but without the YouVerify API integration — it's manual admin review only.
+
+The Kyc model stores:
+- sellerId (reference to the User)
+- status ("pending" | "approved" | "rejected" | "info_requested")
+- firstName, lastName, otherName
+- verificationType ("NIN" | "Driver's License" | "International Passport" | "Voter's Card")
+- documentId (the ID number on the document)
+- idDocumentUrl (image of the ID document uploaded to R2)
+- selfieUrl (selfie holding the ID document uploaded to R2)
+- address (text address)
+- proofOfAddressUrl (utility bill or bank statement uploaded to R2)
+- businessRegistrationUrl (optional, CAC document or equivalent)
+- bankDetails: { bankName, bankCode, accountNumber, accountName } (for payouts later)
+- reviewerNote (admin's note when requesting more info or rejecting)
+- requestedFiles (array of field names the admin wants re-uploaded, e.g. ["idDocument", "selfie"])
+- reviewedAt, submittedAt
+
+The KYC flow step by step:
+
+Step 1: Seller fills in personal information (firstName, lastName, verificationType, documentId). The server saves this as a partial KYC update. The frontend can save progress at each step.
+
+Step 2: Seller uploads the ID document image and a selfie. The server stores the R2 URLs on the KYC document.
+
+Step 3: Seller provides their address and uploads proof of address.
+
+Step 4: (Optional) Seller uploads business registration documents.
+
+Step 5: Seller provides their bank details for payouts (bankName, bankCode, accountNumber, accountName). The server validates the bank code against the Paystack bank list API (GET /paystack-banks endpoint that fetches from Paystack and caches for 1 hour).
+
+Step 6: Seller submits the KYC application. The server validates all required fields are present, sets status to "pending" and submittedAt to now. An email notification is sent to all admin users alerting them that a new KYC application is waiting for review.
+
+Admin review flow:
+1. Admin sees a list of pending KYC applications on their dashboard via GET /admin/kyc (with filters by status, pagination, search by seller name/email).
+2. Admin views a specific KYC application via GET /admin/kyc/:kycId which returns all the uploaded documents and details.
+3. Admin can take one of three actions:
+   a. APPROVE (PATCH /admin/kyc/:kycId/approve): Sets KYC status to "approved", sets reviewedAt. Sends an email to the seller congratulating them. The seller can now subscribe to a plan and go live.
+   b. REJECT (PATCH /admin/kyc/:kycId/reject): Requires a reviewerNote explaining why. Sets status to "rejected", sends rejection email to seller with the reason.
+   c. REQUEST MORE INFO (PATCH /admin/kyc/:kycId/request-info): Requires a reviewerNote and a requestedFiles array specifying which documents need to be re-uploaded. Sets status to "info_requested", sends email to seller explaining what's needed. The seller then re-uploads the requested files and re-submits, setting status back to "pending".
+
+
+===========================================
+SECTION 5: SUBSCRIPTION PLANS & BILLING
+===========================================
+
+Hustlr has three subscription plans: "free", "pro", and "pro+". Sellers must subscribe to go live.
+
+The SubscriptionPlan model (managed by admins) stores:
+- name ("free" | "pro" | "pro+")
+- slug ("free" | "pro" | "pro-plus")
+- monthlyPrice (number in NGN, 0 for free)
+- yearlyPrice (number in NGN, 0 for free, discounted compared to 12x monthly)
+- features (array of strings describing what's included, e.g. ["Unlimited products", "Custom subdomain", "Email support"])
+- maxProducts (number or null for unlimited)
+- allowCustomDomain (boolean, true only for pro+)
+- allowProTemplates (boolean, true for pro and pro+)
+- allowProPlusTemplates (boolean, true only for pro+)
+- allowBlog (boolean, true for pro and pro+)
+- commissionPercent (platform commission rate for this plan, e.g. free=10%, pro=7%, pro+=5%)
+- isActive (boolean)
+
+Admin manages plans: full CRUD at /admin/plans. Admins can update pricing, features, and toggle isActive. Changing a plan's pricing does NOT retroactively affect existing active subscriptions—only new subscriptions/renewals use the new price.
+
+The Subscription model tracks each seller's subscription:
+- sellerId (reference to User)
+- planId (reference to SubscriptionPlan)
+- planName ("free" | "pro" | "pro+")
+- billingCycle ("monthly" | "yearly" | "none" for free plan)
+- amount (the price they're paying, snapshot at time of subscription)
+- status ("active" | "expired" | "cancelled" | "grace_period")
+- startDate
+- endDate (calculated: startDate + 1 month or + 1 year)
+- autoRenew (boolean, seller can toggle)
+- paymentReference (Paystack transaction reference for the payment)
+- gracePeriodEnd (endDate + 3 days. The store stays live during grace period but a warning banner shows. After grace period, store goes offline.)
+- cancelledAt (if seller cancels)
+- renewalReminderSent (boolean, so we don't spam)
+
+Subscription flow step by step:
+
+Step 1 — Choosing a Plan: After KYC is approved, the seller hits GET /plans to see available plans. The server returns all active plans with their features and pricing.
+
+Step 2 — Subscribing (Free): If the seller picks the free plan, the server creates a Subscription with planName "free", status "active", no endDate (free is forever unless they upgrade), billingCycle "none". The store's isLive is set to true.
+
+Step 3 — Subscribing (Paid — Pro or Pro+): The seller selects a plan and billing cycle (monthly or yearly). The server creates a Paystack checkout session via Paystack's transaction/initialize endpoint:
+- amount: plan price in kobo (NGN * 100)
+- email: seller's email
+- reference: unique reference like "SUB-{sellerId}-{timestamp}"
+- callback_url: frontend URL to redirect after payment
+- metadata: { sellerId, planId, billingCycle }
+The server returns the Paystack authorization_url to the frontend, which redirects the seller to Paystack's hosted checkout page.
+
+Step 4 — Payment Verification: After the seller pays, Paystack redirects them back to the callback URL. The frontend calls POST /subscriptions/verify with the payment reference. The server verifies the payment with Paystack's verify endpoint, and if successful:
+- Creates a Subscription document with status "active", startDate = now, endDate = now + 1 month (or 1 year), autoRenew = true by default.
+- Sets the store's isLive = true.
+- Sends a confirmation email to the seller.
+
+Step 5 — Renewal: A cron job runs daily and checks for subscriptions expiring within 3 days. If renewalReminderSent is false, it sends a reminder email to the seller and sets renewalReminderSent = true. If autoRenew is true and the subscription reaches its endDate:
+- The server attempts to charge the seller again via Paystack (using the same payment method if tokenized, or sending a new payment link via email).
+- If payment succeeds: extend endDate by another cycle, reset renewalReminderSent.
+- If payment fails: set status to "grace_period", set gracePeriodEnd = now + 3 days, send email warning.
+- If grace period passes without payment: set status to "expired", set store isLive = false. The store website shows a "This store is currently unavailable" page to visitors.
+
+Step 6 — Cancellation: Seller can cancel via POST /subscriptions/cancel. This sets autoRenew = false and cancelledAt = now. The subscription remains active until endDate, then expires normally. The seller can reactivate by subscribing again.
+
+Step 7 — Upgrade/Downgrade: Seller can change plans via POST /subscriptions/change-plan. If upgrading (e.g., free→pro, pro→pro+), the server calculates prorated pricing (remaining days on current plan credited toward new plan) and initiates a new Paystack payment for the difference. If downgrading, the current subscription runs until endDate, then the new (lower) plan takes effect on renewal. Pro+ features (custom domain, pro+ templates) are revoked when the downgrade takes effect.
+
+
+===========================================
+SECTION 6: PRODUCTS (LISTINGS) MANAGEMENT
+===========================================
+
+Each seller manages their own products from their seller dashboard. The Product model (same concept as Africlana's "Listing" but called "Product" on Hustlr) stores:
+
+- storeId (reference to the Store)
+- sellerId (reference to the User who owns the store)
+- title (product name)
+- slug (URL-safe, auto-generated from title, unique per store)
+- description (rich text product description)
+- category (string, from the store's own category set or platform global categories)
+- price (number in the store's currency, NGN by default)
+- compareAtPrice (optional, the "original price" shown crossed out for sales)
+- sku (optional, seller-defined stock keeping unit)
+- stock (number, inventory count)
+- images (array of URLs uploaded to R2, max 8 images)
+- weightKg (optional, for shipping calculations)
+- hasVariants (boolean)
+- variants (array of { name: string, options: string[] }, e.g. { name: "Size", options: ["S", "M", "L", "XL"] }, { name: "Color", options: ["Red", "Blue"] })
+- variantCombinations (array of { combination: Record<string, string>, price: number, stock: number, sku: string, image: string }, e.g. { combination: { Size: "M", Color: "Red" }, price: 5000, stock: 10, sku: "TEE-M-RED", image: "url" }). This allows each variant combination to have its own price, stock, and image.
+- status ("draft" | "active" | "archived")
+- isFeatured (boolean, seller can feature products on their homepage)
+- tags (array of strings for search/filtering)
+- shippingFee (number, flat shipping fee set by seller. 0 means free shipping)
+- estimatedDeliveryDays (string, e.g. "3-5 business days")
+- rating (computed, average of reviews, default 0)
+- reviewCount (computed, count of published reviews, default 0)
+- ratingSum (computed, sum of all ratings for average calculation)
+
+Product management endpoints:
+- POST /seller/products — Create a new product. Validate with Joi. If the seller's plan has a maxProducts limit and they've hit it, return 403.
+- GET /seller/products — List seller's own products with filters (status, category, search, pagination).
+- GET /seller/products/:productId — Get a single product detail.
+- PUT /seller/products/:productId — Update a product. Validate ownership (product's sellerId matches authenticated seller).
+- PATCH /seller/products/:productId/status — Change product status (draft/active/archived). Only active products are visible on the storefront.
+- DELETE /seller/products/:productId — Soft delete (set status to "archived"). Products with existing orders are archived, not hard-deleted.
+
+Image upload for products: POST /seller/products/:productId/images accepts multiple images via multer, uploads each to R2, appends the URLs to the product's images array. DELETE /seller/products/:productId/images/:imageIndex removes a specific image.
+
+Bulk operations:
+- PATCH /seller/products/bulk-status — Change status for multiple products at once. Body: { productIds: [...], status: "active" | "draft" | "archived" }.
+- DELETE /seller/products/bulk-delete — Archive multiple products at once.
+
+Stock management:
+- When a product is ordered, stock is decremented atomically using $inc: { stock: -quantity }.
+- If stock hits 0, status auto-changes to "draft" (out of stock) and the seller gets an email notification.
+- The seller can manually adjust stock via PUT /seller/products/:productId (just update the stock field).
+
+
+===========================================
+SECTION 7: STORE CATEGORIES
+===========================================
+
+Each seller can create their own categories for organizing products on their storefront. The StoreCategory model stores:
+
+- storeId (reference to the Store)
+- name (e.g. "T-Shirts", "Accessories", "New Arrivals")
+- slug (URL-safe, unique per store)
+- image (optional category image URL)
+- description (optional)
+- order (number for sorting)
+- isActive (boolean)
+- productCount (computed, number of active products in this category)
+
+There are also platform-level global categories managed by admins (same as Africlana's CategoryModel). Sellers can either use global categories or create their own, or both. When a seller creates a product and picks a category, if the category name doesn't match any of their existing StoreCategories, a new StoreCategory is auto-created.
+
+Endpoints:
+- POST /seller/categories — Create a store category.
+- GET /seller/categories — List the seller's own categories.
+- PUT /seller/categories/:categoryId — Update category.
+- DELETE /seller/categories/:categoryId — Soft delete (set isActive to false).
+- Admin: Full CRUD on global categories at /admin/categories (same as Africlana).
+
+
+===========================================
+SECTION 8: STOREFRONT (PUBLIC BUYER-FACING ENDPOINTS)
+===========================================
+
+These are the endpoints that power the seller's public website. They all require the resolveStore middleware to identify which store is being accessed.
+
+GET /storefront/info — Returns the store's public info: name, logo, banner, description, socialLinks, colorScheme, contactEmail, contactPhone, shippingPolicy, returnPolicy, metaTitle, metaDescription. This is what the frontend uses to render the store's layout.
+
+GET /storefront/products — Returns all active products for this store with filters (category, search, minPrice, maxPrice, sort by price/newest/popular, pagination). This is the store's product listing page.
+
+GET /storefront/products/:slug — Returns a single product detail by slug (not by ID, since URLs should be human-readable like musa-store.hustlr.online/products/ankara-dress-blue).
+
+GET /storefront/categories — Returns active categories for this store with their product counts.
+
+GET /storefront/featured — Returns products where isFeatured = true for this store.
+
+GET /storefront/new-arrivals — Returns products created in the last 30 days for this store.
+
+GET /storefront/best-sellers — Returns products sorted by order count (most sold first) for this store.
+
+All storefront endpoints work without authentication (public). However, if a buyer is logged in (JWT present), the response includes personalization like "isWishlisted" flags on products.
+
+
+===========================================
+SECTION 9: BUYER CART
+===========================================
+
+A buyer's cart is scoped to a single store (because a buyer account is per-store). The Cart model stores:
+
+- buyerProfileId (reference to the BuyerProfile)
+- storeId (reference to the Store)
+- items (array of cart items):
+  - productId (reference to Product)
+  - quantity (number, min 1)
+  - selectedVariants (Record<string, string>, e.g. { "Size": "M", "Color": "Red" })
+  - priceSnapshot (the product's price at time of adding to cart, so if the seller changes the price, the cart still shows what the buyer saw)
+
+Cart endpoints (all require buyer auth + resolveStore middleware):
+- GET /cart — Get the buyer's cart for this store. Returns items with full product details (title, images, current price, stock availability). If a product's price changed since it was added, include a "priceChanged" flag.
+- POST /cart/add — Add a product to cart. Body: { productId, quantity, selectedVariants }. Validates that the product exists, belongs to this store, is active, has enough stock, and the selected variants are valid. If the same product+variants combo is already in the cart, increment quantity instead of adding a duplicate.
+- PATCH /cart/items/:itemId — Update quantity of a cart item. Body: { quantity }. Validates stock availability.
+- DELETE /cart/items/:itemId — Remove a single item from cart.
+- DELETE /cart/clear — Clear the entire cart.
+- GET /cart/count — Returns just the cart item count (for the cart badge on the UI).
+
+
+===========================================
+SECTION 10: CHECKOUT & PAYMENT (ESCROW)
+===========================================
+
+Hustlr uses an escrow system just like Africlana. Buyers pay the platform, the platform holds the money, and releases it to the seller after the buyer confirms receipt. The only payment gateway is Paystack.
+
+The checkout flow step by step, told through an example:
+
+Story: Tayo visits musa-store.hustlr.online and adds 3 items to his cart worth a total of ₦45,000. He also has a 10% discount coupon code "WELCOME10" from Musa.
+
+Step 1 — Checkout Initiation: Tayo clicks "Checkout" on the frontend. The frontend calls POST /checkout/initiate with:
+- shippingAddress: { fullName, streetAddress, city, state, zipCode, country, phoneNumber }
+- couponCode: "WELCOME10" (optional)
+- saveAddress: true (optional, saves this address to the buyer's profile)
+
+The server:
+a. Fetches the buyer's cart and validates all items are still in stock and active.
+b. If a coupon code is provided, validates it (looks up the Coupon model for this store, checks it's active, not expired, not exceeding usage limits, meets minimum order amount). Calculates the discount.
+c. Calculates the order total:
+   - Subtotal: sum of (item price × quantity) for all items = ₦45,000
+   - Shipping: sum of each product's shippingFee = ₦2,500
+   - Discount: ₦4,500 (10% of subtotal)
+   - Total: ₦45,000 + ₦2,500 - ₦4,500 = ₦43,000
+d. Creates an Order document:
+   - buyerProfileId, storeId, sellerId
+   - items (snapshot of each item: productId, title, price, quantity, selectedVariants, image)
+   - shippingAddress
+   - subtotal, shippingTotal, discountAmount, couponCode, totalAmount
+   - currency: "NGN"
+   - paymentStatus: "pending"
+   - orderNumber: auto-generated unique string like "HUS-MS-20250818-0001" (prefix + store initials + date + sequential number)
+e. Initiates a Paystack payment:
+   - amount: 43,000 (in NGN, converted to kobo = 4,300,000)
+   - email: buyer's email
+   - reference: the order's orderNumber
+   - callback_url: the store's URL + "/order-confirmation"
+   - metadata: { orderId, storeId, buyerProfileId }
+f. Returns the Paystack authorization_url to the frontend, which redirects Tayo to Paystack's checkout page.
+
+Step 2 — Payment Verification: After Tayo pays, Paystack redirects him back to musa-store.hustlr.online/order-confirmation?reference=HUS-MS-20250818-0001. The frontend calls POST /checkout/verify with the reference.
+
+The server:
+a. Verifies the payment with Paystack's API.
+b. If successful:
+   - Updates the Order's paymentStatus to "paid", sets paymentReference and paidAt.
+   - Decrements stock for each product in the order (atomically with $inc).
+   - Marks the coupon as used by this buyer (if applicable).
+   - Clears the buyer's cart.
+   - Sets the order's deliveryStatus to "processing".
+   - Sends an email to Tayo (the buyer) with the order confirmation and receipt.
+   - Sends an email to Musa (the seller) notifying him of the new order with details.
+   - Sends an in-app notification to the seller.
+   - Returns the order details to the frontend.
+c. If payment failed: Updates paymentStatus to "failed", restores the stock, and returns an error.
+
+Step 3 — Paystack Webhook: As a safety net, the server also listens for Paystack webhooks at POST /webhooks/paystack. The webhook handler verifies the signature using HMAC-SHA512 (same as Africlana's verifyPaystackSignature), then processes payment success/failure events. This handles cases where the buyer closes the browser before the verify call happens.
+
+The Order model:
+- buyerProfileId, storeId, sellerId
+- orderNumber (unique, human-readable)
+- items (array of order item snapshots with productId, title, price, quantity, selectedVariants, image, shippingFee)
+- shippingAddress (embedded)
+- subtotal, shippingTotal, discountAmount, couponCode, totalAmount
+- currency (string, "NGN")
+- paymentStatus ("pending" | "paid" | "failed" | "refunded" | "partially_refunded")
+- paymentReference (Paystack reference)
+- paidAt
+- deliveryStatus ("processing" | "shipped" | "in_transit" | "delivered" | "confirmed" | "disputed" | "refunded")
+- shippedAt, deliveredAt, confirmedAt
+- trackingNumber (optional, seller can add)
+- trackingNote (optional, seller can add notes like "Shipped via DHL")
+- commissionPercent (snapshot from seller's subscription plan at time of order)
+- commissionAmount (calculated: totalAmount × commissionPercent / 100)
+- payoutAmount (totalAmount - commissionAmount, this is what the seller will receive)
+- escrowStatus ("locked" | "released" | "disputed" | "refunded")
+- escrowReleasedAt
+- receiptUrl (URL to the generated PDF receipt)
+- invoiceUrl (URL to the generated PDF invoice)
+
+
+===========================================
+SECTION 11: ORDER MANAGEMENT
+===========================================
+
+--- Seller Order Management ---
+
+The seller manages orders from their dashboard:
+
+GET /seller/orders — List all orders for the seller's store with filters (deliveryStatus, paymentStatus, date range, search by orderNumber, pagination). Returns a summary for each order.
+
+GET /seller/orders/:orderId — Get full order detail including buyer info, items, shipping address, payment info, delivery history.
+
+PATCH /seller/orders/:orderId/ship — Seller marks the order as shipped. Body: { trackingNumber (optional), trackingNote (optional) }. The server sets deliveryStatus to "shipped", shippedAt to now, and sends an email + in-app notification to the buyer: "Your order #HUS-MS-20250818-0001 has been shipped! Tracking: DHL-123456789".
+
+PATCH /seller/orders/:orderId/in-transit — Seller updates the order to in transit. Sends notification to buyer.
+
+PATCH /seller/orders/:orderId/delivered — Seller marks the order as delivered. Sets deliveryStatus to "delivered", deliveredAt to now. Sends notification to buyer asking them to confirm receipt. The escrow auto-release timer starts ticking from this moment.
+
+GET /seller/orders/stats — Returns order statistics: total orders, orders by status, total revenue (paid orders), average order value, orders today/this week/this month.
+
+--- Buyer Order Management ---
+
+GET /orders — List the buyer's orders for this store (requires buyer auth + resolveStore). Filters by deliveryStatus, pagination.
+
+GET /orders/:orderId — Get full order detail.
+
+POST /orders/:orderId/confirm — Buyer confirms they received the order. The server:
+a. Sets deliveryStatus to "confirmed", confirmedAt to now, escrowStatus to "released".
+b. Credits the seller's wallet with the payoutAmount (same flow as Africlana: find or create the seller's Wallet, atomically $inc the balance, create a WalletTransaction with type "escrow_credit").
+c. Sends notification to the seller: "Order #HUS-MS-20250818-0001 confirmed! ₦38,700 has been credited to your wallet."
+d. Triggers referral reward logic if applicable (more on referrals later).
+
+POST /orders/:orderId/dispute — Buyer opens a dispute (see Section 13).
+
+--- Receipt & Invoice Generation (PDFKit) ---
+
+After an order is paid, the server generates two PDF documents:
+1. Receipt: For the buyer. Contains order number, items, quantities, prices, shipping, discounts, total, payment method, date, store logo and info.
+2. Invoice: For the seller. Contains the same plus commission breakdown and payout amount.
+
+Both are generated using pdfkit, uploaded to R2, and URLs are stored on the Order document. The buyer can download their receipt via GET /orders/:orderId/receipt and the seller via GET /seller/orders/:orderId/invoice.
+
+
+===========================================
+SECTION 12: ESCROW, WALLET & PAYOUTS
+===========================================
+
+The escrow system protects both buyers and sellers, exactly like Africlana's.
+
+--- Escrow Flow ---
+
+1. Buyer pays → Money goes to Hustlr's Paystack account (centralized escrow).
+2. Order is marked "delivered" by seller.
+3. Buyer has a window (default 48 hours, configurable by admin in Settings) to either confirm receipt or open a dispute.
+4. If buyer confirms: Escrow is released, seller's wallet is credited.
+5. If buyer does nothing: A cron job auto-confirms the order after the escrow window passes, then credits the seller's wallet.
+6. If buyer disputes: Escrow is locked in "disputed" status until an admin resolves it.
+
+--- Seller Wallet ---
+
+Each seller has a Wallet (same model concept as Africlana):
+- sellerId
+- balance (current available balance in NGN)
+- pendingBalance (amount tied up in pending withdrawal requests)
+- currency ("NGN")
+
+Wallet endpoints for sellers:
+- GET /seller/wallet — Returns balance, pendingBalance.
+- GET /seller/wallet/transactions — Returns paginated list of wallet transactions (credits from orders, withdrawals, reversals) with filters (type, status, date range).
+
+--- Payouts (Withdrawals) ---
+
+When a seller wants to withdraw their earnings:
+
+Step 1: Seller hits POST /seller/wallet/withdraw with { amount }. The server validates:
+- amount > 0 and <= wallet.balance
+- amount >= minimumWithdrawalAmount (from platform Settings)
+- Seller has verified bank details in their KYC
+
+Step 2: The server:
+- Atomically decrements wallet.balance by amount and increments pendingBalance by amount.
+- Creates a WalletTransaction with type "withdrawal", status "awaiting_approval", and the seller's bank details snapshot.
+- Sends notification to admins: "New withdrawal request: ₦38,700 from Musa's Fashion Hub".
+
+Step 3: Admin reviews withdrawal requests at GET /admin/payouts (with filters by status, date range, seller search, pagination). The admin can:
+
+a. APPROVE (POST /admin/payouts/:id/approve): Sets transaction status to "approved". The admin reviews and confirms the request.
+
+b. DISPATCH (POST /admin/payouts/:id/dispatch): Triggers the actual Paystack Transfer API call to send money to the seller's bank account. The server:
+   - Creates a Paystack transfer recipient using the seller's bank details.
+   - Initiates a Paystack transfer with the amount.
+   - Sets transaction status to "dispatched", stores the Paystack transfer reference.
+   - When Paystack confirms the transfer (via webhook or polling), sets status to "completed" and decrements pendingBalance.
+
+c. REJECT (POST /admin/payouts/:id/reject): Requires a rejectionReason. Reverses the funds: decrements pendingBalance and increments balance. Creates a "withdrawal_reversal" WalletTransaction. Notifies the seller.
+
+--- Wallet Webhooks ---
+
+POST /webhooks/paystack handles transfer events too:
+- "transfer.success": Mark the WalletTransaction as "completed", decrement pendingBalance.
+- "transfer.failed": Mark as "failed", reverse the funds (move from pendingBalance back to balance), create a reversal transaction, notify seller.
+- "transfer.reversed": Same as failed handling.
+
+
+===========================================
+SECTION 13: DISPUTES & REFUNDS
+===========================================
+
+When a buyer has an issue with their order, they can open a dispute. This mirrors Africlana's dispute system.
+
+The Dispute model:
+- orderId (reference to the Order)
+- storeId (reference to the Store)
+- buyerProfileId (reference to the BuyerProfile)
+- sellerId (reference to the User)
+- reason (string, e.g. "Item not as described", "Item damaged", "Item not received", "Wrong item sent")
+- description (detailed text from buyer)
+- evidenceImages (array of image URLs uploaded to R2)
+- severity ("Low" | "Medium" | "High", auto-determined or set by admin)
+- status ("Open" | "In Progress" | "Resolved")
+- resolutionPreference ("Refund" | "Replacement")
+- refundAmount (number, set during resolution)
+- resolutionNote (text, admin's resolution summary)
+- resolvedAt
+- messages (array of chat messages between buyer, seller, and admin):
+  - senderId, senderRole ("buyer" | "seller" | "admin"), senderName, message, attachments, createdAt
+- awaitingResponseFrom ("buyer" | "seller" | "admin" | null)
+
+Dispute flow step by step:
+
+Step 1: Buyer opens dispute via POST /orders/:orderId/dispute with { reason, description, evidenceImages, resolutionPreference }. The server creates a Dispute, sets the order's deliveryStatus to "disputed" and escrowStatus to "disputed". Sends email + in-app notifications to both the seller and admins.
+
+Step 2: The dispute becomes a three-way conversation. The seller can respond via POST /disputes/:disputeId/messages (seller auth). The buyer can respond via the same endpoint (buyer auth). Admins can respond via POST /admin/disputes/:disputeId/messages.
+
+Step 3: Admin investigates. They view all disputes at GET /admin/disputes (with filters). They view a specific dispute at GET /admin/disputes/:disputeId. They can update severity and status.
+
+Step 4: Resolution. The admin resolves the dispute via POST /admin/disputes/:disputeId/resolve with { resolution: "refund" | "replacement" | "rejected", refundAmount (if refund), resolutionNote }.
+
+If resolution is "refund":
+- The server triggers a refund via Paystack's refund API (POST https://api.paystack.co/refund) using the original payment reference and the refund amount (partial refund supported).
+- Updates the order's paymentStatus to "refunded" or "partially_refunded".
+- Updates escrowStatus to "refunded".
+- Dispute status set to "Resolved".
+- Email notifications sent to both buyer and seller.
+
+If resolution is "replacement":
+- The seller is expected to ship a replacement. Admin adds a note.
+- The order's deliveryStatus resets to "processing" so the seller can re-ship.
+- Dispute status set to "Resolved".
+
+If resolution is "rejected" (buyer's claim was invalid):
+- Escrow is released to seller (same flow as normal confirmation).
+- Dispute status set to "Resolved".
+- Email sent to buyer explaining the decision.
+
+
+===========================================
+SECTION 14: REVIEWS & RATINGS
+===========================================
+
+Buyers can leave reviews on products they've purchased, just like Africlana.
+
+The Review model:
+- productId (reference to Product)
+- storeId (reference to Store)
+- buyerProfileId (reference to BuyerProfile)
+- orderId (reference to Order)
+- rating (1-5 stars)
+- title (optional, short summary)
+- comment (optional, detailed review text, max 2000 chars)
+- images (optional, array of review image URLs uploaded to R2)
+- isVerifiedPurchase (boolean, true since we only allow reviews from actual buyers)
+- status ("published" | "hidden" | "flagged")
+- productTitle (snapshot)
+- productImage (snapshot)
+- variantInfo (snapshot of selected variants)
+- sellerReply: { text: string, repliedAt: Date } (seller can reply to reviews)
+- createdAt, updatedAt
+
+Review flow:
+
+Step 1: After a buyer confirms receipt of an order (deliveryStatus = "confirmed"), they can leave a review. The endpoint POST /reviews requires buyer auth. Body: { productId, orderId, rating, title, comment, images }. The server validates:
+- The buyer actually purchased this product in this order.
+- The order's deliveryStatus is "confirmed" or "delivered".
+- The buyer hasn't already reviewed this product for this order (unique constraint on buyerProfileId + orderId + productId).
+
+Step 2: After saving the review, the server recomputes the product's rating aggregates (ratingSum, reviewCount, rating = ratingSum / reviewCount), same as Africlana's recomputeListingRating function.
+
+Step 3: Seller can reply to a review via POST /seller/reviews/:reviewId/reply with { text }. Only one reply per review.
+
+Step 4: Seller can view all reviews for their store via GET /seller/reviews with filters (rating, status, product, date range, pagination).
+
+Public endpoints for storefront:
+- GET /storefront/products/:slug/reviews — Returns published reviews for a product with pagination, sorted by newest first. Includes average rating breakdown (count of 1-star, 2-star, etc.).
+
+Admin moderation (same concept as Africlana):
+- GET /admin/reviews — List all reviews across all stores with filters.
+- PATCH /admin/reviews/:reviewId/hide — Hide a review (inappropriate content).
+- PATCH /admin/reviews/:reviewId/flag — Flag a review for investigation.
+- PATCH /admin/reviews/:reviewId/publish — Republish a hidden/flagged review.
+- DELETE /admin/reviews/:reviewId — Permanently delete a review.
+
+A cron job runs every 24 hours to backfill/reconcile product rating aggregates from the Review collection, same as Africlana's runReviewAggregateBackfill.
+
+
+===========================================
+SECTION 15: COUPONS & DISCOUNTS
+===========================================
+
+Sellers can create discount codes for their stores.
+
+The Coupon model:
+- storeId (reference to Store)
+- sellerId (reference to User)
+- code (string, unique per store, e.g. "WELCOME10", "SUMMER20")
+- type ("percentage" | "fixed") — percentage discount or fixed naira amount off
+- value (number, the discount value. If type is "percentage", this is 1-100. If "fixed", this is the naira amount off.)
+- minimumOrderAmount (optional, minimum cart subtotal required to use this coupon)
+- maxUsageCount (optional, total number of times this coupon can be used across all buyers. null = unlimited)
+- maxUsagePerBuyer (optional, how many times a single buyer can use this coupon. Default 1)
+- currentUsageCount (number, incremented each time the coupon is used)
+- usedBy (array of { buyerProfileId, orderId, usedAt } — tracks who used it)
+- startDate (optional, coupon becomes active on this date)
+- expiryDate (optional, coupon expires after this date)
+- isActive (boolean)
+- appliesTo ("all" | "specific_products" | "specific_categories")
+- applicableProductIds (array of Product references, used when appliesTo = "specific_products")
+- applicableCategories (array of strings, used when appliesTo = "specific_categories")
+
+Coupon management endpoints for sellers:
+- POST /seller/coupons — Create a coupon. Validate that the code is unique within this store.
+- GET /seller/coupons — List all coupons with filters (isActive, expired, search by code, pagination).
+- PUT /seller/coupons/:couponId — Update a coupon.
+- PATCH /seller/coupons/:couponId/toggle — Toggle isActive.
+- DELETE /seller/coupons/:couponId — Delete a coupon (only if it hasn't been used, otherwise just deactivate).
+- GET /seller/coupons/:couponId/usage — View usage stats for a coupon.
+
+Storefront coupon validation:
+- POST /storefront/coupons/validate — Body: { code }. The server looks up the coupon for this store, checks all validity conditions (isActive, date range, usage limits, minimum order amount), and returns the discount details. The frontend can then show the buyer what discount they'll get before checkout.
+
+During checkout (Section 10), if a coupon code is provided, the server validates it again and applies the discount to the order total.
+
+
+===========================================
+SECTION 16: BUYER WISHLIST
+===========================================
+
+Buyers can save products to a wishlist within each store.
+
+The Wishlist model:
+- buyerProfileId (reference to BuyerProfile)
+- storeId (reference to Store)
+- products (array of Product references)
+
+Endpoints (require buyer auth + resolveStore):
+- POST /wishlist/toggle — Body: { productId }. If the product is in the wishlist, remove it. If not, add it. Returns the updated wishlist state.
+- GET /wishlist — Returns the buyer's wishlist products for this store with full product details.
+- DELETE /wishlist/clear — Clear the entire wishlist.
+
+On storefront product endpoints, if a buyer is authenticated, each product response includes "isWishlisted: true/false" so the frontend can show the heart icon state.
+
+
+===========================================
+SECTION 17: REFERRAL SYSTEM
+===========================================
+
+Hustlr has two referral programs:
+
+--- (A) Store-Level Buyer Referrals ---
+
+Each buyer has a unique referral code (auto-generated on their BuyerProfile). When buyer A shares their referral code with friend B, and friend B signs up on the same store and makes their first purchase:
+
+- Friend B (the referee) gets a discount on their first order. The discount amount/percentage is configurable by the seller via their store settings.
+- Buyer A (the referrer) gets a store credit/voucher deposited into their buyer wallet for that store. The credit amount is also configurable by the seller.
+
+The BuyerReferral model:
+- storeId
+- referrerId (BuyerProfile who shared the code)
+- refereeId (BuyerProfile who signed up with the code)
+- status ("pending" | "rewarded" | "expired")
+- referrerRewardType ("voucher")
+- referrerRewardAmount
+- refereeDiscountType ("percentage" | "fixed")
+- refereeDiscountValue
+- rewardedAt
+- orderId (the first order that triggered the reward)
+
+Flow:
+1. Buyer registers with a referral code in the body: POST /buyer/auth/register with { ..., referralCode: "ABC123" }. The server looks up the BuyerProfile with that referral code in the same store. If found, sets referredBy on the new buyer and creates a BuyerReferral with status "pending".
+2. When the new buyer makes their first purchase and the order is confirmed (escrow released), the server triggers the reward:
+   a. Credits the referrer's buyer wallet.
+   b. Sets the referral status to "rewarded".
+   c. Sends notifications to both parties.
+
+Seller referral settings (stored on the Store model):
+- referralEnabled (boolean)
+- referrerRewardAmount (number in NGN)
+- refereeDiscountPercent (number, 0-100)
+- refereeDiscountMaxAmount (optional cap on the discount)
+
+--- (B) Platform-Level Seller Referrals ---
+
+Existing sellers can refer new sellers to register on Hustlr.
+
+The SellerReferral model:
+- referrerId (User, the existing seller)
+- refereeId (User, the new seller)
+- status ("pending" | "qualified" | "rewarded" | "expired")
+- rewardType ("subscription_credit" | "cash_bonus")
+- rewardAmount
+- rewardedAt
+- qualifiedAt (when the referee completes their first paid subscription)
+
+Flow:
+1. Each seller has a platform referral code on their User document (same as Africlana's approach with the REFERRAL_CODE_ALPHABET).
+2. During seller registration, the new seller can enter a referral code. The server saves referredBy on the new User.
+3. When the new seller completes KYC and subscribes to a paid plan for the first time, the referral qualifies.
+4. The referrer gets a reward (e.g., one month free on their current plan, or a cash bonus credited to their wallet). The reward type and amount are configurable by admins in the platform Settings.
+
+Admin referral management:
+- GET /admin/referrals — List all seller referrals with filters.
+- GET /admin/referrals/buyer — List buyer referrals across all stores.
+- POST /admin/referrals/:id/reverse — Reverse a referral reward (in case of abuse).
+
+
+===========================================
+SECTION 18: BLOG (PRO & PRO+ ONLY)
+===========================================
+
+Pro and Pro+ sellers can create blog posts on their storefronts. This helps with SEO and content marketing.
+
+The BlogPost model:
+- storeId (reference to Store)
+- sellerId (reference to User)
+- title
+- slug (URL-safe, unique per store)
+- content (rich text / HTML content)
+- excerpt (short summary for listing pages)
+- coverImage (URL uploaded to R2)
+- tags (array of strings)
+- status ("draft" | "published" | "archived")
+- publishedAt (set when status changes to "published")
+- metaTitle (SEO)
+- metaDescription (SEO)
+- viewCount (number, incremented on each view)
+- createdAt, updatedAt
+
+Seller blog endpoints (require seller auth, check that seller's plan allows blog):
+- POST /seller/blog — Create a blog post.
+- GET /seller/blog — List all blog posts with filters (status, search, pagination).
+- GET /seller/blog/:postId — Get single blog post.
+- PUT /seller/blog/:postId — Update a blog post.
+- PATCH /seller/blog/:postId/publish — Publish a draft post. Sets status to "published" and publishedAt to now.
+- PATCH /seller/blog/:postId/unpublish — Set status back to "draft".
+- DELETE /seller/blog/:postId — Soft delete (archive).
+
+Public storefront endpoints:
+- GET /storefront/blog — Returns published blog posts for this store, sorted by publishedAt descending, paginated.
+- GET /storefront/blog/:slug — Returns a single published blog post by slug. Increments viewCount.
+- GET /storefront/blog/tags — Returns all unique tags used across published posts for this store.
+
+
+===========================================
+SECTION 19: SELLER ANALYTICS DASHBOARD
+===========================================
+
+Sellers get a comprehensive analytics dashboard for their store.
+
+Endpoints (all require seller auth):
+
+GET /seller/analytics/overview — Returns key metrics:
+- Total revenue (sum of all paid orders' totalAmount)
+- Revenue this month vs. last month (with % change)
+- Total orders, orders this month
+- Average order value
+- Total customers (unique buyerProfileIds who have orders)
+- New customers this month
+- Conversion rate (orders / unique visitors, if we track page views)
+- Wallet balance
+
+GET /seller/analytics/revenue-trend — Returns revenue data points grouped by day/week/month over a date range. Query params: period (7d, 30d, 90d, 12m), groupBy (day, week, month). Returns array of { date, revenue, orderCount }.
+
+GET /seller/analytics/top-products — Returns the top N products by revenue or order count. Query params: limit, sortBy (revenue, orders).
+
+GET /seller/analytics/order-status — Returns order count breakdown by deliveryStatus (processing, shipped, delivered, confirmed, disputed, refunded). Useful for the seller to see at a glance.
+
+GET /seller/analytics/customers — Returns customer analytics: total customers, new vs. returning, top customers by spend. Query params: period.
+
+GET /seller/analytics/product-performance — Returns per-product analytics: views, orders, revenue, conversion rate, average rating. Paginated.
+
+
+===========================================
+SECTION 20: NOTIFICATIONS (EMAIL + IN-APP)
+===========================================
+
+Hustlr uses two notification channels: email and in-app notification center.
+
+--- Email Notifications ---
+
+All emails are sent via Resend (primary) with Nodemailer/SMTP as fallback (same pattern as Africlana). Every email uses beautifully designed HTML templates with the Hustlr branding. The email utility function takes a templateName and data, renders the HTML, and sends it.
+
+Emails that the system sends:
+
+For Sellers:
+- Welcome email after registration
+- OTP for email verification
+- OTP for password reset
+- KYC submission received
+- KYC approved / rejected / info requested
+- Subscription activated / renewed / expiring soon / expired
+- New order received
+- Order confirmed by buyer (escrow released)
+- Dispute opened on an order
+- Dispute resolved
+- Withdrawal request approved / dispatched / rejected / completed
+- Low stock alert (product stock hits 0)
+- New review received on a product
+
+For Buyers:
+- Welcome email after registration on a store
+- OTP for email verification
+- OTP for password reset
+- Order confirmation + receipt
+- Order shipped / in transit / delivered
+- Order auto-confirmed (escrow released after timeout)
+- Dispute update (new message, resolved)
+- Referral reward received
+
+For Admins:
+- New KYC application submitted
+- New withdrawal request
+- New dispute opened
+- Subscription payment failed
+
+--- In-App Notification Center ---
+
+The Notification model:
+- recipientId (can be a User ID for sellers/admins, or a BuyerProfile ID for buyers)
+- recipientType ("seller" | "buyer" | "admin")
+- storeId (optional, for buyer notifications)
+- type (string enum: "order_new", "order_confirmed", "order_shipped", "dispute_opened", "dispute_resolved", "withdrawal_approved", "kyc_approved", "review_new", "referral_reward", "subscription_expiring", etc.)
+- title (short text, e.g. "New Order Received")
+- message (longer text, e.g. "Order #HUS-MS-20250818-0001 worth ₦43,000 has been placed.")
+- link (optional, deep link path like "/orders/abc123")
+- isRead (boolean, default false)
+- readAt (Date)
+- metadata (Record<string, unknown>, extra data for the frontend to use)
+- createdAt
+
+Notification endpoints:
+- GET /notifications — Returns paginated notifications for the authenticated user (seller, buyer, or admin depending on auth context). Filters: isRead, type.
+- GET /notifications/unread-count — Returns just the count of unread notifications (for the bell badge).
+- PATCH /notifications/:notificationId/read — Mark a single notification as read.
+- PATCH /notifications/mark-all-read — Mark all notifications as read.
+- DELETE /notifications/:notificationId — Delete a single notification.
+
+The notification utility function (createNotification) is called throughout the codebase whenever something noteworthy happens. It creates the Notification document and optionally also sends an email (most events trigger both in-app and email notifications).
+
+
+===========================================
+SECTION 21: SUPPORT TICKETS
+===========================================
+
+Both sellers and buyers can create support tickets to reach the Hustlr admin team. Same concept as Africlana's support ticket system.
+
+The SupportTicket model:
+- ticketNumber (auto-generated unique string, e.g. "TKT-20250818-0001")
+- userId (User ID if seller/admin, BuyerProfile ID if buyer)
+- userType ("seller" | "buyer")
+- storeId (optional, for buyer tickets)
+- topic (string, e.g. "Payment Issue", "Order Problem", "Account Help", "Feature Request", "Bug Report")
+- subject (text)
+- status ("Open" | "In Progress" | "Resolved" | "Closed")
+- priority ("Low" | "Medium" | "High")
+- messages (array of conversation messages):
+  - senderId, senderRole ("buyer" | "seller" | "admin"), senderName, message, attachments, createdAt, readByAdmin, readByUser
+- awaitingResponseFrom ("user" | "admin" | null)
+- resolvedAt, closedAt
+
+User endpoints (seller and buyer):
+- POST /tickets — Create a new ticket. Body: { topic, subject, message, attachments }.
+- GET /tickets — List user's own tickets with filters (status, pagination).
+- GET /tickets/:ticketId — Get ticket detail with all messages.
+- POST /tickets/:ticketId/messages — Add a message to an existing ticket. 
+
+Admin endpoints:
+- GET /admin/tickets — List all tickets across all stores with filters (status, priority, topic, userType, search, pagination).
+- GET /admin/tickets/pending-count — Count of tickets awaiting admin response.
+- GET /admin/tickets/unread-count — Count of tickets with unread messages for admin.
+- GET /admin/tickets/:ticketId — Get ticket detail.
+- POST /admin/tickets/:ticketId/messages — Admin replies to a ticket.
+- PATCH /admin/tickets/:ticketId/status — Update ticket status. If resolving, sets resolvedAt. If closing, sets closedAt.
+
+
+===========================================
+SECTION 22: CUSTOM DOMAINS (PRO+ ONLY)
+===========================================
+
+Pro+ sellers can connect their own custom domain to their store.
+
+Flow:
+
+Step 1: Seller enters their custom domain via PUT /seller/store/custom-domain with { domain: "www.musastore.com" }. The server validates:
+- Seller is on the pro+ plan.
+- The domain format is valid.
+- The domain isn't already in use by another store.
+The server saves the domain on the Store document and sets customDomainVerified = false.
+
+Step 2: The server returns DNS configuration instructions to the seller:
+- For subdomain (www.musastore.com): Add a CNAME record pointing to "stores.hustlr.online"
+- For apex domain (musastore.com): Add an A record pointing to our server IP, or use a CNAME flattening service.
+
+Step 3: Seller configures their DNS. Then hits POST /seller/store/verify-domain. The server performs a DNS lookup on the domain to check if the CNAME/A record points to our infrastructure. If verified, sets customDomainVerified = true.
+
+Step 4: The resolveStore middleware is updated to also check incoming requests' Host header against the customDomain field (in addition to subdomain matching). So both musa-store.hustlr.online and www.musastore.com resolve to the same store.
+
+Step 5: If the seller downgrades from pro+ to a lower plan, the server sets customDomain = null and customDomainVerified = false. The custom domain stops working, and only the subdomain remains.
+
+DELETE /seller/store/custom-domain — Seller removes their custom domain.
+
+
+===========================================
+SECTION 23: ADMIN DASHBOARD
+===========================================
+
+The admin dashboard provides comprehensive platform management.
+
+--- Admin Authentication ---
+
+Admin accounts are created by other admins or seeded (same as Africlana's seedAdmin script). Admins login through the same seller auth endpoints but with role = "admin". The adminOnly middleware checks req.user.role === "admin".
+
+Admin can also promote an existing seller to admin via PATCH /admin/users/:userId/promote-admin (same as Africlana).
+
+--- User Management ---
+
+GET /admin/users — List all users (sellers and admins) with filters (role, search by name/email, banned status, KYC status, subscription plan, pagination).
+GET /admin/users/stats — Returns user statistics: total sellers, total admins, new registrations this week/month, sellers by plan breakdown, KYC status breakdown.
+GET /admin/users/:userId — Detailed user profile including store info, KYC status, subscription status, wallet balance, order count.
+PATCH /admin/users/:userId/ban — Ban a seller. Body: { reason }. Sets banned = true, banReason. The seller's store goes offline (isLive = false). All active orders continue to be processed (don't disrupt existing buyers). Email notification sent to the seller.
+PATCH /admin/users/:userId/unban — Unban a seller. Store goes back online if subscription is active and KYC approved.
+GET /admin/users/export — Export user data as CSV.
+
+--- Buyer Management ---
+
+GET /admin/buyers — List all buyer profiles across all stores with filters (storeId, search, banned status, pagination).
+GET /admin/buyers/:buyerProfileId — Detailed buyer profile with order history.
+PATCH /admin/buyers/:buyerProfileId/ban — Admin can ban a buyer from a specific store.
+
+--- Store Management ---
+
+GET /admin/stores — List all stores with filters (isLive, subscription plan, search, pagination).
+GET /admin/stores/:storeId — Detailed store info including products count, orders count, revenue.
+PATCH /admin/stores/:storeId/toggle-live — Force a store online/offline (admin override).
+
+--- Platform Analytics ---
+
+GET /admin/analytics/overview — Platform-wide metrics:
+- Total GMV (gross merchandise value, sum of all paid orders across all stores)
+- Platform revenue (sum of all commissions)
+- Total stores (active, inactive, by plan)
+- Total buyers across all stores
+- Total orders (by status breakdown)
+- GMV this month vs. last month (% change)
+
+GET /admin/analytics/gmv-trend — GMV over time, same structure as Africlana's getGmvTrend.
+GET /admin/analytics/stores — Top performing stores by revenue, order count.
+GET /admin/analytics/plans — Subscription plan distribution and revenue per plan.
+GET /admin/analytics/kyc-funnel — KYC pipeline: how many at each stage (pending, approved, rejected, info_requested).
+GET /admin/analytics/disputes — Dispute analytics: count by status, average resolution time, refund rate.
+GET /admin/analytics/payouts — Payout summary: total paid out, pending, by status.
+
+--- Platform Settings ---
+
+GET /admin/settings — Returns platform-level settings.
+PUT /admin/settings — Update settings.
+
+The Settings model (similar to Africlana's but extended):
+- platformName (string, default "Hustlr", the global constant)
+- platformCommissionPercent (default commission, overridden by plan-specific commission)
+- escrowAutoReleaseHours (default 48)
+- minimumWithdrawalAmount (in NGN)
+- payoutGateway ("paystack")
+- payoutCurrency ("NGN")
+- defaultSellerReferralRewardAmount (NGN, for platform-level seller referral rewards)
+- sellerReferralEnabled (boolean)
+- supportEmail
+- maintenanceMode (boolean, if true, all stores show a maintenance page)
+
+--- Audit Logs ---
+
+Every significant admin action is logged in the AuditLog model (same as Africlana: action, category, outcome, description, entityType, entityId, metadata, ipAddress, userAgent, source). The audit-request middleware automatically logs certain actions.
+
+GET /admin/audit-logs — List audit logs with filters (action, category, userId, date range, pagination).
+GET /admin/audit-logs/:logId — Single log detail.
+GET /admin/audit-logs/filter-options — Returns available filter values.
+GET /admin/audit-logs/export — Export logs as CSV.
+
+--- Transactions ---
+
+GET /admin/transactions — List all financial transactions across the platform (order payments, refunds, withdrawals, subscription payments) with filters and pagination.
+GET /admin/transactions/:id — Transaction detail.
+GET /admin/transactions/stats — Transaction statistics: total volume, by type, by gateway.
+GET /admin/transactions/export — Export as CSV/XLSX/PDF (same as Africlana's multiple export formats).
+
+
+===========================================
+SECTION 24: AI-POWERED FEATURES
+===========================================
+
+Like Africlana's AI service, Hustlr offers AI-powered tools for sellers (using DeepSeek or any LLM API):
+
+POST /seller/ai/improve-title — Takes { title, category, description } and returns suggested improved product titles. Uses the LLM to generate SEO-optimized, compelling titles. Falls back to local generation if the API key is missing.
+
+POST /seller/ai/rewrite-description — Takes { description, title, category, tone } where tone is "professional" | "casual" | "persuasive" | "detailed". Returns a rewritten description and key highlights. Falls back to local generation.
+
+POST /seller/ai/generate-seo — Takes store/product info and generates metaTitle and metaDescription suggestions.
+
+These endpoints use the same pattern as Africlana's ai.service.ts: call the LLM API with a system prompt and user prompt, expect JSON response, fall back to hardcoded generation if the API fails.
+
+
+===========================================
+SECTION 25: CRON JOBS & BACKGROUND TASKS
+===========================================
+
+The server runs several cron jobs (using setInterval, same pattern as Africlana):
+
+1. Escrow Auto-Release (runs every 1 hour):
+   - Finds orders where deliveryStatus = "delivered" and deliveredAt is older than escrowAutoReleaseHours.
+   - Auto-confirms these orders (sets deliveryStatus = "confirmed").
+   - Credits the seller's wallet.
+   - Sends notifications to both buyer and seller.
+   Same logic as Africlana's runEscrowAutoRelease.
+
+2. Subscription Expiry Check (runs every 6 hours):
+   - Finds subscriptions where endDate is within 3 days and renewalReminderSent = false.
+   - Sends reminder email to seller.
+   - Sets renewalReminderSent = true.
+   - Finds subscriptions where endDate has passed:
+     - If within grace period (3 days): sets status to "grace_period" if not already.
+     - If past grace period: sets status to "expired", sets store isLive = false, sends email to seller.
+
+3. Review Aggregate Backfill (runs every 24 hours):
+   - Recomputes all product rating aggregates from the Review collection.
+   - Same logic as Africlana's runReviewAggregateBackfill.
+
+4. Stale Cart Cleanup (runs every 24 hours):
+   - Deletes carts that haven't been updated in 30 days (abandoned carts).
+
+5. Expired Coupon Deactivation (runs every 24 hours):
+   - Finds coupons where expiryDate has passed and isActive is still true.
+   - Sets isActive = false.
+
+
+===========================================
+SECTION 26: FILE UPLOADS (CLOUDFLARE R2)
+===========================================
+
+All file uploads go through Cloudflare R2 via the AWS S3 SDK (same setup as Africlana):
+
+Config (r2.config.ts): S3Client configured with the R2 endpoint, access key, and secret from .env.
+
+Upload utility (upload.util.ts): Takes a file buffer and key (path), uploads to R2, returns the public URL. Files are organized in R2 by type:
+- stores/{storeId}/logo.png
+- stores/{storeId}/banner.png
+- stores/{storeId}/favicon.ico
+- stores/{storeId}/products/{productId}/{filename}
+- kyc/{sellerId}/{documentType}/{filename}
+- reviews/{reviewId}/{filename}
+- blog/{storeId}/{postId}/{filename}
+- templates/{templateId}/preview.png
+- receipts/{orderId}/receipt.pdf
+- invoices/{orderId}/invoice.pdf
+
+Upload middleware (upload.middleware.ts): Uses multer with memory storage. Different routes configure different file size limits and allowed file types.
+
+Upload endpoints:
+- POST /upload/image — General image upload (used across the app). Returns { url: "https://..." }.
+- POST /upload/document — For KYC documents (larger file size limit, allows PDF).
+
+
+===========================================
+SECTION 27: RATE LIMITING & SECURITY
+===========================================
+
+Rate limiting (same pattern as Africlana's rateLimiter.middleware.ts):
+- Auth endpoints (login, register, OTP): 5 requests per minute per IP.
+- General API endpoints: 100 requests per minute per IP.
+- Upload endpoints: 20 requests per minute per IP.
+- Webhook endpoints: No rate limiting (but signature verified).
+
+Security:
+- Helmet middleware for HTTP headers.
+- CORS configured with CLIENT_ORIGINS from .env (seller dashboard origin, admin dashboard origin, and dynamically allow all *.hustlr.online subdomains for buyer storefronts). Also allow configured custom domains.
+- JWT verification on all protected endpoints.
+- Input validation with Joi on all write endpoints.
+- Mongoose query injection prevention (sanitize user inputs in queries).
+- File upload validation (file type, size limits).
+- Paystack webhook signature verification.
+
+
+===========================================
+SECTION 28: SCRIPTS
+===========================================
+
+Scripts in src/scripts/:
+
+1. seedAdmin.ts — Seeds an initial admin account (same as Africlana).
+2. seedPlans.ts — Seeds the three subscription plans (free, pro, pro+) with default pricing and features.
+3. seedCategories.ts — Seeds global product categories (same concept as Africlana).
+4. seedTemplates.ts — Seeds a few default website templates.
+
+Run scripts via: pnpm ts-node src/scripts/seedAdmin.ts (or similar).
+
+
+===========================================
+SECTION 29: API DOCUMENTATION & POSTMAN
+===========================================
+
+The Postman collection JSON file must be comprehensive and organized:
+
+Collection structure:
+- 📁 Auth
+  - Seller Register
+  - Seller Verify OTP
+  - Seller Resend OTP
+  - Seller Login
+  - Seller Google OAuth
+  - Seller Forgot Password
+  - Seller Reset Password
+  - Buyer Register
+  - Buyer Login
+  - Buyer Google OAuth
+  - ...
+- 📁 Store Setup
+  - Update Store
+  - Get Store Info
+  - Set Template
+  - Set Custom Domain
+  - Verify Custom Domain
+  - ...
+- 📁 Products
+  - Create Product
+  - List Products
+  - Update Product
+  - Delete Product
+  - Upload Product Images
+  - Bulk Status Update
+  - ...
+- 📁 Storefront (Public)
+  - Get Store Info
+  - List Products
+  - Get Product Detail
+  - Get Categories
+  - Featured Products
+  - New Arrivals
+  - ...
+- 📁 Cart
+  - Get Cart
+  - Add to Cart
+  - Update Item Quantity
+  - Remove Item
+  - Clear Cart
+  - ...
+- 📁 Checkout
+  - Initiate Checkout
+  - Verify Payment
+  - ...
+- 📁 Orders
+  - Buyer: List Orders
+  - Buyer: Order Detail
+  - Buyer: Confirm Receipt
+  - Seller: List Orders
+  - Seller: Order Detail
+  - Seller: Mark Shipped
+  - Seller: Mark Delivered
+  - ...
+- 📁 Wallet & Payouts
+  - Get Wallet
+  - List Transactions
+  - Request Withdrawal
+  - ...
+- 📁 Disputes
+  - Open Dispute
+  - List Disputes
+  - Dispute Detail
+  - Send Message
+  - ...
+- 📁 Reviews
+  - Create Review
+  - List Reviews
+  - Seller Reply
+  - ...
+- 📁 Coupons
+  - Create Coupon
+  - List Coupons
+  - Validate Coupon
+  - ...
+- 📁 Blog
+  - Create Post
+  - List Posts
+  - Publish Post
+  - ...
+- 📁 Referrals
+  - Get Referral Code
+  - List Referrals
+  - ...
+- 📁 Notifications
+  - List Notifications
+  - Unread Count
+  - Mark Read
+  - ...
+- 📁 Support Tickets
+  - Create Ticket
+  - List Tickets
+  - Reply to Ticket
+  - ...
+- 📁 Analytics
+  - Overview
+  - Revenue Trend
+  - Top Products
+  - ...
+- 📁 AI Tools
+  - Improve Title
+  - Rewrite Description
+  - Generate SEO
+  - ...
+- 📁 Admin
+  - 📁 KYC Management
+  - 📁 User Management
+  - 📁 Store Management
+  - 📁 Template Management
+  - 📁 Plan Management
+  - 📁 Payouts
+  - 📁 Disputes
+  - 📁 Tickets
+  - 📁 Analytics
+  - 📁 Settings
+  - 📁 Audit Logs
+  - 📁 Transactions
+  - 📁 Referrals
+  - 📁 Reviews Moderation
+- 📁 Webhooks
+  - Paystack Webhook
+- 📁 Uploads
+  - Upload Image
+  - Upload Document
+- 📁 Miscellaneous
+  - Health Check
+  - Get Paystack Banks
+
+Every request must include:
+- Method + URL
+- Headers (Content-Type, Authorization where needed)
+- Sample request body with realistic test data
+- Description of what the endpoint does
+
+Environment variables in Postman: {{baseUrl}}, {{sellerToken}}, {{buyerToken}}, {{adminToken}}, {{storeSlug}}
+
+
+===========================================
+SECTION 30: ENVIRONMENT VARIABLES
+===========================================
+
+The .env.example must include:
+
+# Server
+NODE_ENV=development
+PORT=5000
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/hustlr
+
+# JWT
+JWT_SECRET=your-jwt-secret-here
+JWT_EXPIRES_IN=7d
+
+# CORS
+CLIENT_ORIGINS=http://localhost:3000,http://localhost:3001
+ADMIN_WEBSITE_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
+PLATFORM_DOMAIN=hustlr.online
+
+# Cloudflare R2 (S3-compatible)
+AWS_REGION=auto
+R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=your-r2-access-key
+R2_SECRET_ACCESS_KEY=your-r2-secret-key
+R2_BUCKET_NAME=hustlr-uploads
+R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
+
+# Email (Resend - primary)
+RESEND_API_KEY=re_xxxxxxxxxxxx
+EMAIL_FROM=Hustlr <noreply@hustlr.online>
+
+# Email (SMTP - fallback)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+
+# Firebase (Google OAuth)
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Paystack
+PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxx
+PAYSTACK_PUBLIC_KEY=pk_test_xxxxxxxxxxxx
+
+# AI (DeepSeek or compatible LLM)
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxx
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+
+
+--- END OF FULL FEATURE SPECIFICATION ---
+
+Every feature described above should be implemented step by step. Use the Africlana codebase as a reference for patterns (file structure, code style, error handling, middleware patterns, utility functions), but adapt everything to Hustlr's multi-tenant architecture where the core difference is: every buyer action is scoped to a specific store via the resolveStore middleware, and each store is its own mini e-commerce website powered by the same backend.
