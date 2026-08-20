@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Check, X, Loader2 } from "lucide-react";
 import { Input, Textarea } from "@/components/ui/Input";
 import type { Store, StoreSetupInput } from "@/types/store";
@@ -21,15 +21,6 @@ export default function BasicsStep({
   const [name, setName] = useState(store.name || pendingStoreName || "");
   const [slug, setSlug] = useState(store.slug || "");
   const [description, setDescription] = useState(store.description);
-
-  // Adopt the store name captured during registration once.
-  useEffect(() => {
-    if (!store.name && pendingStoreName && !name) {
-      setName(pendingStoreName);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const [slugTouched, setSlugTouched] = useState(Boolean(store.slug));
   const { data: slugCheck, isFetching: checkingSlug } = useSlugCheck(
     slugTouched && slug.length >= 3 ? slug : null
