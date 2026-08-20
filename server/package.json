@@ -1,0 +1,58 @@
+{
+  "name": "hustlr-server",
+  "version": "1.0.0",
+  "description": "Hustlr multi-tenant e-commerce platform API",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "seed:admin": "tsx src/scripts/seedAdmin.script.ts",
+    "seed:plans": "tsx src/scripts/seedPlans.script.ts",
+    "seed:categories": "tsx src/scripts/seedCategories.script.ts",
+    "seed:templates": "tsx src/scripts/seedTemplates.script.ts",
+    "seed:all": "tsx src/scripts/seedAll.script.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.700.0",
+    "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.5.0",
+    "firebase-admin": "^13.2.0",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.0",
+    "nodemailer": "^6.10.0",
+    "openai": "^4.96.0",
+    "pdfkit": "^0.16.0",
+    "resend": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/morgan": "^1.9.9",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.14.1",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pdfkit": "^0.13.9",
+    "nodemon": "^3.1.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
