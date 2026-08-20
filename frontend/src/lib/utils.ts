@@ -42,3 +42,8 @@ export function initialsOf(name: string): string {
     .slice(0, 2)
     .join("");
 }
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  return "Something went wrong. Please try again.";
+}
