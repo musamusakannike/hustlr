@@ -1,0 +1,1232 @@
+{
+  "info": {
+    "name": "Hustlr API",
+    "description": "Multi-tenant e-commerce API. Set storeSlug and send X-Store-Slug on buyer/storefront requests. After login, copy token into sellerToken, buyerToken, or adminToken.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "sellerToken", "value": "" },
+    { "key": "buyerToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "storeSlug", "value": "musas-fashion-hub" }
+  ],
+  "item": [
+    {
+      "name": "Miscellaneous",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Liveness probe."
+          }
+        },
+        {
+          "name": "Get Paystack Banks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/paystack-banks",
+            "description": "Paystack NGN bank list, cached 1 hour."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Seller Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Musa Abdullahi\",\n  \"email\": \"musa@example.com\",\n  \"password\": \"Password123!\",\n  \"referralCode\": \"\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/register",
+            "description": "Creates an unverified seller and emails a 6-digit OTP."
+          }
+        },
+        {
+          "name": "Seller Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"musa@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/verify-otp",
+            "description": "Verifies email and returns a platform JWT."
+          }
+        },
+        {
+          "name": "Seller Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"email\": \"musa@example.com\" }" },
+            "url": "{{baseUrl}}/auth/seller/resend-otp",
+            "description": "Invalidates the previous OTP and sends a new one."
+          }
+        },
+        {
+          "name": "Seller Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"musa@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/login",
+            "description": "Email/password login for sellers and admins."
+          }
+        },
+        {
+          "name": "Seller Google OAuth",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"firebase-id-token\",\n  \"referralCode\": \"\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/google",
+            "description": "Verifies a Firebase ID token and issues a Hustlr session."
+          }
+        },
+        {
+          "name": "Seller Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{ \"email\": \"musa@example.com\" }" },
+            "url": "{{baseUrl}}/auth/seller/forgot-password",
+            "description": "Sends a password-reset OTP."
+          }
+        },
+        {
+          "name": "Seller Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"musa@example.com\",\n  \"otp\": \"123456\",\n  \"password\": \"NewPassword123!\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/reset-password",
+            "description": "Sets a new password after OTP verification."
+          }
+        },
+        {
+          "name": "Seller Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/auth/seller/me",
+            "description": "Current platform user."
+          }
+        },
+        {
+          "name": "Buyer Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tayo Ade\",\n  \"email\": \"tayo@example.com\",\n  \"password\": \"Password123!\",\n  \"referralCode\": \"\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/buyer/register",
+            "description": "Creates a buyer profile scoped to the current store."
+          }
+        },
+        {
+          "name": "Buyer Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tayo@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/buyer/verify-otp",
+            "description": "Verifies buyer email and returns a store-scoped JWT."
+          }
+        },
+        {
+          "name": "Buyer Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tayo@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/buyer/login",
+            "description": "Buyer login for the current store only."
+          }
+        },
+        {
+          "name": "Buyer Google OAuth",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"idToken\": \"firebase-id-token\" }" },
+            "url": "{{baseUrl}}/auth/buyer/google",
+            "description": "Google sign-in for a buyer on this store."
+          }
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hustlr.online\",\n  \"password\": \"Admin1234!\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/seller/login",
+            "description": "Admins use the same login endpoint; role is admin."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Store Setup",
+      "item": [
+        {
+          "name": "Update Store",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Musa's Fashion Hub\",\n  \"slug\": \"musas-fashion-hub\",\n  \"description\": \"Ankara and ready-to-wear.\",\n  \"contactEmail\": \"hello@musa.store\",\n  \"contactPhone\": \"+2348000000000\",\n  \"socialLinks\": { \"instagram\": \"musafashion\", \"whatsappNumber\": \"+2348000000000\" },\n  \"colorScheme\": { \"primary\": \"#800A1D\", \"background\": \"#FFFFFF\", \"text\": \"#0A0E11\" }\n}"
+            },
+            "url": "{{baseUrl}}/store/setup",
+            "description": "Partial store setup. Creates the store on first save."
+          }
+        },
+        {
+          "name": "Get Store Info",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/store",
+            "description": "Seller's own store."
+          }
+        },
+        {
+          "name": "List Eligible Templates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/templates?tier=free",
+            "description": "Templates the seller's plan can use."
+          }
+        },
+        {
+          "name": "Set Template",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"templateId\": \"64f0c0c0c0c0c0c0c0c0c0c0\" }" },
+            "url": "{{baseUrl}}/store/template",
+            "description": "Assign a website template. 403 if the plan does not allow the tier."
+          }
+        },
+        {
+          "name": "Set Custom Domain",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"domain\": \"www.musastore.com\" }" },
+            "url": "{{baseUrl}}/seller/store/custom-domain",
+            "description": "Pro+ only. Returns DNS instructions."
+          }
+        },
+        {
+          "name": "Verify Custom Domain",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/store/verify-domain",
+            "description": "Looks up CNAME/A records."
+          }
+        }
+      ]
+    },
+    {
+      "name": "KYC",
+      "item": [
+        {
+          "name": "Save KYC",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Musa\",\n  \"lastName\": \"Abdullahi\",\n  \"verificationType\": \"NIN\",\n  \"documentId\": \"12345678901\",\n  \"address\": \"12 Broad Street, Lagos\",\n  \"bankDetails\": {\n    \"bankName\": \"GTBank\",\n    \"bankCode\": \"058\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"Musa Abdullahi\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/kyc",
+            "description": "Partial KYC update."
+          }
+        },
+        {
+          "name": "Submit KYC",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/kyc/submit",
+            "description": "Submits KYC for admin review and emails admins."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/plans",
+            "description": "Active subscription plans."
+          }
+        },
+        {
+          "name": "Subscribe Free",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/subscriptions/free",
+            "description": "Activates the free plan after KYC approval."
+          }
+        },
+        {
+          "name": "Initialize Paid Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"64f0c0c0c0c0c0c0c0c0c0c1\",\n  \"billingCycle\": \"monthly\"\n}"
+            },
+            "url": "{{baseUrl}}/subscriptions/initialize",
+            "description": "Creates a Paystack checkout session for Pro/Pro+."
+          }
+        },
+        {
+          "name": "Verify Subscription Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"reference\": \"SUB-SELLERID-1710000000\" }" },
+            "url": "{{baseUrl}}/subscriptions/verify",
+            "description": "Verifies Paystack payment and activates the plan."
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/subscriptions/cancel",
+            "description": "Turns off auto-renew. Plan stays active until endDate."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Ankara Dress Blue\",\n  \"description\": \"Hand-cut ankara midi dress.\",\n  \"category\": \"Dresses\",\n  \"price\": 15000,\n  \"compareAtPrice\": 18000,\n  \"stock\": 20,\n  \"sku\": \"ANK-BLU-01\",\n  \"hasVariants\": true,\n  \"variants\": [{ \"name\": \"Size\", \"options\": [\"S\", \"M\", \"L\"] }],\n  \"variantCombinations\": [\n    { \"combination\": { \"Size\": \"M\" }, \"price\": 15000, \"stock\": 8, \"sku\": \"ANK-BLU-M\" }\n  ],\n  \"shippingFee\": 1500,\n  \"estimatedDeliveryDays\": \"3-5 business days\",\n  \"status\": \"active\",\n  \"tags\": [\"ankara\", \"dress\"]\n}"
+            },
+            "url": "{{baseUrl}}/seller/products",
+            "description": "Creates a product. Enforces plan maxProducts."
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/products?status=active&page=1&limit=20",
+            "description": "Seller catalog with filters."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"price\": 16000, \"stock\": 18 }" },
+            "url": "{{baseUrl}}/seller/products/64f0c0c0c0c0c0c0c0c0c0aa",
+            "description": "Update a product the seller owns."
+          }
+        },
+        {
+          "name": "Bulk Status Update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productIds\": [\"64f0c0c0c0c0c0c0c0c0c0aa\"],\n  \"status\": \"active\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/products/bulk-status",
+            "description": "Change status for many products."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Storefront (Public)",
+      "item": [
+        {
+          "name": "Get Store Info",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/info",
+            "description": "Public store layout payload."
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/products?sort=newest&page=1",
+            "description": "Active products with search, price, and category filters."
+          }
+        },
+        {
+          "name": "Get Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/products/ankara-dress-blue",
+            "description": "Public product by slug."
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/categories",
+            "description": "Active store categories with product counts."
+          }
+        },
+        {
+          "name": "Featured Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/featured",
+            "description": "Featured products for the homepage."
+          }
+        },
+        {
+          "name": "New Arrivals",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Store-Slug", "value": "{{storeSlug}}" }],
+            "url": "{{baseUrl}}/storefront/new-arrivals",
+            "description": "Products created in the last 30 days."
+          }
+        },
+        {
+          "name": "Validate Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"code\": \"WELCOME10\", \"subtotal\": 45000 }" },
+            "url": "{{baseUrl}}/storefront/coupons/validate",
+            "description": "Preview a coupon discount before checkout."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "url": "{{baseUrl}}/cart",
+            "description": "Cart with live prices and priceChanged flags."
+          }
+        },
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"64f0c0c0c0c0c0c0c0c0c0aa\",\n  \"quantity\": 2,\n  \"selectedVariants\": { \"Size\": \"M\" }\n}"
+            },
+            "url": "{{baseUrl}}/cart/add",
+            "description": "Add or increment a product+variant combo."
+          }
+        },
+        {
+          "name": "Update Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"quantity\": 3 }" },
+            "url": "{{baseUrl}}/cart/items/64f0c0c0c0c0c0c0c0c0c0bb",
+            "description": "Set cart line quantity."
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "url": "{{baseUrl}}/cart/clear",
+            "description": "Empty the store cart."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "item": [
+        {
+          "name": "Initiate Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shippingAddress\": {\n    \"fullName\": \"Tayo Ade\",\n    \"streetAddress\": \"10 Allen Avenue\",\n    \"city\": \"Ikeja\",\n    \"state\": \"Lagos\",\n    \"zipCode\": \"100001\",\n    \"country\": \"Nigeria\",\n    \"phoneNumber\": \"+2348011111111\",\n    \"isDefault\": true\n  },\n  \"couponCode\": \"WELCOME10\",\n  \"saveAddress\": true\n}"
+            },
+            "url": "{{baseUrl}}/checkout/initiate",
+            "description": "Creates a pending order and Paystack authorization URL."
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"reference\": \"HUS-MS-20250818-0001\" }" },
+            "url": "{{baseUrl}}/checkout/verify",
+            "description": "Confirms Paystack payment, decrements stock, emails receipt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Buyer: List Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "url": "{{baseUrl}}/orders",
+            "description": "Buyer order history for this store."
+          }
+        },
+        {
+          "name": "Buyer: Confirm Receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "url": "{{baseUrl}}/orders/64f0c0c0c0c0c0c0c0c0c0cc/confirm",
+            "description": "Releases escrow to the seller wallet."
+          }
+        },
+        {
+          "name": "Seller: List Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/orders?deliveryStatus=processing",
+            "description": "Seller order list."
+          }
+        },
+        {
+          "name": "Seller: Mark Shipped",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"DHL-123456789\",\n  \"trackingNote\": \"Shipped via DHL\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/orders/64f0c0c0c0c0c0c0c0c0c0cc/ship",
+            "description": "Marks shipped and emails the buyer."
+          }
+        },
+        {
+          "name": "Seller: Mark Delivered",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/orders/64f0c0c0c0c0c0c0c0c0c0cc/delivered",
+            "description": "Starts the escrow auto-release window."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet & Payouts",
+      "item": [
+        {
+          "name": "Get Wallet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/wallet",
+            "description": "Available and pending balances."
+          }
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"amount\": 38700 }" },
+            "url": "{{baseUrl}}/seller/wallet/withdraw",
+            "description": "Creates an awaiting_approval payout."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disputes",
+      "item": [
+        {
+          "name": "Open Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Item not as described\",\n  \"description\": \"The colour is different from the listing photos.\",\n  \"evidenceImages\": [],\n  \"resolutionPreference\": \"Refund\"\n}"
+            },
+            "url": "{{baseUrl}}/orders/64f0c0c0c0c0c0c0c0c0c0cc/dispute",
+            "description": "Locks escrow in disputed status."
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"message\": \"We can ship a replacement tomorrow.\" }" },
+            "url": "{{baseUrl}}/seller/disputes/64f0c0c0c0c0c0c0c0c0c0dd/messages",
+            "description": "Seller reply on a dispute thread."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"64f0c0c0c0c0c0c0c0c0c0aa\",\n  \"orderId\": \"64f0c0c0c0c0c0c0c0c0c0cc\",\n  \"rating\": 5,\n  \"title\": \"Perfect fit\",\n  \"comment\": \"Arrived on time and matches the photos.\"\n}"
+            },
+            "url": "{{baseUrl}}/reviews",
+            "description": "Verified-purchase review after delivery/confirmation."
+          }
+        },
+        {
+          "name": "Seller Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"text\": \"Thank you Tayo!\" }" },
+            "url": "{{baseUrl}}/seller/reviews/64f0c0c0c0c0c0c0c0c0c0ee/reply",
+            "description": "One seller reply per review."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coupons",
+      "item": [
+        {
+          "name": "Create Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"WELCOME10\",\n  \"type\": \"percentage\",\n  \"value\": 10,\n  \"minimumOrderAmount\": 10000,\n  \"maxUsageCount\": 100,\n  \"maxUsagePerBuyer\": 1,\n  \"appliesTo\": \"all\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/coupons",
+            "description": "Create a store-unique discount code."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wishlist",
+      "item": [
+        {
+          "name": "Toggle Wishlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-Store-Slug", "value": "{{storeSlug}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"productId\": \"64f0c0c0c0c0c0c0c0c0c0aa\" }" },
+            "url": "{{baseUrl}}/wishlist/toggle",
+            "description": "Add or remove a product from the store wishlist."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blog",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"How we source Ankara\",\n  \"content\": \"<p>Our fabric story.</p>\",\n  \"excerpt\": \"Behind the collection\",\n  \"tags\": [\"ankara\", \"behind-the-scenes\"]\n}"
+            },
+            "url": "{{baseUrl}}/seller/blog",
+            "description": "Pro/Pro+ only."
+          }
+        },
+        {
+          "name": "Publish Post",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/blog/64f0c0c0c0c0c0c0c0c0c0ff/publish",
+            "description": "Sets publishedAt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "item": [
+        {
+          "name": "Get Referral Code",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/referrals",
+            "description": "Seller platform referral code and referred sellers."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/notifications?isRead=false",
+            "description": "In-app inbox for the authenticated actor."
+          }
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/notifications/unread-count",
+            "description": "Bell badge count."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support Tickets",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Payout\",\n  \"subject\": \"Withdrawal taking long\",\n  \"message\": \"I requested a payout yesterday.\"\n}"
+            },
+            "url": "{{baseUrl}}/tickets",
+            "description": "Open a support ticket."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/analytics/overview",
+            "description": "Seller KPI snapshot."
+          }
+        },
+        {
+          "name": "Revenue Trend",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/analytics/revenue-trend?period=30d&groupBy=day",
+            "description": "Revenue time series."
+          }
+        },
+        {
+          "name": "Top Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "url": "{{baseUrl}}/seller/analytics/top-products?limit=10&sortBy=revenue",
+            "description": "Best-selling products."
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Tools",
+      "item": [
+        {
+          "name": "Improve Title",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Blue dress\",\n  \"category\": \"Fashion\",\n  \"description\": \"Ankara midi dress\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/ai/improve-title",
+            "description": "SEO title suggestions. Falls back locally if no LLM key is set."
+          }
+        },
+        {
+          "name": "Rewrite Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Ankara Dress Blue\",\n  \"description\": \"Nice dress\",\n  \"tone\": \"persuasive\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/ai/rewrite-description",
+            "description": "Rewrites product copy."
+          }
+        },
+        {
+          "name": "Generate SEO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Musa's Fashion Hub\",\n  \"description\": \"Ankara and ready-to-wear from Lagos\"\n}"
+            },
+            "url": "{{baseUrl}}/seller/ai/generate-seo",
+            "description": "metaTitle and metaDescription suggestions."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": [] }]
+            },
+            "url": "{{baseUrl}}/upload/image",
+            "description": "General image upload to R2. Returns { url }."
+          }
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": [] }]
+            },
+            "url": "{{baseUrl}}/upload/document",
+            "description": "KYC-style document upload (images + PDF)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Paystack Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-paystack-signature", "value": "hmac-sha512-hex" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"reference\": \"HUS-MS-20250818-0001\",\n    \"metadata\": { \"type\": \"order\" }\n  }\n}"
+            },
+            "url": "{{baseUrl}}/webhooks/paystack",
+            "description": "Paystack charge and transfer events. Signature required. Not rate-limited."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "KYC Management",
+          "item": [
+            {
+              "name": "List KYC",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/kyc?status=pending",
+                "description": "KYC queue."
+              }
+            },
+            {
+              "name": "Approve KYC",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/kyc/64f0c0c0c0c0c0c0c0c0c011/approve",
+                "description": "Approve a KYC application."
+              }
+            },
+            {
+              "name": "Reject KYC",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": { "mode": "raw", "raw": "{ \"reviewerNote\": \"Selfie does not match ID.\" }" },
+                "url": "{{baseUrl}}/admin/kyc/64f0c0c0c0c0c0c0c0c0c011/reject",
+                "description": "Reject with a required note."
+              }
+            },
+            {
+              "name": "Request More Info",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reviewerNote\": \"Please re-upload a clearer ID photo.\",\n  \"requestedFiles\": [\"idDocument\", \"selfie\"]\n}"
+                },
+                "url": "{{baseUrl}}/admin/kyc/64f0c0c0c0c0c0c0c0c0c011/request-info",
+                "description": "Ask the seller to re-upload specific files."
+              }
+            }
+          ]
+        },
+        {
+          "name": "User Management",
+          "item": [
+            {
+              "name": "List Users",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/users?role=seller",
+                "description": "Sellers and admins."
+              }
+            },
+            {
+              "name": "Ban User",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": { "mode": "raw", "raw": "{ \"reason\": \"Terms of service violation\" }" },
+                "url": "{{baseUrl}}/admin/users/64f0c0c0c0c0c0c0c0c0c022/ban",
+                "description": "Bans a seller and takes the store offline."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payouts",
+          "item": [
+            {
+              "name": "List Payouts",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/payouts?status=awaiting_approval",
+                "description": "Withdrawal queue."
+              }
+            },
+            {
+              "name": "Approve Payout",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/payouts/64f0c0c0c0c0c0c0c0c0c033/approve",
+                "description": "Marks a withdrawal approved."
+              }
+            },
+            {
+              "name": "Dispatch Payout",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/payouts/64f0c0c0c0c0c0c0c0c0c033/dispatch",
+                "description": "Triggers Paystack Transfer."
+              }
+            },
+            {
+              "name": "Reject Payout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": { "mode": "raw", "raw": "{ \"rejectionReason\": \"Bank account mismatch\" }" },
+                "url": "{{baseUrl}}/admin/payouts/64f0c0c0c0c0c0c0c0c0c033/reject",
+                "description": "Returns funds to the seller wallet."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disputes",
+          "item": [
+            {
+              "name": "List Disputes",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/disputes?status=Open",
+                "description": "Platform dispute queue."
+              }
+            },
+            {
+              "name": "Resolve Dispute",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"resolution\": \"refund\",\n  \"refundAmount\": 15000,\n  \"resolutionNote\": \"Item not as described. Partial refund.\"\n}"
+                },
+                "url": "{{baseUrl}}/admin/disputes/64f0c0c0c0c0c0c0c0c0c0dd/resolve",
+                "description": "refund | replacement | rejected."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settings",
+          "item": [
+            {
+              "name": "Get Settings",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/settings",
+                "description": "Platform settings including escrow hours."
+              }
+            },
+            {
+              "name": "Update Settings",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"escrowAutoReleaseHours\": 48,\n  \"minimumWithdrawalAmount\": 1000,\n  \"maintenanceMode\": false\n}"
+                },
+                "url": "{{baseUrl}}/admin/settings",
+                "description": "Update platform settings."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Analytics",
+          "item": [
+            {
+              "name": "Overview",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+                "url": "{{baseUrl}}/admin/analytics/overview",
+                "description": "Platform GMV, revenue, stores, buyers."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
