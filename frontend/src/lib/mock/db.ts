@@ -1,8 +1,4 @@
 import type { User } from "@/types/auth";
-import type { Store } from "@/types/store";
-import type { Kyc } from "@/types/kyc";
-import type { Product } from "@/types/product";
-import type { StoreCategory } from "@/types/category";
 import type { Subscription } from "@/types/subscription";
 import { DEMO_SELLER, MOCK_OTP } from "@/fixtures/seller";
 import { DEMO_STORE, TAKEN_SLUGS } from "@/fixtures/store";

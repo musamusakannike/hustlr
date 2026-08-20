@@ -10,7 +10,6 @@ import type {
   ResetPasswordInput,
   SellerLoginInput,
   SellerRegisterInput,
-  User,
   VerifyOtpInput,
 } from "@/types/auth";
 import type {
