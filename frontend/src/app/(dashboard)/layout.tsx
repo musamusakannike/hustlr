@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSellerAuth } from "@/context/SellerAuthContext";
 import { Spinner } from "@/components/ui/Spinner";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 
 /**
- * Client-side auth gate for the seller dashboard. The Edge proxy performs a
- * coarse cookie check in API mode; this gate is authoritative for mock mode
- * and handles the authenticated user's UI state.
+ * Auth gate + shell for the seller dashboard. The Edge proxy performs a
+ * coarse cookie check in API mode; this gate is authoritative for mock mode.
  */
 export default function DashboardLayout({
   children,
@@ -40,5 +40,9 @@ export default function DashboardLayout({
     );
   }
 
-  return <div className="min-h-screen bg-bg-soft text-text">{children}</div>;
+  return (
+    <div className="min-h-screen bg-bg-soft text-text">
+      <DashboardShell>{children}</DashboardShell>
+    </div>
+  );
 }
