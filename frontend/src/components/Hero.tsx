@@ -110,10 +110,10 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Get Started */}
+          {/* Get Started — desktop only */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
+            className="hidden sm:inline-flex bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
           >
             Get Started
           </button>
