@@ -11,7 +11,7 @@ import CTA from "@/components/CTA";
 
 export default function Home() {
   return (
-    <>
+    <div className="flex-1 flex flex-col bg-bg-soft">
       <Hero />
       <Marquee />
       <Features />
@@ -22,6 +22,6 @@ export default function Home() {
       <Pricing />
       <FAQ />
       <CTA />
-    </>
+    </div>
   );
 }
