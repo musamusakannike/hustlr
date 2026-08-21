@@ -1,183 +1,131 @@
-# Workspace Development Rules
+# Workspace Development Rules & Team Collaboration Guidelines
 
-## Git Branch
+## 1. Contributor & Branch Identity
 
-This project uses separate branches for each contributor.
+This repository uses a multi-contributor workflow with dedicated branches and feature branches.
 
-My personal branch is:
-
+### Team Contributor Branches:
 ```text
-abdullah
-```
-
-Never switch to or commit directly to `main` unless explicitly instructed.
-
-All changes I make should be committed and pushed to:
-
-```text
-origin/abdullah
-```
-
-## Before Starting Any Coding Task
-
-Before modifying files:
-
-1. Check the current branch.
-
-```bash
-git branch --show-current
-```
-
-2. Confirm that the current branch is `abdullah`.
-
-3. Check the repository status.
-
-```bash
-git status
-```
-
-4. Make sure the local repository has the latest remote information.
-
-```bash
-git fetch origin
-```
-
-5. Because this project uses `main` as the shared integration branch, check whether `origin/main` contains changes that are not currently in the working branch.
-
-6. When appropriate, synchronize the current branch with the latest `main`:
-
-```bash
-git merge origin/main
-```
-
-Do not automatically merge `origin/main` in the middle of an active coding task. Synchronize before beginning substantial work when the working tree is clean and doing so is safe.
-
-## Git Auto-Fetch
-
-VS Code/Antigravity is configured to automatically fetch remote changes.
-
-Do not assume that auto-fetch means the current branch has been updated.
-
-Auto-fetch updates Git's remote-tracking information, such as:
-
-```text
-origin/main
-```
-
-It does not automatically merge those changes into the current branch.
-
-Before relying on the remote state, verify it with:
-
-```bash
-git fetch origin
-```
-
-Do not configure the agent to repeatedly or automatically merge `origin/main` without checking the current working state first.
-
-## During Development
-
-Work only on the `abdullah` branch.
-
-Do not modify, reset, rebase, or commit to another contributor's branch.
-
-Do not push directly to `main`.
-
-Keep commits focused on the work being performed.
-
-## Before Committing
-
-Run:
-
-```bash
-git status
-```
-
-Review the changed files.
-
-Make sure unrelated files or changes are not included.
-
-Then:
-
-```bash
-git add .
-git commit -m "Describe the change"
-```
-
-## Push
-
-Push completed work to the personal branch:
-
-```bash
-git push origin abdullah
-```
-
-After the first upstream has been configured, this can normally be shortened to:
-
-```bash
-git push
-```
-
-## Main Branch Synchronization
-
-The team's contributors work independently.
-
-The current repository structure is:
-
-```text
-main
+main (Integration & Production Branch)
 ├── codiac
 ├── faruq
 └── abdullah
 ```
 
-Do not pull or merge `codiac` or `faruq` into the `abdullah` branch unless explicitly instructed.
+### Dynamic Branch Rule:
+* **Auto-detect your active branch**: At the start of every session or task, check the active working branch:
+  ```bash
+  git branch --show-current
+  ```
+* **Work only on the active user branch**: If you are working on `codiac`, commit and push to `origin/codiac`. If on `faruq`, push to `origin/faruq`. If on `abdullah`, push to `origin/abdullah`.
+* **Never commit or push directly to `main`** unless explicitly instructed by the user.
+* **Do not switch to, modify, rebase, or overwrite another contributor's branch directly.**
 
-The shared branch to monitor is:
+---
 
-```text
-origin/main
-```
+## 2. Before Starting Any Coding Task
 
-When new work has been merged into `main`, update the local remote-tracking information and, when appropriate, merge it into `abdullah`:
+Before modifying any files:
 
-```bash
-git fetch origin
-git merge origin/main
-```
+1. **Check current branch**:
+   ```bash
+   git branch --show-current
+   ```
+2. **Check repository working state**:
+   ```bash
+   git status
+   ```
+3. **Fetch latest remote changes**:
+   ```bash
+   git fetch origin
+   ```
+4. **Synchronize with `main` when safe**:
+   Before beginning substantial new work (and when the working tree is clean), pull updates from the shared integration branch:
+   ```bash
+   git merge origin/main
+   ```
+   > [!NOTE]
+   > Do not automatically merge `origin/main` in the middle of active, uncommitted coding edits. Synchronize at the start of a task when the working tree is clean.
+
+---
+
+## 3. During Development
+
+* **Directory Boundaries**:
+  * **Frontend developers / agents**: Focus work inside `frontend/`.
+  * **Backend developers / agents**: Focus work inside `server/`.
+  * **Shared specifications**: Keep `architecture.md`, `prd.md`, `tasks.md`, and `handoff.md` updated as shared single sources of truth.
+* **Keep commits focused**: Group changes logically and write clear semantic commit messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
+* **Never copy-paste code files between branches**: Use proper Git merges/PRs from `main` to maintain commit history and avoid 3-way merge conflicts.
+
+---
+
+## 4. Before Committing & Pushing
+
+1. **Review modified files**:
+   ```bash
+   git status
+   ```
+   Ensure no unintended files (e.g. `.env`, temp files, unwanted lockfile diffs) are staged.
+2. **Stage and commit**:
+   ```bash
+   git add .
+   git commit -m "feat(scope): concise description of change"
+   ```
+3. **Push to your contributor branch**:
+   ```bash
+   git push origin <your-branch-name>
+   ```
+
+---
+
+## 5. Merging to `main` (Integration Protocol)
+
+When work on a contributor branch is complete and ready for integration:
+
+1. Ensure the contributor branch is pushed and up to date with `origin/main`.
+2. Checkout `main` and pull latest:
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+3. Merge the contributor branch:
+   ```bash
+   git merge <contributor-branch> -m "feat: merge <contributor-branch> into main"
+   ```
+4. Verify tests / build across both `frontend/` and `server/`.
+5. Push to `origin/main`:
+   ```bash
+   git push origin main
+   ```
+6. Switch back to your working branch and merge `main`:
+   ```bash
+   git checkout <your-branch-name>
+   git merge main
+   git push origin <your-branch-name>
+   ```
+
+---
+
+## 6. Resolving Merge Conflicts
 
 If a merge conflict occurs:
+1. **Never discard existing work** or wipe another contributor's code.
+2. Inspect the conflicting files carefully.
+3. Understand the intent of both sides and resolve conflicts preserving functionality.
+4. Run syntax/build checks on both frontend and server.
+5. Commit the resolved merge cleanly.
 
-1. Do not discard existing work.
-2. Inspect the conflicting files.
-3. Explain the conflict clearly.
-4. Resolve it while preserving the intended functionality from both sides where appropriate.
-5. Run the relevant tests or checks.
-6. Confirm the working tree is clean or contains only intentional changes.
+---
 
-## Important Safety Rules
+## 7. Critical Git Safety Rules
 
-Never run destructive Git commands such as:
-
-```bash
-git reset --hard
-git clean -fd
-git checkout .
-```
-
-unless explicitly instructed.
-
-Never force-push to a shared branch.
-
-Never overwrite another contributor's work merely to resolve a conflict.
-
-Do not assume that a clean working tree means the branch contains the latest `main`.
-
-Before making significant changes, verify:
-
-```bash
-git branch --show-current
-git status
-git fetch origin
-```
-
-The agent should prioritize preserving existing work and maintaining the repository's branch structure.
+* **Never run destructive commands** without explicit user permission:
+  * `git reset --hard`
+  * `git clean -fd`
+  * `git checkout .`
+* **Never force-push (`git push --force` or `git push -f`)** to `main` or shared branches.
+* **Always verify git state** before starting complex operations:
+  ```bash
+  git branch --show-current && git status && git fetch origin
+  ```

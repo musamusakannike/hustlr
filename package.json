@@ -1,0 +1,21 @@
+{
+  "name": "hustlr-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hustlr multi-tenant e-commerce platform monorepo",
+  "scripts": {
+    "dev": "pnpm --parallel --filter frontend --filter hustlr-server dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:server": "pnpm --filter hustlr-server dev",
+    "build": "pnpm --recursive run build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:server": "pnpm --filter hustlr-server build",
+    "lint": "pnpm --recursive run lint",
+    "seed:all": "pnpm --filter hustlr-server seed:all",
+    "seed:admin": "pnpm --filter hustlr-server seed:admin",
+    "seed:plans": "pnpm --filter hustlr-server seed:plans",
+    "seed:categories": "pnpm --filter hustlr-server seed:categories",
+    "seed:templates": "pnpm --filter hustlr-server seed:templates"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
