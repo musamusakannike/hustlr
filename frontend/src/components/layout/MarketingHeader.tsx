@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
 import StartStoreModal from "@/components/StartStoreModal";
 import { APP_NAME, LOGO_PATH } from "@/constants/app.constants";
 
@@ -11,195 +11,125 @@ const HEADER_LINKS = [
   { name: "Features", href: "/#features" },
   { name: "Templates", href: "/templates" },
   { name: "Pricing", href: "/pricing" },
-  { name: "About", href: "/about" },
-  { name: "FAQs", href: "/#faqs" },
 ];
 
+const MORE_LINKS = [
+  { name: "About Us", href: "/about" },
+  { name: "Contact Us", href: "/contact" },
+  { name: "FAQs", href: "/#faqs" },
+  { name: "Sign In", href: "/login" },
+];
+
+/**
+ * Shared header for secondary marketing pages, mirroring the landing page's
+ * nav pattern: centered logo on top, centered nav links (with More dropdown
+ * and Get Started CTA) below. Hidden on `/` where the Hero section provides
+ * its own inline nav.
+ */
 export default function MarketingHeader() {
-  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
+      }
     };
-  }, [isOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (pathname === "/") return null;
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-border/80 font-space-grotesk transition-all">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-4 flex items-center justify-between">
-          {/* Logo Branding */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl overflow-hidden shadow-xs group-hover:scale-105 transition-transform">
+      <header className="relative w-full font-space-grotesk overflow-hidden bg-bg-soft">
+        <div className="w-full flex flex-col items-center px-6 sm:px-10 lg:px-16 pt-4 sm:pt-5 pb-6 sm:pb-8 border-b border-black/5">
+          {/* Centered Logo */}
+          <Link href="/" className="group flex flex-col items-center">
+            <div className="relative h-12 sm:h-14 w-auto group-hover:scale-105 transition-transform">
               <Image
                 src={LOGO_PATH}
                 alt={`${APP_NAME} Logo`}
-                width={40}
-                height={40}
-                className="object-contain"
+                width={180}
+                height={120}
+                className="w-auto h-12 sm:h-14 object-contain"
+                priority
               />
             </div>
-            <span className="font-bold text-2xl tracking-tight text-text font-archivo">
-              {APP_NAME}
-            </span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8">
+          {/* Centered Nav Links */}
+          <nav className="mt-2 sm:mt-3 flex flex-wrap items-center justify-center gap-x-10 sm:gap-x-14 gap-y-2 text-sm sm:text-lg font-bold text-text/80">
             {HEADER_LINKS.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-semibold text-neutral-700 hover:text-primary transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 {link.name}
               </Link>
             ))}
-          </nav>
 
-          {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-5">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-neutral-600 hover:text-text transition-colors"
-            >
-              Sign In
-            </Link>
+            {/* More Dropdown */}
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setIsMoreOpen((open) => !open)}
+                aria-expanded={isMoreOpen}
+                aria-haspopup="true"
+                className="inline-flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer"
+              >
+                <span>More</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isMoreOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
 
+              <div
+                className={`absolute left-1/2 -translate-x-1/2 top-full mt-3 w-48 z-50 bg-light rounded-xl shadow-lg border border-black/5 py-2 transition-all duration-200 origin-top ${
+                  isMoreOpen
+                    ? "opacity-100 scale-100 pointer-events-auto"
+                    : "opacity-0 scale-95 pointer-events-none"
+                }`}
+              >
+                {MORE_LINKS.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsMoreOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-medium text-text/80 hover:text-primary hover:bg-primary-light/40 transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Get Started — desktop only */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer flex items-center gap-1.5"
+              className="hidden sm:inline-flex bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
             >
-              <span>Start Your Free Store</span>
-              <ArrowRight className="w-4 h-4" />
+              Get Started
             </button>
-          </div>
-
-          {/* Mobile Hamburger Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 text-text hover:text-neutral-600 focus:outline-none cursor-pointer"
-            aria-label="Toggle navigation"
-          >
-            {isOpen ? (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
-          </button>
+          </nav>
         </div>
       </header>
-
-      {/* Mobile Drawer Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-white/95 backdrop-blur-md flex flex-col font-space-grotesk transition-all duration-300 ease-in-out lg:hidden ${
-          isOpen
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-full pointer-events-none"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto w-full px-6 py-4 flex items-center justify-between border-b border-border">
-          <Link
-            href="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5"
-          >
-            <div className="relative w-8 h-8 flex items-center justify-center rounded-lg overflow-hidden">
-              <Image
-                src={LOGO_PATH}
-                alt={`${APP_NAME} Logo`}
-                width={32}
-                height={32}
-                className="object-contain"
-              />
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-text font-archivo">
-              {APP_NAME}
-            </span>
-          </Link>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 text-text cursor-pointer"
-            aria-label="Close navigation"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-4 p-6 pt-8">
-          {HEADER_LINKS.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className="text-lg font-semibold text-neutral-700 hover:text-primary py-1"
-            >
-              {link.name}
-            </Link>
-          ))}
-          <Link
-            href="/login"
-            onClick={() => setIsOpen(false)}
-            className="text-lg font-semibold text-neutral-700 hover:text-primary py-1"
-          >
-            Sign In
-          </Link>
-        </div>
-
-        <div className="mt-auto p-6 flex flex-col gap-3 border-t border-neutral-100">
-          <button
-            onClick={() => {
-              setIsModalOpen(true);
-              setIsOpen(false);
-            }}
-            className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-base shadow-md"
-          >
-            Start Your Free Store
-          </button>
-        </div>
-      </div>
 
       <StartStoreModal
         isOpen={isModalOpen}

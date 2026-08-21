@@ -1,12 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import StartStoreModal from "./StartStoreModal";
-import { APP_NAME } from "@/constants/app.constants";
+import { APP_NAME, LOGO_PATH, SUPPORT_EMAIL } from "@/constants/app.constants";
+
+const HERO_NAV_LINKS = [
+  { name: "Home", href: "#hero" },
+  { name: "Features", href: "#features" },
+  { name: "Templates", href: "#templates" },
+];
+
+const MORE_LINKS = [
+  { name: "FAQs", href: "#faqs" },
+  { name: "Contact Us", href: `mailto:${SUPPORT_EMAIL}` },
+  { name: "About Us", href: "#about" },
+];
 
 export default function Hero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <section
@@ -85,24 +110,17 @@ export default function Hero() {
             </div>
           </div>
 
-<<<<<<<<< Temporary merge branch 1
           {/* Get Started — desktop only */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="hidden sm:inline-flex bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
-=========
-          {/* Get Started */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
->>>>>>>>> Temporary merge branch 2
           >
             Get Started
           </button>
         </nav>
 
         {/* Content + Image Row on PC */}
-        <div className="w-full lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-16">
+        <div className="w-full mt-10 sm:mt-14 lg:mt-16 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-16">
           {/* Left - Hero Content */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <h1 className="text-text text-[34px] sm:text-[44px] lg:text-[42px] xl:text-[48px] font-bold leading-[1.14] tracking-tight max-w-xl">
