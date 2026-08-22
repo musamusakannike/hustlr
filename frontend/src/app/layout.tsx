@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rajdhani, Archivo_Black, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/context/auth.context";
 import { APP_NAME, APP_SLOGAN, APP_TAGLINE, APP_URL } from "@/constants/app.constants";
 
 const rajdhani = Rajdhani({
@@ -110,7 +111,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

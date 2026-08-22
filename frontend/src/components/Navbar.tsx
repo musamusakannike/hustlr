@@ -56,15 +56,15 @@ export default function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-5">
-            <a
-              href="#pricing"
-              className="text-sm font-semibold text-neutral-600 hover:text-[#0A0E11] transition-colors"
+            <Link
+              href="/auth/login"
+              className="text-sm font-semibold text-neutral-600 hover:text-[#800A1D] transition-colors"
             >
               Sign In
-            </a>
+            </Link>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
+            <Link
+              href="/auth/register"
               className="bg-[#800A1D] hover:bg-[#660817] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <span>Start Your Free Store</span>
@@ -81,7 +81,7 @@ export default function Navbar() {
                   d="M14 5l7 7m0 0l-7 7m7-7H3"
                 />
               </svg>
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -184,15 +184,20 @@ export default function Navbar() {
         </div>
 
         <div className="mt-auto p-6 flex flex-col gap-3 border-t border-neutral-100">
-          <button
-            onClick={() => {
-              setIsModalOpen(true);
-              setIsOpen(false);
-            }}
-            className="w-full py-3.5 rounded-xl bg-[#800A1D] text-white font-semibold text-base shadow-md"
+          <Link
+            href="/auth/login"
+            onClick={() => setIsOpen(false)}
+            className="w-full py-3 rounded-xl border border-neutral-200 text-[#0A0E11] font-semibold text-center text-sm hover:bg-neutral-50 transition-colors"
+          >
+            Sign In to Merchant Account
+          </Link>
+          <Link
+            href="/auth/register"
+            onClick={() => setIsOpen(false)}
+            className="w-full py-3.5 rounded-xl bg-[#800A1D] text-white font-semibold text-center text-base shadow-md hover:bg-[#660817] transition-colors"
           >
             Start Your Free Store
-          </button>
+          </Link>
         </div>
       </div>
 
