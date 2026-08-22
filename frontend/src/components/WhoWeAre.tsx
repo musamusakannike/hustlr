@@ -13,11 +13,14 @@ export default function WhoWeAre() {
 
   return (
     <>
-      <section id="about" className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk">
+      <section
+        id="about"
+        className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk"
+      >
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Left Side - Video Player Card */}
           <div className="lg:col-span-6 w-full">
-            <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-black shadow-lg group">
+            <div className="relative w-full aspect-16/10 rounded-2xl overflow-hidden bg-black shadow-lg group">
               {/* Background Thumbnail Image */}
               <Image
                 src="/video.jpg"
@@ -28,11 +31,11 @@ export default function WhoWeAre() {
               />
 
               {/* Dark Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-black/40" />
 
               {/* Top-Left Tag */}
               <div className="absolute top-5 left-5 z-10">
-                <span className="bg-[#800A1D] text-white text-xs font-semibold px-3 py-1 rounded-md shadow-xs">
+                <span className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-md shadow-xs">
                   Merchant Setup Demo
                 </span>
               </div>
@@ -40,7 +43,7 @@ export default function WhoWeAre() {
               {/* Center Play Button */}
               <button
                 onClick={() => setVideoOpen(true)}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#800A1D]/80 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:scale-110 hover:bg-[#800A1D] transition-all duration-300 z-20 cursor-pointer shadow-lg"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/80 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:scale-110 hover:bg-primary transition-all duration-300 z-20 cursor-pointer shadow-lg"
                 aria-label="Play video"
               >
                 <svg
@@ -68,7 +71,7 @@ export default function WhoWeAre() {
                     <path d="M8 5v14l11-7z" />
                   </svg>
                   <div className="w-full h-1.5 bg-white/30 rounded-full overflow-hidden">
-                    <div className="w-2/5 h-full bg-[#800A1D] rounded-full" />
+                    <div className="w-2/5 h-full bg-primary rounded-full" />
                   </div>
                 </div>
               </div>
@@ -77,7 +80,7 @@ export default function WhoWeAre() {
 
           {/* Right Side - Text Content & Action */}
           <div className="lg:col-span-6 flex flex-col items-start">
-            <span className="inline-block text-xs font-bold text-[#800A1D] uppercase tracking-widest bg-[#FAD4D8] px-3 py-1 rounded-md mb-3">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3 py-1 rounded-md mb-3">
               Merchant Platform Overview
             </span>
 
@@ -87,16 +90,16 @@ export default function WhoWeAre() {
             </h2>
 
             <p className="text-[#666666] text-base sm:text-lg leading-relaxed mt-5 max-w-xl font-normal">
-              Hustlr powers independent sellers with custom storefront templates,
-              automated Paystack escrow security, variant management, and direct
-              bank withdrawals. Experience hassle-free e-commerce designed for high
-              conversion and total trust.
+              Hustlr powers independent sellers with custom storefront
+              templates, automated Paystack escrow security, variant management,
+              and direct bank withdrawals. Experience hassle-free e-commerce
+              designed for high conversion and total trust.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4 items-center">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2.5 bg-[#800A1D] hover:bg-[#660817] text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
+                className="inline-flex items-center gap-2.5 bg-primary hover:bg-[#660817] text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <span>Start Your Store</span>
                 <svg

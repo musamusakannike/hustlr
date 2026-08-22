@@ -26,15 +26,15 @@ export default function StoreTemplates() {
         <div className="max-w-7xl mx-auto flex flex-col gap-12 lg:gap-16">
           {/* Section Header */}
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-            <span className="inline-block text-xs font-bold text-[#800A1D] uppercase tracking-widest bg-[#FAD4D8] px-3.5 py-1 rounded-md mb-3">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3.5 py-1 rounded-md mb-3">
               Storefront Themes
             </span>
             <h2 className="text-[#0A0E11] text-3xl sm:text-4xl lg:text-[42px] font-bold leading-[1.2] tracking-tight">
               Website Templates Built for Conversion
             </h2>
             <p className="text-[#666666] text-base sm:text-lg leading-relaxed mt-3">
-              Choose from dynamic, responsive themes tailored by colors, logos, and
-              custom CSS variables.
+              Choose from dynamic, responsive themes tailored by colors, logos,
+              and custom CSS variables.
             </p>
           </div>
 
@@ -72,7 +72,7 @@ export default function StoreTemplates() {
                     {/* Bottom Info Row */}
                     <div className="flex items-end justify-between mt-4">
                       <div>
-                        <span className="inline-block px-3.5 py-1 text-xs font-semibold text-white/90 border border-white/30 rounded-full mb-3 bg-[#800A1D]">
+                        <span className="inline-block px-3.5 py-1 text-xs font-semibold text-white/90 border border-white/30 rounded-full mb-3 bg-primary">
                           {tmpl.tier}
                         </span>
                         <h3 className="text-white text-2xl sm:text-3xl font-bold tracking-tight leading-snug">
@@ -80,7 +80,7 @@ export default function StoreTemplates() {
                         </h3>
                       </div>
 
-                      <div className="w-11 h-11 rounded-full bg-[#800A1D] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-md ml-3">
+                      <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform shadow-md ml-3">
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -109,7 +109,7 @@ export default function StoreTemplates() {
                   {/* Top Info Row */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <span className="inline-block px-3.5 py-1 text-xs font-semibold text-[#800A1D] border border-[#800A1D]/30 rounded-full mb-3 bg-white">
+                      <span className="inline-block px-3.5 py-1 text-xs font-semibold text-primary border border-primary/30 rounded-full mb-3 bg-white">
                         {tmpl.tier}
                       </span>
                       <h3 className="text-[#0A0E11] text-2xl sm:text-3xl font-bold tracking-tight leading-snug">
@@ -117,7 +117,7 @@ export default function StoreTemplates() {
                       </h3>
                     </div>
 
-                    <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-[#800A1D] shrink-0 group-hover:scale-110 transition-transform shadow-xs ml-3 border border-neutral-200">
+                    <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform shadow-xs ml-3 border border-neutral-200">
                       <svg
                         className="w-5 h-5"
                         fill="none"

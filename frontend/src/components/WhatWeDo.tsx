@@ -15,7 +15,8 @@ export default function WhatWeDo() {
           <div className="lg:col-span-7 xl:col-span-7 flex flex-col items-start">
             {/* Main Headline */}
             <h2 className="text-[#0A0E11] text-3xl sm:text-4xl lg:text-[42px] font-bold leading-[1.18] tracking-tight max-w-xl mb-10 lg:mb-14">
-              Shaping the future of Multi-Tenant <br className="hidden sm:inline" />
+              Shaping the future of Multi-Tenant{" "}
+              <br className="hidden sm:inline" />
               E-Commerce in Africa
             </h2>
 
@@ -23,7 +24,7 @@ export default function WhatWeDo() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 w-full">
               {/* Column 1 - Custom Storefronts & Subdomains */}
               <div className="flex flex-col items-start gap-4 pr-0 sm:pr-8 sm:border-r border-neutral-200">
-                <div className="w-10 h-10 rounded-xl bg-[#FAD4D8] flex items-center justify-center text-[#800A1D]">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center text-primary">
                   <svg
                     className="w-6 h-6"
                     viewBox="0 0 24 24"
@@ -44,13 +45,14 @@ export default function WhatWeDo() {
                 </h3>
 
                 <p className="text-[#666666] text-sm sm:text-base leading-relaxed">
-                  Every seller gets a dedicated store URL (e.g. musa-store.hustlr.shop)
-                  or custom domain, with personalized colors, logo, and templates.
+                  Every seller gets a dedicated store URL (e.g.
+                  musa-store.hustlr.shop) or custom domain, with personalized
+                  colors, logo, and templates.
                 </p>
 
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 text-[#800A1D] font-semibold text-sm sm:text-base hover:underline mt-1 group cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-primary font-semibold text-sm sm:text-base hover:underline mt-1 group cursor-pointer"
                 >
                   <span>Build Your Store</span>
                   <svg
@@ -71,7 +73,7 @@ export default function WhatWeDo() {
 
               {/* Column 2 - Escrow Wallet & Paystack */}
               <div className="flex flex-col items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#FAD4D8] flex items-center justify-center text-[#800A1D]">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center text-primary">
                   <svg
                     className="w-6 h-6"
                     viewBox="0 0 24 24"
@@ -91,13 +93,14 @@ export default function WhatWeDo() {
                 </h3>
 
                 <p className="text-[#666666] text-sm sm:text-base leading-relaxed">
-                  Seamless checkout via Paystack with escrow protection. Earnings land in
-                  your seller wallet for instant bank withdrawals upon delivery.
+                  Seamless checkout via Paystack with escrow protection.
+                  Earnings land in your seller wallet for instant bank
+                  withdrawals upon delivery.
                 </p>
 
                 <a
                   href="#features"
-                  className="inline-flex items-center gap-1.5 text-[#800A1D] font-semibold text-sm sm:text-base hover:underline mt-1 group"
+                  className="inline-flex items-center gap-1.5 text-primary font-semibold text-sm sm:text-base hover:underline mt-1 group"
                 >
                   <span>Learn Escrow Workflow</span>
                   <svg

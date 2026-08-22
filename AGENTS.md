@@ -54,7 +54,6 @@ Before modifying any files:
 * **Directory Boundaries**:
   * **Frontend developers / agents**: Focus work inside `frontend/`.
   * **Backend developers / agents**: Focus work inside `server/`.
-  * **Shared specifications**: Keep `architecture.md`, `prd.md`, `tasks.md`, and `handoff.md` updated as shared single sources of truth.
 * **Keep commits focused**: Group changes logically and write clear semantic commit messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
 * **Never copy-paste code files between branches**: Use proper Git merges/PRs from `main` to maintain commit history and avoid 3-way merge conflicts.
 

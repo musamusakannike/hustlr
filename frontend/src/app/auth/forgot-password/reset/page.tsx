@@ -32,7 +32,9 @@ function ResetPasswordContent() {
     if (!isValid) return;
 
     if (!email || !code) {
-      setErrorMessage("Missing reset credentials. Please start the recovery process again.");
+      setErrorMessage(
+        "Missing reset credentials. Please start the recovery process again.",
+      );
       return;
     }
 
@@ -46,7 +48,7 @@ function ResetPasswordContent() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Failed to update password. Code may have expired."
+          : "Failed to update password. Code may have expired.",
       );
     } finally {
       setLoading(false);
@@ -78,12 +80,15 @@ function ResetPasswordContent() {
         {/* Password Field */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
-            New Password <span className="text-[11px] font-normal text-neutral-400">(min. 8 characters)</span>
+            New Password{" "}
+            <span className="text-[11px] font-normal text-neutral-400">
+              (min. 8 characters)
+            </span>
           </label>
           <div
             className={`flex items-center h-13 px-4 rounded-xl border bg-white transition-all ${
               isPasswordFocused
-                ? "border-[#800A1D] ring-2 ring-[#800A1D]/10"
+                ? "border-primary ring-2 ring-primary/10"
                 : "border-neutral-200 hover:border-neutral-300"
             }`}
           >
@@ -122,7 +127,7 @@ function ResetPasswordContent() {
           <div
             className={`flex items-center h-13 px-4 rounded-xl border bg-white transition-all ${
               isConfirmFocused
-                ? "border-[#800A1D] ring-2 ring-[#800A1D]/10"
+                ? "border-primary ring-2 ring-primary/10"
                 : "border-neutral-200 hover:border-neutral-300"
             }`}
           >
@@ -142,7 +147,9 @@ function ResetPasswordContent() {
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="text-neutral-400 hover:text-neutral-600 p-1 cursor-pointer transition-colors"
-              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
             >
               {showConfirmPassword ? (
                 <FiEyeOff className="w-4 h-4" />
@@ -152,7 +159,9 @@ function ResetPasswordContent() {
             </button>
           </div>
           {confirmPassword && !isMatch && (
-            <p className="text-xs text-red-500 font-medium">Passwords do not match</p>
+            <p className="text-xs text-red-500 font-medium">
+              Passwords do not match
+            </p>
           )}
         </div>
 
@@ -163,7 +172,7 @@ function ResetPasswordContent() {
             disabled={!isValid}
             className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
               isValid
-                ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
             }`}
           >
@@ -187,7 +196,13 @@ export default function ResetPasswordPage() {
       bannerSubtitle="Choose a password that is unique and easy for you to remember."
       bannerQuote="“All sensitive store credentials and payouts are guarded with industry standard encryption.”"
     >
-      <Suspense fallback={<div className="py-12 text-center"><ClipLoader color="#800A1D" size={28} /></div>}>
+      <Suspense
+        fallback={
+          <div className="py-12 text-center">
+            <ClipLoader color="#800A1D" size={28} />
+          </div>
+        }
+      >
         <ResetPasswordContent />
       </Suspense>
     </AuthLayout>

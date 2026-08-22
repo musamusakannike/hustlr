@@ -55,7 +55,7 @@ function VerifyOtpContent() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Invalid or expired verification code. Please request a new one."
+          : "Invalid or expired verification code. Please request a new one.",
       );
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ function VerifyOtpContent() {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Failed to resend verification code."
+          : "Failed to resend verification code.",
       );
     } finally {
       setResending(false);
@@ -124,7 +124,12 @@ function VerifyOtpContent() {
           <div className="flex items-center justify-between text-xs pt-1">
             <span className="text-neutral-400">
               {timer > 0 ? (
-                <>Code expires in <span className="font-mono font-medium text-neutral-600">{formattedTimer}</span></>
+                <>
+                  Code expires in{" "}
+                  <span className="font-mono font-medium text-neutral-600">
+                    {formattedTimer}
+                  </span>
+                </>
               ) : (
                 "Code has expired"
               )}
@@ -136,7 +141,7 @@ function VerifyOtpContent() {
               className={`font-semibold transition-colors cursor-pointer ${
                 timer > 0 || resending
                   ? "text-neutral-300 cursor-not-allowed"
-                  : "text-[#800A1D] hover:text-[#660817]"
+                  : "text-primary hover:text-primary-hover"
               }`}
             >
               {resending ? "Sending..." : "Resend code"}
@@ -151,7 +156,7 @@ function VerifyOtpContent() {
             disabled={!isValid}
             className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
               isValid
-                ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                ? "bg-primary hover:bg-primary-hover text-white cursor-pointer active:scale-[0.99]"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
             }`}
           >
@@ -175,7 +180,13 @@ export default function VerifyOtpPage() {
       bannerSubtitle="Every merchant on Hustlr is verified to protect transactions and build consumer trust across the continent."
       bannerQuote="“Customer trust went through the roof once our verified badge went live on our storefront.”"
     >
-      <Suspense fallback={<div className="py-12 text-center"><ClipLoader color="#800A1D" size={28} /></div>}>
+      <Suspense
+        fallback={
+          <div className="py-12 text-center">
+            <ClipLoader color="#800A1D" size={28} />
+          </div>
+        }
+      >
         <VerifyOtpContent />
       </Suspense>
     </AuthLayout>

@@ -75,7 +75,7 @@ export default function StartStoreModal({
 
         {submitted ? (
           <div className="py-8 flex flex-col items-center text-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#800A1D]/10 text-[#800A1D] flex items-center justify-center text-3xl font-bold">
+            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl font-bold">
               ✓
             </div>
             <h4 className="text-2xl font-bold text-[#0A0E11]">
@@ -83,7 +83,7 @@ export default function StartStoreModal({
             </h4>
             <p className="text-sm text-[#666666] max-w-xs">
               We&apos;re preparing your store dashboard at{" "}
-              <span className="font-mono text-[#800A1D] font-semibold">
+              <span className="font-mono text-primary font-semibold">
                 {slugPreview}.hustlr.shop
               </span>
               . Check your email for OTP verification.
@@ -101,11 +101,11 @@ export default function StartStoreModal({
                 placeholder="e.g. Musa's Fashion Hub"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-[#800A1D] text-sm text-[#0A0E11]"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-primary text-sm text-[#0A0E11]"
               />
               <p className="text-xs text-neutral-400 mt-1">
                 Your store URL:{" "}
-                <span className="font-mono text-[#800A1D] font-medium">
+                <span className="font-mono text-primary font-medium">
                   {slugPreview}.hustlr.shop
                 </span>
               </p>
@@ -121,7 +121,7 @@ export default function StartStoreModal({
                 placeholder="musa@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-[#800A1D] text-sm text-[#0A0E11]"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-primary text-sm text-[#0A0E11]"
               />
             </div>
 
@@ -135,13 +135,13 @@ export default function StartStoreModal({
                 placeholder="Create a strong password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-[#800A1D] text-sm text-[#0A0E11]"
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-primary text-sm text-[#0A0E11]"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#800A1D] hover:bg-[#660817] text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-md cursor-pointer mt-2 flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-semibold text-base rounded-xl transition-all duration-200 shadow-md cursor-pointer mt-2 flex items-center justify-center gap-2"
             >
               <span>Create Store & Verify OTP</span>
               <svg

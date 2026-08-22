@@ -12,19 +12,20 @@ export default function Pricing() {
     <>
       <section
         id="pricing"
-        className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-[#EFEFEF] font-space-grotesk"
+        className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-bg-soft font-space-grotesk"
       >
         <div className="max-w-7xl mx-auto flex flex-col gap-12 lg:gap-14">
           {/* Section Header */}
           <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-            <span className="inline-block text-xs font-bold text-[#800A1D] uppercase tracking-widest bg-[#FAD4D8] px-3.5 py-1 rounded-md mb-3">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3.5 py-1 rounded-md mb-3">
               Subscription Plans
             </span>
             <h2 className="text-[#0A0E11] text-3xl sm:text-4xl lg:text-[42px] font-bold leading-[1.2] tracking-tight">
               Simple, Transparent Pricing for Every Merchant
             </h2>
             <p className="text-[#666666] text-base sm:text-lg leading-relaxed mt-3">
-              Start free, upgrade as your business grows. No hidden transaction fees.
+              Start free, upgrade as your business grows. No hidden transaction
+              fees.
             </p>
 
             {/* Monthly / Yearly Billing Toggle */}
@@ -33,7 +34,7 @@ export default function Pricing() {
                 onClick={() => setIsYearly(false)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                   !isYearly
-                    ? "bg-[#800A1D] text-white shadow-xs"
+                    ? "bg-primary text-white shadow-xs"
                     : "text-neutral-600 hover:text-black"
                 }`}
               >
@@ -43,12 +44,12 @@ export default function Pricing() {
                 onClick={() => setIsYearly(true)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   isYearly
-                    ? "bg-[#800A1D] text-white shadow-xs"
+                    ? "bg-primary text-white shadow-xs"
                     : "text-neutral-600 hover:text-black"
                 }`}
               >
                 <span>Yearly Billing</span>
-                <span className="bg-[#FAD4D8] text-[#800A1D] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-primary-light text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
                   SAVE 17%
                 </span>
               </button>
@@ -60,21 +61,19 @@ export default function Pricing() {
             {PRICING_PLANS.map((plan) => {
               const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
               const formattedPrice =
-                price === 0
-                  ? "₦0"
-                  : `₦${price.toLocaleString("en-NG")}`;
+                price === 0 ? "₦0" : `₦${price.toLocaleString("en-NG")}`;
 
               return (
                 <div
                   key={plan.slug}
                   className={`rounded-3xl p-7 sm:p-8 flex flex-col justify-between transition-all duration-300 relative ${
                     plan.isPopular
-                      ? "bg-[#0A0E11] text-white shadow-2xl border-2 border-[#800A1D] scale-102"
+                      ? "bg-[#0A0E11] text-white shadow-2xl border-2 border-primary scale-102"
                       : "bg-white text-[#0A0E11] shadow-xs border border-neutral-200"
                   }`}
                 >
                   {plan.isPopular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#800A1D] text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
                       Most Popular
                     </div>
                   )}
@@ -99,33 +98,40 @@ export default function Pricing() {
                       </span>
                       <span
                         className={`text-sm ${
-                          plan.isPopular ? "text-neutral-400" : "text-neutral-500"
+                          plan.isPopular
+                            ? "text-neutral-400"
+                            : "text-neutral-500"
                         }`}
                       >
                         /{isYearly ? "year" : "month"}
                       </span>
                     </div>
 
-                    <div className="inline-block text-xs font-bold text-[#800A1D] bg-[#FAD4D8] px-3 py-1 rounded-md mb-8">
+                    <div className="inline-block text-xs font-bold text-primary bg-primary-light px-3 py-1 rounded-md mb-8">
                       {plan.commissionPercent} Platform Commission
                     </div>
 
                     {/* Feature List */}
                     <ul className="flex flex-col gap-3 mb-8">
                       {plan.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-center gap-3 text-sm">
+                        <li
+                          key={idx}
+                          className="flex items-center gap-3 text-sm"
+                        >
                           <span
                             className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
                               plan.isPopular
-                                ? "bg-[#800A1D] text-white"
-                                : "bg-[#FAD4D8] text-[#800A1D]"
+                                ? "bg-primary text-white"
+                                : "bg-primary-light text-primary"
                             }`}
                           >
                             ✓
                           </span>
                           <span
                             className={
-                              plan.isPopular ? "text-neutral-200" : "text-[#333333]"
+                              plan.isPopular
+                                ? "text-neutral-200"
+                                : "text-[#333333]"
                             }
                           >
                             {feat}
@@ -139,7 +145,7 @@ export default function Pricing() {
                     onClick={() => setIsModalOpen(true)}
                     className={`w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-200 cursor-pointer shadow-sm ${
                       plan.isPopular
-                        ? "bg-[#800A1D] hover:bg-[#660817] text-white"
+                        ? "bg-primary hover:bg-[#660817] text-white"
                         : "bg-[#0A0E11] hover:bg-neutral-800 text-white"
                     }`}
                   >

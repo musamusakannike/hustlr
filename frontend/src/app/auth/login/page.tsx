@@ -46,7 +46,7 @@ export default function LoginPage() {
       if (message.toLowerCase().includes("verify your email")) {
         setTimeout(() => {
           router.push(
-            `/auth/verify-otp?email=${encodeURIComponent(email.trim())}`
+            `/auth/verify-otp?email=${encodeURIComponent(email.trim())}`,
           );
         }, 1500);
       }
@@ -57,7 +57,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setErrorMessage(
-      "Google authentication for merchants can be initiated with your registered Google account."
+      "Google authentication for merchants can be initiated with your registered Google account.",
     );
   };
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
             <div
               className={`flex items-center h-13 px-4 rounded-xl border bg-white transition-all ${
                 isEmailFocused || email.length > 0
-                  ? "border-[#800A1D] ring-2 ring-[#800A1D]/10"
+                  ? "border-primary ring-2 ring-primary/10"
                   : "border-neutral-200 hover:border-neutral-300"
               }`}
             >
@@ -123,7 +123,7 @@ export default function LoginPage() {
             <div
               className={`flex items-center h-13 px-4 rounded-xl border bg-white transition-all ${
                 isPasswordFocused
-                  ? "border-[#800A1D] ring-2 ring-[#800A1D]/10"
+                  ? "border-primary ring-2 ring-primary/10"
                   : "border-neutral-200 hover:border-neutral-300"
               }`}
             >
@@ -156,7 +156,7 @@ export default function LoginPage() {
             <div className="flex justify-end pt-1">
               <Link
                 href="/auth/forgot-password"
-                className="text-xs font-semibold text-[#800A1D] hover:text-[#660817] transition-colors"
+                className="text-xs font-semibold text-primary hover:text-[#660817] transition-colors"
               >
                 Forgot password?
               </Link>
@@ -171,7 +171,7 @@ export default function LoginPage() {
               disabled={!isValid}
               className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
                 isValid
-                  ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                  ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
                   : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
               }`}
             >
@@ -207,7 +207,7 @@ export default function LoginPage() {
           <span>New to Hustlr? </span>
           <Link
             href="/auth/register"
-            className="font-bold text-[#800A1D] hover:text-[#660817] transition-colors"
+            className="font-bold text-primary hover:text-[#660817] transition-colors"
           >
             Sign up Now
           </Link>

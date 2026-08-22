@@ -47,7 +47,7 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-sm font-semibold text-neutral-700 hover:text-[#800A1D] transition-colors"
+                className="text-sm font-semibold text-neutral-700 hover:text-primary transition-colors"
               >
                 {link.name}
               </a>
@@ -58,14 +58,14 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-5">
             <Link
               href="/auth/login"
-              className="text-sm font-semibold text-neutral-600 hover:text-[#800A1D] transition-colors"
+              className="text-sm font-semibold text-neutral-600 hover:text-primary transition-colors"
             >
               Sign In
             </Link>
 
             <Link
               href="/auth/register"
-              className="bg-[#800A1D] hover:bg-[#660817] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer flex items-center gap-1.5"
+              className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer flex items-center gap-1.5"
             >
               <span>Start Your Free Store</span>
               <svg
@@ -176,7 +176,7 @@ export default function Navbar() {
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-lg font-semibold text-neutral-700 hover:text-[#800A1D] py-1"
+              className="text-lg font-semibold text-neutral-700 hover:text-primary py-1"
             >
               {link.name}
             </a>
@@ -194,7 +194,7 @@ export default function Navbar() {
           <Link
             href="/auth/register"
             onClick={() => setIsOpen(false)}
-            className="w-full py-3.5 rounded-xl bg-[#800A1D] text-white font-semibold text-center text-base shadow-md hover:bg-[#660817] transition-colors"
+            className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-center text-base shadow-md hover:bg-primary-hover transition-colors"
           >
             Start Your Free Store
           </Link>

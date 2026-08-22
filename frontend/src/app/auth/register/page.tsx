@@ -61,13 +61,13 @@ export default function RegisterPage() {
 
       // Redirect directly to the 6-digit OTP verification screen
       router.push(
-        `/auth/verify-otp?email=${encodeURIComponent(response.email || email.trim())}`
+        `/auth/verify-otp?email=${encodeURIComponent(response.email || email.trim())}`,
       );
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Failed to create merchant account. Please try again."
+          : "Failed to create merchant account. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = async () => {
     setErrorMessage(
-      "Google merchant registration can be completed with your active Google account."
+      "Google merchant registration can be completed with your active Google account.",
     );
   };
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
           </h1>
           <p className="text-sm text-neutral-500 font-normal">
             You are signing up on Hustlr as a{" "}
-            <span className="font-semibold text-[#800A1D]">seller</span>
+            <span className="font-semibold text-primary">seller</span>
           </p>
         </div>
 
@@ -114,7 +114,7 @@ export default function RegisterPage() {
             <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
               Full name
             </label>
-            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-[#800A1D] focus-within:ring-2 focus-within:ring-[#800A1D]/10 transition-all">
+            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
               <input
                 type="text"
                 required
@@ -132,7 +132,7 @@ export default function RegisterPage() {
             <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
               Email
             </label>
-            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-[#800A1D] focus-within:ring-2 focus-within:ring-[#800A1D]/10 transition-all">
+            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
               <input
                 type="email"
                 required
@@ -148,9 +148,12 @@ export default function RegisterPage() {
           {/* Password Field */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
-              Password <span className="text-[11px] font-normal text-neutral-400">(min. 8 characters)</span>
+              Password{" "}
+              <span className="text-[11px] font-normal text-neutral-400">
+                (min. 8 characters)
+              </span>
             </label>
-            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-[#800A1D] focus-within:ring-2 focus-within:ring-[#800A1D]/10 transition-all">
+            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
               <input
                 type={showPassword ? "text" : "password"}
                 required
@@ -181,7 +184,7 @@ export default function RegisterPage() {
             <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
               Confirm password
             </label>
-            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-[#800A1D] focus-within:ring-2 focus-within:ring-[#800A1D]/10 transition-all">
+            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
@@ -196,7 +199,9 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="text-neutral-400 hover:text-neutral-600 p-1 cursor-pointer transition-colors"
-                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
               >
                 {showConfirmPassword ? (
                   <FiEyeOff className="w-4 h-4" />
@@ -206,16 +211,21 @@ export default function RegisterPage() {
               </button>
             </div>
             {confirmPassword && !isPasswordMatch && (
-              <p className="text-xs text-red-500 font-medium">Passwords do not match</p>
+              <p className="text-xs text-red-500 font-medium">
+                Passwords do not match
+              </p>
             )}
           </div>
 
           {/* Referral Code Field (optional) */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-neutral-700 tracking-wide">
-              Referral code <span className="text-[11px] font-normal text-neutral-400">(optional)</span>
+              Referral code{" "}
+              <span className="text-[11px] font-normal text-neutral-400">
+                (optional)
+              </span>
             </label>
-            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-[#800A1D] focus-within:ring-2 focus-within:ring-[#800A1D]/10 transition-all">
+            <div className="flex items-center h-12.5 px-4 rounded-xl border border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
               <input
                 type="text"
                 placeholder="e.g. HUSTLR-ABC123"
@@ -234,7 +244,7 @@ export default function RegisterPage() {
             <div
               className={`w-5 h-5 rounded-md border mt-0.5 flex items-center justify-center transition-all ${
                 isAgreed
-                  ? "bg-[#800A1D] border-[#800A1D] text-white shadow-xs"
+                  ? "bg-primary border-primary text-white shadow-xs"
                   : "border-neutral-300 bg-white group-hover:border-neutral-400"
               }`}
             >
@@ -245,7 +255,7 @@ export default function RegisterPage() {
               <Link
                 href="/privacy"
                 onClick={(e) => e.stopPropagation()}
-                className="font-medium text-[#800A1D] hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 Privacy policy
               </Link>
@@ -253,7 +263,7 @@ export default function RegisterPage() {
               <Link
                 href="/terms"
                 onClick={(e) => e.stopPropagation()}
-                className="font-medium text-[#800A1D] hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 terms and conditions
               </Link>
@@ -268,7 +278,7 @@ export default function RegisterPage() {
               disabled={!isValid}
               className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
                 isValid
-                  ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                  ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
                   : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
               }`}
             >
@@ -304,7 +314,7 @@ export default function RegisterPage() {
           <span>Already have an account? </span>
           <Link
             href="/auth/login"
-            className="font-bold text-[#800A1D] hover:text-[#660817] transition-colors"
+            className="font-bold text-primary hover:text-[#660817] transition-colors"
           >
             Login
           </Link>

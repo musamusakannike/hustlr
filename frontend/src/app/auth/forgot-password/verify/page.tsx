@@ -41,8 +41,8 @@ function ForgotPasswordVerifyContent() {
     // Direct navigation to reset password page with email and verified code
     router.push(
       `/auth/forgot-password/reset?email=${encodeURIComponent(
-        targetEmail
-      )}&code=${encodeURIComponent(codeStr)}`
+        targetEmail,
+      )}&code=${encodeURIComponent(codeStr)}`,
     );
   };
 
@@ -59,9 +59,7 @@ function ForgotPasswordVerifyContent() {
       setSuccessInfo("A new password reset code has been sent to your email.");
     } catch (err: unknown) {
       setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : "Failed to resend reset code."
+        err instanceof Error ? err.message : "Failed to resend reset code.",
       );
     } finally {
       setResending(false);
@@ -108,7 +106,12 @@ function ForgotPasswordVerifyContent() {
           <div className="flex items-center justify-between text-xs pt-1">
             <span className="text-neutral-400">
               {timer > 0 ? (
-                <>Code expires in <span className="font-mono font-medium text-neutral-600">{formattedTimer}</span></>
+                <>
+                  Code expires in{" "}
+                  <span className="font-mono font-medium text-neutral-600">
+                    {formattedTimer}
+                  </span>
+                </>
               ) : (
                 "Code has expired"
               )}
@@ -120,7 +123,7 @@ function ForgotPasswordVerifyContent() {
               className={`font-semibold transition-colors cursor-pointer ${
                 timer > 0 || resending
                   ? "text-neutral-300 cursor-not-allowed"
-                  : "text-[#800A1D] hover:text-[#660817]"
+                  : "text-primary hover:text-[#660817]"
               }`}
             >
               {resending ? "Sending..." : "Resend code"}
@@ -135,7 +138,7 @@ function ForgotPasswordVerifyContent() {
             disabled={!isValid}
             className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
               isValid
-                ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
             }`}
           >
@@ -159,7 +162,13 @@ export default function ForgotPasswordVerifyPage() {
       bannerSubtitle="Enter your OTP code to set a new password and immediately resume your storefront operations."
       bannerQuote="“Protected access ensures only verified store owners can modify store settings or withdraw funds.”"
     >
-      <Suspense fallback={<div className="py-12 text-center"><ClipLoader color="#800A1D" size={28} /></div>}>
+      <Suspense
+        fallback={
+          <div className="py-12 text-center">
+            <ClipLoader color="#800A1D" size={28} />
+          </div>
+        }
+      >
         <ForgotPasswordVerifyContent />
       </Suspense>
     </AuthLayout>

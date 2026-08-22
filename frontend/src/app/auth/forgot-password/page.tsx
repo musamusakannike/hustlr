@@ -27,13 +27,13 @@ export default function ForgotPasswordPage() {
     try {
       await authService.forgotSellerPassword(email.trim());
       router.push(
-        `/auth/forgot-password/verify?email=${encodeURIComponent(email.trim())}`
+        `/auth/forgot-password/verify?email=${encodeURIComponent(email.trim())}`,
       );
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Failed to send reset code. Please try again."
+          : "Failed to send reset code. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -54,7 +54,8 @@ export default function ForgotPasswordPage() {
             Forgot password?
           </h1>
           <p className="text-sm text-neutral-500 font-normal leading-relaxed">
-            Enter the email address linked to your account to reset your password. A verification code will be sent to your Email.
+            Enter the email address linked to your account to reset your
+            password. A verification code will be sent to your Email.
           </p>
         </div>
 
@@ -75,7 +76,7 @@ export default function ForgotPasswordPage() {
             <div
               className={`flex items-center h-13 px-4 rounded-xl border bg-white transition-all ${
                 isFocused || email.length > 0
-                  ? "border-[#800A1D] ring-2 ring-[#800A1D]/10"
+                  ? "border-primary ring-2 ring-primary/10"
                   : "border-neutral-200 hover:border-neutral-300"
               }`}
             >
@@ -100,7 +101,7 @@ export default function ForgotPasswordPage() {
               disabled={!isValid}
               className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
                 isValid
-                  ? "bg-[#800A1D] hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                  ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
                   : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
               }`}
             >

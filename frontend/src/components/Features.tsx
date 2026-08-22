@@ -5,7 +5,7 @@ const icons = [
   // Icon 1: Rocket / Store Setup
   <svg
     key="1"
-    className="w-8 h-8 text-[#800A1D]"
+    className="w-8 h-8 text-primary"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -35,7 +35,7 @@ const icons = [
   // Icon 3: Domain & Custom Themes
   <svg
     key="3"
-    className="w-8 h-8 text-[#800A1D]"
+    className="w-8 h-8 text-primary"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -53,13 +53,13 @@ export default function Features() {
   return (
     <section
       id="features"
-      className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-[#EFEFEF] font-space-grotesk"
+      className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-bg-soft font-space-grotesk"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
         {/* Left Column - Section Title & Controls */}
         <div className="lg:col-span-4 flex flex-col justify-between">
           <div>
-            <span className="inline-block text-xs font-bold text-[#800A1D] uppercase tracking-widest bg-[#FAD4D8] px-3 py-1 rounded-md mb-3">
+            <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3 py-1 rounded-md mb-3">
               Built For Success
             </span>
             <h2 className="text-[#0A0E11] text-3xl sm:text-4xl lg:text-[40px] font-bold leading-[1.2] tracking-tight">
@@ -67,14 +67,14 @@ export default function Features() {
               Special For Sellers
             </h2>
             <p className="text-[#666666] text-base sm:text-lg leading-relaxed mt-4 max-w-md">
-              We provide merchants with all the tools needed to build, manage, and
-              scale an independent online store with full trust and ease.
+              We provide merchants with all the tools needed to build, manage,
+              and scale an independent online store with full trust and ease.
             </p>
           </div>
 
           {/* Indicator Pills */}
           <div className="flex items-center gap-2.5 mt-10 lg:mt-16">
-            <div className="w-12 h-2.5 bg-[#800A1D] rounded-full transition-all duration-300" />
+            <div className="w-12 h-2.5 bg-primary rounded-full transition-all duration-300" />
             <div className="w-7 h-2.5 bg-[#D1D5DB] rounded-full transition-all duration-300" />
             <div className="w-7 h-2.5 bg-[#D1D5DB] rounded-full transition-all duration-300" />
           </div>
@@ -100,7 +100,7 @@ export default function Features() {
                   className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                     feature.isDark
                       ? "bg-white/10 text-white/90 border border-white/20"
-                      : "bg-[#FAD4D8] text-[#800A1D]"
+                      : "bg-primary-light text-primary"
                   }`}
                 >
                   {feature.badge}

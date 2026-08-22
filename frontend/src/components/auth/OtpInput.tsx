@@ -24,7 +24,10 @@ export default function OtpInput({
     }
   }, [disabled]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     const rawVal = e.target.value;
     const digit = rawVal.replace(/\D/g, "").slice(-1); // Take last digit if multiple
 
@@ -40,7 +43,7 @@ export default function OtpInput({
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     if (e.key === "Backspace") {
       if (!value[index] && index > 0) {
@@ -103,8 +106,8 @@ export default function OtpInput({
             onFocus={(e) => e.target.select()}
             className={`w-11 sm:w-13 h-13 sm:h-14 text-center text-xl sm:text-2xl font-bold font-space-grotesk rounded-xl sm:rounded-2xl border transition-all duration-150 outline-none select-none ${
               isFilled
-                ? "border-[#800A1D] bg-[#800A1D]/5 text-[#0A0E11] shadow-xs"
-                : "border-neutral-200 bg-white text-neutral-800 focus:border-[#800A1D] focus:ring-2 focus:ring-[#800A1D]/15"
+                ? "border-primary bg-primary/5 text-[#0A0E11] shadow-xs"
+                : "border-neutral-200 bg-white text-neutral-800 focus:border-primary focus:ring-2 focus:ring-primary/15"
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             autoComplete="one-time-code"
           />
