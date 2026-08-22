@@ -58,6 +58,7 @@
 ## Implementation Roadmap (Phases 1–6)
 
 ### Phase 1: Foundation & Project Infrastructure
+
 > Prerequisites: Complete before building any surface.
 
 - [ ] **1.1 Dependencies & Cleanup**:
@@ -81,7 +82,7 @@
   - [ ] Tenant-scoped `CartContext.tsx` (`hustlr_cart_{storeSlug}`)
   - [ ] Custom domain hooks (`hooks/useProducts.ts`, `useOrders.ts`, `useCart.ts`, etc.)
 - [ ] **1.7 Next.js Edge Middleware (`middleware.ts`)**:
-  - [ ] Host inspection and subdomain rewrites (`*.hustlr.online` / `*.lvh.me` → `/store/[slug]/*`)
+  - [ ] Host inspection and subdomain rewrites (`*.hustlr.shop` / `*.lvh.me` → `/store/[slug]/*`)
   - [ ] Auth route protection for `/dashboard/*` (seller) and `/admin/*` (admin)
 - [ ] **1.8 Route Groups & Layout Shells**:
   - [ ] Move existing landing page into `src/app/(marketing)/page.tsx` (internals unchanged)
@@ -93,6 +94,7 @@
 ---
 
 ### Phase 2: Marketing & Authentication Surfaces
+
 - [ ] **2.1 Marketing Sub-Pages**:
   - [ ] `(marketing)/pricing/page.tsx` (Interactive monthly/yearly comparison)
   - [ ] `(marketing)/templates/page.tsx` (Filterable template showcase + interactive preview)
@@ -107,6 +109,7 @@
 ---
 
 ### Phase 3: Storefront Surface (Buyer Shopping Experience)
+
 - [ ] **3.1 Dynamic Store Theme**:
   - [ ] Storefront layout injecting merchant CSS color variables (`--primary`, `--accent`, etc.)
   - [ ] Branded Storefront Header (Logo, Search, Cart Drawer trigger, Wishlist, WhatsApp button)
@@ -128,6 +131,7 @@
 ---
 
 ### Phase 4: Seller Dashboard Surface (Merchant Control Center)
+
 - [ ] **4.1 Dashboard Shell & Onboarding**:
   - [ ] Collapsible sidebar, topbar, store switcher, and Onboarding Checklist Banner
   - [ ] Dashboard Overview (`/dashboard/page.tsx`) with sales KPIs and recent orders
@@ -155,6 +159,7 @@
 ---
 
 ### Phase 5: Admin Surface (Platform Governance)
+
 - [ ] **5.1 Admin Shell & Overview**:
   - [ ] Admin layout shell with role verification guard
   - [ ] Executive Command Center (`/admin`) with global GMV, revenue, and urgent action queue
@@ -170,6 +175,7 @@
 ---
 
 ### Phase 6: Quality Assurance & Integration Verification
+
 - [ ] **6.1 End-to-End User Flow Testing**:
   - [ ] Flow 1: Seller registers → sets up store → uploads product → completes KYC → goes live.
   - [ ] Flow 2: Buyer visits `{slug}.lvh.me:3000` → adds to cart → pays in escrow → receives receipt.

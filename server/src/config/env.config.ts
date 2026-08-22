@@ -27,7 +27,7 @@ export const env = {
     .filter(Boolean),
   adminWebsiteUrl: process.env.ADMIN_WEBSITE_URL ?? "http://localhost:3001",
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:3000",
-  platformDomain: process.env.PLATFORM_DOMAIN ?? "hustlr.online",
+  platformDomain: process.env.PLATFORM_DOMAIN ?? "hustlr.shop",
   devPlatformDomain: process.env.DEV_PLATFORM_DOMAIN ?? "lvh.me",
   cookieDomain: process.env.COOKIE_DOMAIN ?? "",
   awsRegion: process.env.AWS_REGION ?? "auto",
@@ -55,5 +55,5 @@ export const env = {
   deepseekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
   deepseekBaseUrl: process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com",
   platformServerIp: process.env.PLATFORM_SERVER_IP ?? "",
-  customDomainCnameTarget: process.env.CUSTOM_DOMAIN_CNAME_TARGET ?? "stores.hustlr.online",
+  customDomainCnameTarget: process.env.CUSTOM_DOMAIN_CNAME_TARGET ?? "stores.hustlr.shop",
 };

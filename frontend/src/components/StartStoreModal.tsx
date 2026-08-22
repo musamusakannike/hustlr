@@ -84,7 +84,7 @@ export default function StartStoreModal({
             <p className="text-sm text-[#666666] max-w-xs">
               We&apos;re preparing your store dashboard at{" "}
               <span className="font-mono text-[#800A1D] font-semibold">
-                {slugPreview}.hustlr.online
+                {slugPreview}.hustlr.shop
               </span>
               . Check your email for OTP verification.
             </p>
@@ -106,7 +106,7 @@ export default function StartStoreModal({
               <p className="text-xs text-neutral-400 mt-1">
                 Your store URL:{" "}
                 <span className="font-mono text-[#800A1D] font-medium">
-                  {slugPreview}.hustlr.online
+                  {slugPreview}.hustlr.shop
                 </span>
               </p>
             </div>

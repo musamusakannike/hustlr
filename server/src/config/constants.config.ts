@@ -1,6 +1,6 @@
 export const APP_NAME = "Hustlr";
 export const APP_SLUG = APP_NAME.toLowerCase();
-export const APP_DOMAIN = "hustlr.online";
+export const APP_DOMAIN = "hustlr.shop";
 export const APP_URL = `https://${APP_DOMAIN}`;
 export const SUPPORT_EMAIL = `support@${APP_DOMAIN}`;
 export const APP_TAGLINE =

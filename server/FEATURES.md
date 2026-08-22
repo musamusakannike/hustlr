@@ -4,11 +4,11 @@ This document describes what the server implements. Brand strings come from `APP
 
 ## Roles and tenancy
 
-| Role | Auth context | Cookie |
-|---|---|---|
-| Seller | Main platform | `hustlr_session` |
-| Admin | Main platform | `hustlr_session` |
-| Buyer | One store only | `hustlr_buyer_session` (host-only) |
+| Role   | Auth context   | Cookie                             |
+| ------ | -------------- | ---------------------------------- |
+| Seller | Main platform  | `hustlr_session`                   |
+| Admin  | Main platform  | `hustlr_session`                   |
+| Buyer  | One store only | `hustlr_buyer_session` (host-only) |
 
 A buyer on store A has no account on store B. JWTs for buyers include `buyerProfileId` and `storeId`. `resolveStore` maps subdomain / custom domain / `X-Store-Slug` to a store and rejects stores that are not live.
 
@@ -37,11 +37,11 @@ Manual admin review. Seller saves progress, uploads ID/selfie/address/bank detai
 
 Seeded plans:
 
-| Plan | Monthly | Yearly | Commission | Notes |
-|---|---|---|---|---|
-| Free | ₦0 | ₦0 | 10% | 25 products, free templates |
-| Pro | ₦15,000 | ₦150,000 | 7% | Unlimited products, blog, pro templates |
-| Pro+ | ₦35,000 | ₦350,000 | 5% | Custom domain, all templates |
+| Plan | Monthly | Yearly   | Commission | Notes                                   |
+| ---- | ------- | -------- | ---------- | --------------------------------------- |
+| Free | ₦0      | ₦0       | 10%        | 25 products, free templates             |
+| Pro  | ₦15,000 | ₦150,000 | 7%         | Unlimited products, blog, pro templates |
+| Pro+ | ₦35,000 | ₦350,000 | 5%         | Custom domain, all templates            |
 
 Paid plans initialize Paystack checkout. Verify via `/api/subscriptions/verify` or the Paystack webhook. Cron handles expiry reminders, 3-day grace, then takes the store offline.
 
@@ -99,16 +99,16 @@ Provider order: SpaceXAI (`XAI_API_KEY`) → DeepSeek → local fallback so the 
 ## Uploads and security
 
 - Multer memory storage → Cloudflare R2
-- Helmet, CORS (platform + `*.hustlr.online` / `*.lvh.me`), rate limits (auth 5/min, API 100/min, upload 20/min)
+- Helmet, CORS (platform + `*.hustlr.shop` / `*.lvh.me`), rate limits (auth 5/min, API 100/min, upload 20/min)
 - Joi on write endpoints, mongo sanitize, Paystack HMAC-SHA512 webhooks
 - Webhooks are not rate-limited
 
 ## Cron (setInterval)
 
-| Job | Interval |
-|---|---|
-| Escrow auto-release | 1 hour |
-| Subscription expiry | 6 hours |
-| Review aggregate backfill | 24 hours |
+| Job                          | Interval |
+| ---------------------------- | -------- |
+| Escrow auto-release          | 1 hour   |
+| Subscription expiry          | 6 hours  |
+| Review aggregate backfill    | 24 hours |
 | Stale cart cleanup (30 days) | 24 hours |
-| Expired coupon deactivation | 24 hours |
+| Expired coupon deactivation  | 24 hours |

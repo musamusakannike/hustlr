@@ -2,7 +2,7 @@
 
 Express + TypeScript backend for the Hustlr multi-tenant e-commerce platform.
 
-Sellers register on the main platform, set up a branded store, and go live on `{slug}.hustlr.online`. Buyers shop on a single store at a time. Buyer accounts never leak across stores.
+Sellers register on the main platform, set up a branded store, and go live on `{slug}.hustlr.shop`. Buyers shop on a single store at a time. Buyer accounts never leak across stores.
 
 Full product behaviour is documented in [`FEATURES.md`](./FEATURES.md). Agent conventions are in [`AGENTS.md`](./AGENTS.md).
 
@@ -43,7 +43,7 @@ Health check: `GET http://localhost:5000/api/health`
 ## Seed data
 
 ```bash
-pnpm seed:admin        # admin@hustlr.online / Admin1234!
+pnpm seed:admin        # admin@hustlr.shop / Admin1234!
 pnpm seed:plans        # free, pro, pro+
 pnpm seed:categories
 pnpm seed:templates
@@ -56,7 +56,7 @@ Override the admin login with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
 
 The API resolves a store from:
 
-1. `Host` header (`musa-store.lvh.me`, `musa-store.hustlr.online`)
+1. `Host` header (`musa-store.lvh.me`, `musa-store.hustlr.shop`)
 2. Verified custom domain
 3. `X-Store-Slug` header or `?storeSlug=` (Postman / local)
 
@@ -70,11 +70,11 @@ Auth uses HttpOnly cookies (`hustlr_session` for sellers/admins, `hustlr_buyer_s
 
 ## Scripts
 
-| Script | Purpose |
-|---|---|
-| `pnpm dev` | Watch mode |
-| `pnpm build` | Compile to `dist/` |
-| `pnpm start` | Run compiled server |
+| Script        | Purpose                                  |
+| ------------- | ---------------------------------------- |
+| `pnpm dev`    | Watch mode                               |
+| `pnpm build`  | Compile to `dist/`                       |
+| `pnpm start`  | Run compiled server                      |
 | `pnpm seed:*` | Seed admin, plans, categories, templates |
 
 ## Postman
