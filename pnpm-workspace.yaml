@@ -1,3 +1,8 @@
 packages:
   - 'frontend'
   - 'server'
+allowBuilds:
+  '@firebase/util': true
+  esbuild: true
+  protobufjs: true
+  unrs-resolver: true
