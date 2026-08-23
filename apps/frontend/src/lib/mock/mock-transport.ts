@@ -360,7 +360,7 @@ export class MockTransport implements Transport {
         403
       );
     }
-    mockDb.store.templateId = template.id;
+    mockDb.store.templateId = template.id || template._id || null;
     mockDb.store.updatedAt = nowIso();
     return delay(copy(mockDb.store));
   }

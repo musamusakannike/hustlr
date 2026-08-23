@@ -93,13 +93,10 @@ export async function getMyStore(sellerId: string) {
   return getSellerStore(sellerId);
 }
 
-export async function listEligibleTemplates(sellerId: string, tier?: string) {
-  const plan = await getSellerPlan(sellerId);
-  const planName = plan?.name ?? "free";
+export async function listEligibleTemplates(_sellerId: string, tier?: string) {
   const filter: Record<string, unknown> = { isActive: true };
   if (tier) filter.tier = tier;
-  const templates = await WebsiteTemplate.find(filter).sort({ createdAt: -1 });
-  return templates.filter((t) => planAllowsTemplate(planName, t.tier));
+  return WebsiteTemplate.find(filter).sort({ createdAt: -1 });
 }
 
 export async function setStoreTemplate(

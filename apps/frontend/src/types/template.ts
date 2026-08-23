@@ -13,7 +13,8 @@ export interface LayoutSection {
 }
 
 export interface WebsiteTemplate {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
   slug: string;
   description: string;

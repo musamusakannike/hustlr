@@ -143,7 +143,9 @@ export default function TemplatesPage() {
   );
 
   const handleSelect = (template: WebsiteTemplate) => {
-    setTemplate.mutate(template.id, {
+    const templateId = (template.id || template._id || "").toString();
+    if (!templateId) return;
+    setTemplate.mutate(templateId, {
       onSuccess: () => {
         toast(`"${template.name}" is now your storefront template!`, "success");
       },
@@ -154,6 +156,12 @@ export default function TemplatesPage() {
   if (isLoading) {
     return <Spinner size="lg" label="Loading templates…" />;
   }
+
+  const currentTemplateId = (
+    typeof store?.templateId === "object" && store?.templateId !== null
+      ? (store.templateId as any)._id || (store.templateId as any).id
+      : store?.templateId
+  )?.toString();
 
   return (
     <div className="flex flex-col gap-6">
@@ -184,16 +192,19 @@ export default function TemplatesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filtered.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              isCurrent={store?.templateId === template.id}
-              locked={!tierAccessible(template.tier, entitlements)}
-              selecting={setTemplate.isPending}
-              onSelect={() => handleSelect(template)}
-            />
-          ))}
+          {filtered.map((template) => {
+            const templateId = (template.id || template._id || "").toString();
+            return (
+              <TemplateCard
+                key={templateId || template.slug}
+                template={template}
+                isCurrent={Boolean(templateId && currentTemplateId === templateId)}
+                locked={!tierAccessible(template.tier, entitlements)}
+                selecting={setTemplate.isPending}
+                onSelect={() => handleSelect(template)}
+              />
+            );
+          })}
         </div>
       )}
     </div>

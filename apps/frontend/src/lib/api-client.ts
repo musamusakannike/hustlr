@@ -161,8 +161,12 @@ export class ApiTransport implements Transport {
   }
 
   // ── Store (§2) ───────────────────────────────────────────────
-  getStore() {
-    return get<Store>("/store");
+  async getStore() {
+    const store = await get<any>("/store");
+    if (store && store.templateId && typeof store.templateId === "object") {
+      store.templateId = store.templateId._id || store.templateId.id;
+    }
+    return store as Store;
   }
   setupStore(input: StoreSetupInput) {
     return send<Store>("PUT", "/store/setup", input);
@@ -184,10 +188,16 @@ export class ApiTransport implements Transport {
   }
 
   // ── Templates (§3) ───────────────────────────────────────────
-  listTemplates(filters?: TemplateListFilters) {
-    return get<WebsiteTemplate[]>(
+  async listTemplates(filters?: TemplateListFilters) {
+    const list = await get<any[]>(
       `/templates${qs(filters as Record<string, string> | undefined)}`
     );
+    if (!Array.isArray(list)) return [];
+    return list.map((t) => ({
+      ...t,
+      id: t.id || t._id,
+      _id: t._id || t.id,
+    })) as WebsiteTemplate[];
   }
 
   // ── KYC (§4) ─────────────────────────────────────────────────

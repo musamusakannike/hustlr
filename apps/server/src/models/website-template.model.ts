@@ -53,6 +53,22 @@ const websiteTemplateSchema = new Schema<IWebsiteTemplate>(
   { timestamps: true },
 );
 
+websiteTemplateSchema.set("toJSON", {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    ret.id = ret._id ? ret._id.toString() : ret.id;
+    return ret;
+  },
+});
+
+websiteTemplateSchema.set("toObject", {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    ret.id = ret._id ? ret._id.toString() : ret.id;
+    return ret;
+  },
+});
+
 export const WebsiteTemplate = mongoose.model<IWebsiteTemplate>(
   "WebsiteTemplate",
   websiteTemplateSchema,
