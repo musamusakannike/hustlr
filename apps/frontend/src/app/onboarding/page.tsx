@@ -193,7 +193,7 @@ export default function OnboardingPage() {
 
   // Save draft whenever form state updates
   useEffect(() => {
-    if (initialLoading || currentStepIndex >= 7) return;
+    if (initialLoading || showDraftModal || currentStepIndex >= 7) return;
 
     const draftData = {
       currentStepIndex,
@@ -218,6 +218,7 @@ export default function OnboardingPage() {
     } catch {}
   }, [
     initialLoading,
+    showDraftModal,
     currentStepIndex,
     storeName,
     country,
