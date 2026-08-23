@@ -44,11 +44,24 @@ export function SellerAuthProvider({ children }: { children: React.ReactNode }) 
     };
   }, []);
 
+  const handleSetUser = useCallback((newUser: User | null) => {
+    setUser(newUser);
+    if (typeof window !== "undefined") {
+      if (newUser) {
+        window.localStorage.setItem("hustlr_user", JSON.stringify(newUser));
+      } else {
+        window.localStorage.removeItem("hustlr_user");
+        window.localStorage.removeItem("hustlr_token");
+        window.localStorage.removeItem("hustlr_mock_session");
+      }
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
-    setUser(null);
+    handleSetUser(null);
     queryClient.clear();
-  }, [queryClient]);
+  }, [handleSetUser, queryClient]);
 
   return (
     <SellerAuthContext.Provider
@@ -56,7 +69,7 @@ export function SellerAuthProvider({ children }: { children: React.ReactNode }) 
         user,
         isAuthenticated: user !== null,
         isLoading,
-        setUser,
+        setUser: handleSetUser,
         logout,
       }}
     >

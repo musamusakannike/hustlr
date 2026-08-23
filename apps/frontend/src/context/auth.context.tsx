@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         localStorage.removeItem("hustlr_user");
         localStorage.removeItem("hustlr_token");
+        localStorage.removeItem("hustlr_mock_session");
       }
     } catch {}
   };
