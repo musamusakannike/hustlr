@@ -167,17 +167,39 @@ export const authService = {
 };
 
 // ─── KYC Service ─────────────────────────────────────────────────────────────
+export type KycStatus = "draft" | "pending" | "approved" | "rejected" | "info_requested";
+export type KycVerificationType = "NIN" | "Driver's License" | "International Passport" | "Voter's Card" | string;
+
+export interface KycBankDetails {
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+}
+
 export interface KycRecord {
   _id: string;
-  sellerId: string;
-  status: "pending" | "approved" | "rejected" | "info_requested";
+  sellerId: string | { _id: string; name: string; email: string };
+  status: KycStatus;
+  firstName?: string;
+  lastName?: string;
+  otherName?: string;
+  verificationType?: KycVerificationType;
   idType?: string;
+  documentId?: string;
   idNumber?: string;
   idDocumentUrl?: string;
-  businessRegistrationUrl?: string;
+  selfieUrl?: string;
+  address?: string;
   proofOfAddressUrl?: string;
-  rejectionReason?: string;
+  businessRegistrationUrl?: string;
+  bankDetails?: KycBankDetails;
+  reviewerNote?: string;
   reviewerNotes?: string;
+  rejectionReason?: string;
+  requestedFiles?: string[];
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   seller?: {
@@ -185,27 +207,69 @@ export interface KycRecord {
     name: string;
     email: string;
   };
+  store?: {
+    _id: string;
+    name: string;
+    slug: string;
+    subdomain: string;
+    isLive: boolean;
+    logo?: string;
+    description?: string;
+    currency?: string;
+  } | null;
+}
+
+export interface AdminKycListMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface AdminKycListResponse {
+  items: KycRecord[];
+  meta: AdminKycListMeta;
+  kycs: KycRecord[];
+  total: number;
 }
 
 export const adminKycService = {
-  async list(params?: Record<string, unknown>): Promise<{ kycs: KycRecord[]; total: number }> {
-    const res = await api.get<ApiResponse<{ kycs: KycRecord[]; total: number }>>("/admin/kyc", { params });
-    return res.data.data;
+  async list(params?: Record<string, unknown>): Promise<AdminKycListResponse> {
+    const res = await api.get<ApiResponse<{ items: KycRecord[]; meta: AdminKycListMeta }>>("/admin/kyc", { params });
+    const raw = res.data.data;
+    const items = raw?.items || [];
+    const meta = raw?.meta || { total: items.length, page: 1, limit: items.length, totalPages: 1, hasNext: false, hasPrev: false };
+    return {
+      items,
+      meta,
+      kycs: items,
+      total: meta.total,
+    };
   },
-  async getById(id: string): Promise<KycRecord> {
-    const res = await api.get<ApiResponse<KycRecord>>(`/admin/kyc/${id}`);
-    return res.data.data;
+  async getById(id: string): Promise<{ kyc: KycRecord; store?: AdminStoreItem | null }> {
+    const res = await api.get<ApiResponse<KycRecord & { store?: AdminStoreItem | null; kyc?: KycRecord }>>(`/admin/kyc/${id}`);
+    const data = res.data.data;
+    if (data && "kyc" in data && data.kyc) {
+      return { kyc: data.kyc, store: data.store || null };
+    }
+    return { kyc: data, store: data.store || null };
   },
   async approve(id: string): Promise<KycRecord> {
     const res = await api.patch<ApiResponse<KycRecord>>(`/admin/kyc/${id}/approve`);
     return res.data.data;
   },
-  async reject(id: string, reason: string): Promise<KycRecord> {
-    const res = await api.patch<ApiResponse<KycRecord>>(`/admin/kyc/${id}/reject`, { reason });
+  async reject(id: string, reviewerNote: string): Promise<KycRecord> {
+    const res = await api.patch<ApiResponse<KycRecord>>(`/admin/kyc/${id}/reject`, { reviewerNote });
     return res.data.data;
   },
-  async requestInfo(id: string, notes: string): Promise<KycRecord> {
-    const res = await api.patch<ApiResponse<KycRecord>>(`/admin/kyc/${id}/request-info`, { notes });
+  async requestInfo(id: string, data: { reviewerNote: string; requestedFiles: string[] }): Promise<KycRecord> {
+    const res = await api.patch<ApiResponse<KycRecord>>(`/admin/kyc/${id}/request-info`, data);
+    return res.data.data;
+  },
+  async getFunnel(): Promise<Array<{ _id: string; count: number }>> {
+    const res = await api.get<ApiResponse<Array<{ _id: string; count: number }>>>("/admin/analytics/kyc-funnel");
     return res.data.data;
   },
 };

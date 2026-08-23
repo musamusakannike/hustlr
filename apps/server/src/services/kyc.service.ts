@@ -118,16 +118,38 @@ export async function listAdminKyc(params: {
   limit: number;
 }) {
   const filter: Record<string, unknown> = {};
-  if (params.status) filter.status = params.status;
-  if (params.search) {
-    const users = await User.find({
-      $or: [
-        { name: new RegExp(escapeRegex(params.search), "i") },
-        { email: new RegExp(escapeRegex(params.search), "i") },
-      ],
-    }).select("_id");
-    filter.sellerId = { $in: users.map((u) => u._id) };
+  if (params.status && params.status !== "all" && params.status !== "All") {
+    filter.status = params.status;
   }
+  if (params.search) {
+    const escaped = escapeRegex(params.search);
+    const regex = new RegExp(escaped, "i");
+    const [users, stores] = await Promise.all([
+      User.find({
+        $or: [{ name: regex }, { email: regex }],
+      }).select("_id"),
+      Store.find({
+        $or: [{ name: regex }, { slug: regex }],
+      }).select("sellerId"),
+    ]);
+
+    const matchedSellerIds = Array.from(
+      new Set([
+        ...users.map((u) => u._id),
+        ...stores.map((s) => s.sellerId),
+      ]),
+    );
+
+    filter.$or = [
+      { sellerId: { $in: matchedSellerIds } },
+      { firstName: regex },
+      { lastName: regex },
+      { documentId: regex },
+      { "bankDetails.accountNumber": regex },
+      { "bankDetails.bankName": regex },
+    ];
+  }
+
   const [items, total] = await Promise.all([
     Kyc.find(filter)
       .populate("sellerId", "name email")
@@ -136,13 +158,61 @@ export async function listAdminKyc(params: {
       .limit(params.limit),
     Kyc.countDocuments(filter),
   ]);
-  return { items, total };
+
+  const sellerIds = items
+    .map((it) => {
+      const s = it.sellerId as unknown as { _id?: unknown } | string;
+      return typeof s === "object" && s !== null && "_id" in s ? s._id : s;
+    })
+    .filter(Boolean);
+
+  const stores = await Store.find({ sellerId: { $in: sellerIds } }).select(
+    "sellerId name slug subdomain isLive logo",
+  );
+  const storeMap = new Map(stores.map((s) => [String(s.sellerId), s]));
+
+  const enhancedItems = items.map((item) => {
+    const obj = item.toObject();
+    const sellerIdKey = String(
+      typeof obj.sellerId === "object" && obj.sellerId !== null && "_id" in obj.sellerId
+        ? (obj.sellerId as { _id: unknown })._id
+        : obj.sellerId,
+    );
+    return {
+      ...obj,
+      seller:
+        typeof obj.sellerId === "object" && obj.sellerId !== null
+          ? obj.sellerId
+          : undefined,
+      store: storeMap.get(sellerIdKey) || null,
+    };
+  });
+
+  return { items: enhancedItems, total };
 }
 
 export async function getAdminKyc(kycId: string) {
   const kyc = await Kyc.findById(kycId).populate("sellerId", "name email");
   if (!kyc) throw ApiError.notFound("KYC application not found");
-  return kyc;
+
+  const sellerId =
+    typeof kyc.sellerId === "object" && kyc.sellerId !== null && "_id" in kyc.sellerId
+      ? (kyc.sellerId as unknown as { _id: unknown })._id
+      : kyc.sellerId;
+
+  const store = await Store.findOne({ sellerId }).select(
+    "sellerId name slug subdomain isLive logo description currency",
+  );
+
+  const obj = kyc.toObject();
+  return {
+    ...obj,
+    seller:
+      typeof obj.sellerId === "object" && obj.sellerId !== null
+        ? obj.sellerId
+        : undefined,
+    store: store || null,
+  };
 }
 
 export async function approveKyc(kycId: string) {
