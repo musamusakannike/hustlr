@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const PLATFORM_DOMAIN = (
-  process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "hustlr.online"
+  process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "hustlr.shop"
 ).toLowerCase();
 const DEV_DOMAIN = (process.env.NEXT_PUBLIC_DEV_DOMAIN ?? "lvh.me").toLowerCase();
 const TRANSPORT_MODE = process.env.NEXT_PUBLIC_TRANSPORT ?? "mock";
@@ -38,7 +38,7 @@ export function proxy(request: NextRequest) {
   if (TRANSPORT_MODE === "api" && pathname.startsWith("/dashboard")) {
     const session = request.cookies.get(SELLER_SESSION_COOKIE);
     if (!session?.value) {
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }

@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { useSetupStore, useStore } from "@/hooks/useStore";
 import { getErrorMessage } from "@/lib/utils";
-import { PENDING_STORE_KEY } from "@/app/(auth)/register/page";
+import { PENDING_STORE_KEY } from "@/constants/app.constants";
 import BasicsStep from "@/components/dashboard/setup/BasicsStep";
 import BrandingStep from "@/components/dashboard/setup/BrandingStep";
 import ContactStep from "@/components/dashboard/setup/ContactStep";

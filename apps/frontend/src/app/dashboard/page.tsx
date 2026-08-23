@@ -25,6 +25,7 @@ import {
   usePlanEntitlements,
 } from "@/hooks/useSubscription";
 import { useProducts } from "@/hooks/useProducts";
+import { APP_DOMAIN } from "@/constants/app.constants";
 import { formatNaira, formatDate } from "@/lib/utils";
 
 export default function DashboardOverviewPage() {
@@ -170,7 +171,7 @@ export default function DashboardOverviewPage() {
         <Card>
           <CardHeader
             title="Store Status"
-            description={`${store?.slug ?? "your-store"}.hustlr.online`}
+            description={`${store?.slug ?? "your-store"}.${APP_DOMAIN}`}
             action={
               <Link href="/dashboard/setup">
                 <Button variant="outline" size="sm">
@@ -271,7 +272,7 @@ export default function DashboardOverviewPage() {
         <span>
           Buyers will shop at{" "}
           <span className="font-mono text-primary font-medium">
-            {store?.slug ?? "your-store"}.hustlr.online
+            {store?.slug ?? "your-store"}.{APP_DOMAIN}
           </span>{" "}
           once your store is live.
         </span>

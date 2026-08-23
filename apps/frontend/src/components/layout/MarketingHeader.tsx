@@ -16,7 +16,7 @@ const MORE_LINKS = [
   { name: "About Us", href: "/about" },
   { name: "Contact Us", href: "/contact" },
   { name: "FAQs", href: "/#faqs" },
-  { name: "Sign In", href: "/login" },
+  { name: "Sign In", href: "/auth/login" },
 ];
 
 /**

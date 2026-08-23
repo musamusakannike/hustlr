@@ -122,7 +122,7 @@ export default function PricingPage() {
                     ))}
                   </ul>
                 </div>
-                <Link href="/register">
+                <Link href="/auth/register">
                   <Button
                     fullWidth
                     variant={plan.isPopular ? "primary" : "dark"}

@@ -100,7 +100,7 @@ export default function AboutPage() {
             Launch your free store today — no credit card required.
           </p>
           <Link
-            href="/register"
+            href="/auth/register"
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-xl font-semibold transition-all duration-200 shadow-md mt-6"
           >
             Start Your Free Store

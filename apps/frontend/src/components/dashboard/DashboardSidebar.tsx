@@ -19,7 +19,7 @@ import {
 import { cn, initialsOf } from "@/lib/utils";
 import { useSellerAuth } from "@/context/SellerAuthContext";
 import { useStore } from "@/hooks/useStore";
-import { APP_NAME, LOGO_PATH } from "@/constants/app.constants";
+import { APP_NAME, APP_DOMAIN, LOGO_PATH } from "@/constants/app.constants";
 
 export const DASHBOARD_NAV = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -76,7 +76,7 @@ function NavLinks({
             {store.name || "Unnamed store"}
           </p>
           <p className="text-xs text-muted truncate font-mono">
-            {store.slug || "your-store"}.hustlr.online
+            {store.slug || "your-store"}.{APP_DOMAIN}
           </p>
           <span
             className={cn(

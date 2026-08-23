@@ -69,7 +69,7 @@ export function useResetPassword() {
   const router = useRouter();
   return useMutation({
     mutationFn: (input: ResetPasswordInput) => authService.resetPassword(input),
-    onSuccess: () => router.replace("/login"),
+    onSuccess: () => router.replace("/auth/login"),
   });
 }
 
@@ -78,6 +78,6 @@ export function useLogout() {
   const router = useRouter();
   return useMutation({
     mutationFn: () => logout(),
-    onSuccess: () => router.replace("/login"),
+    onSuccess: () => router.replace("/auth/login"),
   });
 }

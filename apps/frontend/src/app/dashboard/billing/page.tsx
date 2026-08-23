@@ -29,6 +29,7 @@ import {
 import { useStore } from "@/hooks/useStore";
 import { formatNaira, formatDate, getErrorMessage, cn } from "@/lib/utils";
 import type { SubscriptionPlan, PlanName } from "@/types/subscription";
+import { APP_DOMAIN } from "@/constants/app.constants";
 
 const TIER_RANK: Record<PlanName, number> = { free: 0, pro: 1, "pro+": 2 };
 
@@ -141,7 +142,7 @@ export default function BillingPage() {
             <p className="text-sm text-neutral-300 mt-0.5">
               Buyers can now shop at{" "}
               <span className="font-mono text-white font-semibold">
-                {store.slug}.hustlr.online
+                {store.slug}.{APP_DOMAIN}
               </span>{" "}
               with escrow-protected payments.
             </p>

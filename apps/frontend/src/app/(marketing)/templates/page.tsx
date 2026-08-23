@@ -93,7 +93,7 @@ export default function TemplatesPage() {
                 <p className="text-sm text-muted leading-relaxed flex-1">
                   {template.description}
                 </p>
-                <Link href="/register" className="block">
+                <Link href="/auth/register" className="block">
                   <Button variant="dark" fullWidth>
                     Start with this template
                     <ArrowRight className="w-4 h-4" />

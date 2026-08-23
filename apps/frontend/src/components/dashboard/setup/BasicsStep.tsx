@@ -6,6 +6,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import type { Store, StoreSetupInput } from "@/types/store";
 import { useSlugCheck } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
+import { APP_DOMAIN } from "@/constants/app.constants";
 
 export default function BasicsStep({
   store,
@@ -72,7 +73,7 @@ export default function BasicsStep({
             <>
               Buyers shop at{" "}
               <span className="font-mono text-primary font-medium">
-                {(slug || "your-store")}.hustlr.online
+                {(slug || "your-store")}.{APP_DOMAIN}
               </span>
             </>
           }
@@ -87,7 +88,7 @@ export default function BasicsStep({
             ) : slugAvailable === false ? (
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="flex items-center gap-1.5 text-danger font-semibold">
-                  <X className="w-3.5 h-3.5" /> {slug}.hustlr.online is taken
+                  <X className="w-3.5 h-3.5" /> {slug}.{APP_DOMAIN} is taken
                 </span>
                 {slugCheck?.suggestion && (
                   <button
@@ -101,7 +102,7 @@ export default function BasicsStep({
               </div>
             ) : slugAvailable === true ? (
               <p className="flex items-center gap-1.5 text-xs text-success font-semibold">
-                <Check className="w-3.5 h-3.5" /> {slug}.hustlr.online is
+                <Check className="w-3.5 h-3.5" /> {slug}.{APP_DOMAIN} is
                 available
               </p>
             ) : null}

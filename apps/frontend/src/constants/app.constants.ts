@@ -6,6 +6,7 @@ export const APP_TAGLINE =
 export const APP_DOMAIN = "hustlr.shop";
 export const APP_URL = `https://${APP_DOMAIN}`;
 export const SUPPORT_EMAIL = "support@hustlr.shop";
+export const PENDING_STORE_KEY = "hustlr_pending_store_name";
 
 export const COLORS = {
   primary: "#800A1D", // Deep Maroon

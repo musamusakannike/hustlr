@@ -3,7 +3,7 @@ import type { User } from "@/types/auth";
 export const DEMO_SELLER: User = {
   id: "seller_0001",
   name: "Musa Abdullahi",
-  email: "demo@hustlr.online",
+  email: "demo@hustlr.shop",
   role: "seller",
   isVerified: true,
   googleId: null,

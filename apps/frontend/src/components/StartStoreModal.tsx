@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { APP_NAME, LOGO_PATH } from "@/constants/app.constants";
+import { APP_NAME, APP_DOMAIN, LOGO_PATH } from "@/constants/app.constants";
 
 interface StartStoreModalProps {
   isOpen: boolean;
@@ -45,13 +45,13 @@ export default function StartStoreModal({
     if (email) params.set("email", email);
     redirectRef.current = setTimeout(() => {
       onClose();
-      router.push(`/register?${params.toString()}`);
+      router.push(`/auth/register?${params.toString()}`);
     }, 2000);
   };
 
   const handleGoogle = () => {
     onClose();
-    router.push("/register?google=1");
+    router.push("/auth/register?google=1");
   };
 
   return (
@@ -101,7 +101,7 @@ export default function StartStoreModal({
             <p className="text-sm text-muted max-w-xs">
               We&apos;re preparing your store dashboard at{" "}
               <span className="font-mono text-primary font-semibold">
-                {slugPreview}.hustlr.online
+                {slugPreview}.{APP_DOMAIN}
               </span>
               . Check your email for OTP verification.
             </p>
@@ -123,7 +123,7 @@ export default function StartStoreModal({
               <p className="text-xs text-neutral-400 mt-1">
                 Your store URL:{" "}
                 <span className="font-mono text-primary font-medium">
-                  {slugPreview}.hustlr.online
+                  {slugPreview}.{APP_DOMAIN}
                 </span>
               </p>
             </div>
