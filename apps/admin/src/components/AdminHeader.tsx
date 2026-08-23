@@ -150,7 +150,7 @@ export default function AdminHeader({
 
             {/* Name & Role */}
             <div className="text-left hidden sm:block">
-              <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[130px]">
+              <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-32.5">
                 {user?.name || "Admin"}
               </p>
               <div className="flex items-center gap-1 mt-0.5">

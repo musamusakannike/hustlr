@@ -339,7 +339,7 @@ export default function OverviewDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-primary-bg border border-[#FAD4D8] flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-primary-bg border border-primary-light flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-primary uppercase tracking-wider">
                 Payout Batch
