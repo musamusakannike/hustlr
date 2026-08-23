@@ -41,7 +41,7 @@ export default function PasswordChangedSuccessPage() {
           <button
             type="button"
             onClick={() => router.replace("/auth/login")}
-            className="w-full h-13.5 rounded-full bg-primary hover:bg-[#660817] text-white font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md active:scale-[0.99] cursor-pointer"
+            className="w-full h-13.5 rounded-full bg-primary hover:bg-primary-hover text-white font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md active:scale-[0.99] cursor-pointer"
           >
             Login
           </button>

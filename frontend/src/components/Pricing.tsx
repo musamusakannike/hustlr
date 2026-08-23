@@ -145,7 +145,7 @@ export default function Pricing() {
                     onClick={() => setIsModalOpen(true)}
                     className={`w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-200 cursor-pointer shadow-sm ${
                       plan.isPopular
-                        ? "bg-primary hover:bg-[#660817] text-white"
+                        ? "bg-primary hover:bg-primary-hover text-white"
                         : "bg-[#0A0E11] hover:bg-neutral-800 text-white"
                     }`}
                   >

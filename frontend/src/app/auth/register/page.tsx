@@ -248,7 +248,7 @@ export default function RegisterPage() {
                   : "border-neutral-300 bg-white group-hover:border-neutral-400"
               }`}
             >
-              {isAgreed && <FiCheck className="w-3.5 h-3.5 stroke-[3]" />}
+              {isAgreed && <FiCheck className="w-3.5 h-3.5 stroke-3" />}
             </div>
             <p className="text-xs text-neutral-600 leading-relaxed flex-1">
               By signing up, You agree to all Hustlr{" "}
@@ -278,7 +278,7 @@ export default function RegisterPage() {
               disabled={!isValid}
               className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
                 isValid
-                  ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                  ? "bg-primary hover:bg-primary-hover text-white cursor-pointer active:scale-[0.99]"
                   : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
               }`}
             >
@@ -314,7 +314,7 @@ export default function RegisterPage() {
           <span>Already have an account? </span>
           <Link
             href="/auth/login"
-            className="font-bold text-primary hover:text-[#660817] transition-colors"
+            className="font-bold text-primary hover:text-primary-hover transition-colors"
           >
             Login
           </Link>

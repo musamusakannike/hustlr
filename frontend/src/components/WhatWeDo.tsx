@@ -123,8 +123,8 @@ export default function WhatWeDo() {
 
           {/* Right Column - Image Framed in Black Blob Element */}
           <div className="lg:col-span-5 xl:col-span-5 w-full flex justify-center">
-            <div className="relative w-full max-w-[460px] p-3 sm:p-4 bg-[#0A0E11] rounded-[28px] sm:rounded-[34px] shadow-2xl">
-              <div className="relative w-full aspect-[4/4.5] rounded-[20px] sm:rounded-[24px] overflow-hidden">
+            <div className="relative w-full max-w-115 p-3 sm:p-4 bg-[#0A0E11] rounded-[28px] sm:rounded-[34px] shadow-2xl">
+              <div className="relative w-full aspect-4/4.5 rounded-[20px] sm:rounded-3xl overflow-hidden">
                 <Image
                   src="/whatwedo.jpg"
                   alt="Hustlr Platform Capabilities Overview"

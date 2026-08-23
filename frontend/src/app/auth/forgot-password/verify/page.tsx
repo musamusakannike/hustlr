@@ -123,7 +123,7 @@ function ForgotPasswordVerifyContent() {
               className={`font-semibold transition-colors cursor-pointer ${
                 timer > 0 || resending
                   ? "text-neutral-300 cursor-not-allowed"
-                  : "text-primary hover:text-[#660817]"
+                  : "text-primary hover:text-primary-hover"
               }`}
             >
               {resending ? "Sending..." : "Resend code"}
@@ -138,7 +138,7 @@ function ForgotPasswordVerifyContent() {
             disabled={!isValid}
             className={`w-full h-13.5 rounded-full font-bold text-sm sm:text-base flex items-center justify-center transition-all shadow-md ${
               isValid
-                ? "bg-primary hover:bg-[#660817] text-white cursor-pointer active:scale-[0.99]"
+                ? "bg-primary hover:bg-primary-hover text-white cursor-pointer active:scale-[0.99]"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
             }`}
           >

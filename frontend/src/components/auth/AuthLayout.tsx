@@ -58,24 +58,6 @@ export default function AuthLayout({
           >
             <FiChevronLeft className="w-5 h-5 text-neutral-700" />
           </button>
-
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 group"
-            title={`${APP_NAME} Home`}
-          >
-            <div className="w-9 h-9 rounded-lg overflow-hidden relative border border-neutral-200/80 shadow-xs">
-              <Image
-                src={LOGO_PATH}
-                alt={`${APP_NAME} Logo`}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform"
-              />
-            </div>
-            <span className="font-archivo text-xl font-bold tracking-tight text-[#0A0E11]">
-              {APP_NAME}
-            </span>
-          </Link>
         </div>
 
         {/* Form Body */}
@@ -109,7 +91,7 @@ export default function AuthLayout({
         </div>
       </div>
 
-      <div className="hidden lg:flex lg:w-1/2 sticky top-0 h-screen relative bg-[#0A0E11] overflow-hidden flex-col justify-between p-12 lg:p-16">
+      <div className="hidden lg:flex lg:w-1/2 sticky top-0 h-screen bg-[#0A0E11] overflow-hidden flex-col justify-between p-12 lg:p-16">
         <div className="absolute inset-0 z-0">
           <Image
             src="/auth.jpg"

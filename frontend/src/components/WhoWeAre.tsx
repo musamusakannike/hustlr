@@ -99,7 +99,7 @@ export default function WhoWeAre() {
             <div className="mt-8 flex flex-wrap gap-4 items-center">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2.5 bg-primary hover:bg-[#660817] text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
+                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <span>Start Your Store</span>
                 <svg

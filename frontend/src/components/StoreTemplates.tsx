@@ -48,7 +48,7 @@ export default function StoreTemplates() {
                   <div
                     key={tmpl.id}
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-[#0A0E11] rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-[480px] shadow-xl relative group text-white cursor-pointer hover:shadow-2xl transition-all duration-300 border border-neutral-800"
+                    className="bg-[#0A0E11] rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-120 shadow-xl relative group text-white cursor-pointer hover:shadow-2xl transition-all duration-300 border border-neutral-800"
                   >
                     {/* Center Starburst Image */}
                     <div className="relative w-full aspect-square my-auto flex items-center justify-center p-2">
@@ -104,7 +104,7 @@ export default function StoreTemplates() {
                 <div
                   key={tmpl.id}
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-[#EFEFEF] rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-[480px] shadow-xs relative group text-[#0A0E11] cursor-pointer hover:shadow-md transition-all duration-300 border border-neutral-200/80"
+                  className="bg-bg-soft rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-120 shadow-xs relative group text-[#0A0E11] cursor-pointer hover:shadow-md transition-all duration-300 border border-neutral-200/80"
                 >
                   {/* Top Info Row */}
                   <div className="flex items-start justify-between mb-4">
@@ -135,7 +135,7 @@ export default function StoreTemplates() {
                   </div>
 
                   {/* Bottom Image Container */}
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mt-6 shadow-sm border border-neutral-200">
+                  <div className="relative w-full aspect-4/3 rounded-2xl overflow-hidden mt-6 shadow-sm border border-neutral-200">
                     <Image
                       src={tmpl.image}
                       alt={tmpl.name}
