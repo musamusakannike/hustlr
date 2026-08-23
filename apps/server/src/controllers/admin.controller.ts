@@ -297,3 +297,34 @@ export const buyerReferrals = asyncHandler(async (_req: Request, res: Response) 
 export const reverseReferral = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, await adminService.reverseReferral(req.params.id));
 });
+
+export const orders = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit, skip } = getPagination(req);
+  const result = await adminService.listOrdersAdmin({
+    search: req.query.search as string,
+    paymentStatus: req.query.paymentStatus as string,
+    deliveryStatus: req.query.deliveryStatus as string,
+    from: req.query.from as string,
+    to: req.query.to as string,
+    skip,
+    limit,
+  });
+  sendSuccess(res, result);
+});
+
+export const order = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.getOrderAdmin(req.params.orderId));
+});
+
+export const updateOrderAddress = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.updateOrderAddressAdmin(req.params.orderId, req.body.shippingAddress || req.body));
+});
+
+export const confirmOrder = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.confirmOrderAdmin(req.params.orderId));
+});
+
+export const cancelOrder = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.cancelOrderAdmin(req.params.orderId, req.body.reason));
+});
+

@@ -529,3 +529,87 @@ export async function deleteGlobalCategory(id: string) {
 export async function listGlobalCategories() {
   return GlobalCategory.find({ isActive: true }).sort({ name: 1 });
 }
+
+export async function listOrdersAdmin(query: {
+  search?: string;
+  paymentStatus?: string;
+  deliveryStatus?: string;
+  from?: string;
+  to?: string;
+  skip?: number;
+  limit?: number;
+}) {
+  const filter: Record<string, unknown> = {};
+  if (query.paymentStatus && query.paymentStatus !== "All") {
+    filter.paymentStatus = query.paymentStatus;
+  }
+  if (query.deliveryStatus && query.deliveryStatus !== "All") {
+    filter.deliveryStatus = query.deliveryStatus;
+  }
+  if (query.from || query.to) {
+    filter.createdAt = {};
+    if (query.from) (filter.createdAt as Record<string, unknown>).$gte = new Date(query.from);
+    if (query.to) (filter.createdAt as Record<string, unknown>).$lte = new Date(query.to);
+  }
+  if (query.search) {
+    const rx = new RegExp(escapeRegex(query.search), "i");
+    filter.$or = [{ orderNumber: rx }, { paymentReference: rx }, { "shippingAddress.fullName": rx }];
+  }
+  const skip = query.skip || 0;
+  const limit = query.limit || 20;
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate("sellerId", "name email")
+      .populate("storeId", "name slug subdomain")
+      .populate("buyerProfileId", "name email phoneNumber")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Order.countDocuments(filter),
+  ]);
+
+  return { orders, total, page: Math.floor(skip / limit) + 1, limit };
+}
+
+export async function getOrderAdmin(orderId: string) {
+  const order = await Order.findById(orderId)
+    .populate("sellerId", "name email")
+    .populate("storeId", "name slug subdomain logo")
+    .populate("buyerProfileId", "name email phoneNumber")
+    .lean();
+  if (!order) throw ApiError.notFound("Order not found");
+  const disputes = await Dispute.find({ orderId: order._id }).lean();
+  return { order, disputes };
+}
+
+export async function updateOrderAddressAdmin(orderId: string, address: Record<string, unknown>) {
+  const order = await Order.findByIdAndUpdate(
+    orderId,
+    { $set: { shippingAddress: address } },
+    { new: true },
+  );
+  if (!order) throw ApiError.notFound("Order not found");
+  return order;
+}
+
+export async function confirmOrderAdmin(orderId: string) {
+  const order = await Order.findById(orderId);
+  if (!order) throw ApiError.notFound("Order not found");
+  order.deliveryStatus = "confirmed";
+  order.confirmedAt = new Date();
+  await order.save();
+  return order;
+}
+
+export async function cancelOrderAdmin(orderId: string, reason?: string) {
+  const order = await Order.findById(orderId);
+  if (!order) throw ApiError.notFound("Order not found");
+  order.paymentStatus = "refunded";
+  order.deliveryStatus = "refunded";
+  if (reason) order.trackingNote = `Admin cancellation: ${reason}`;
+  await order.save();
+  return order;
+}
+

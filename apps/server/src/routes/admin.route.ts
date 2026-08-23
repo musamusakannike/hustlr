@@ -60,6 +60,12 @@ router.post("/payouts/:id/approve", auditRequest("payout_approve", "payouts"), a
 router.post("/payouts/:id/dispatch", auditRequest("payout_dispatch", "payouts"), admin.dispatchPayout);
 router.post("/payouts/:id/reject", auditRequest("payout_reject", "payouts"), admin.rejectPayout);
 
+router.get("/orders", admin.orders);
+router.get("/orders/:orderId", admin.order);
+router.patch("/orders/:orderId/address", admin.updateOrderAddress);
+router.post("/orders/:orderId/confirm", admin.confirmOrder);
+router.post("/orders/:orderId/cancel", admin.cancelOrder);
+
 router.get("/disputes", admin.disputes);
 router.get("/disputes/:disputeId", admin.dispute);
 router.post("/disputes/:disputeId/messages", validate(messageSchema), misc.messageDispute);

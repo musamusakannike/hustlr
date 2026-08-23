@@ -258,7 +258,9 @@ export default function OverviewDashboardPage() {
                         className="hover:bg-gray-50/50 transition-colors"
                       >
                         <td className="py-3 font-medium text-slate-800">
-                          {row.orderId
+                          {typeof row.orderId === "object"
+                            ? row.orderId?.orderNumber || "ORDER"
+                            : typeof row.orderId === "string"
                             ? row.orderId.slice(-8).toUpperCase()
                             : row._id.slice(-8).toUpperCase()}
                         </td>
