@@ -48,8 +48,9 @@ function VerifyOtpContent() {
       setUser(response.user);
       setSuccessInfo("Email verified successfully! Redirecting to setup...");
 
+      const nextUrl = await authService.getPostAuthRedirect();
       setTimeout(() => {
-        router.replace("/dashboard");
+        router.replace(nextUrl);
       }, 1200);
     } catch (err: unknown) {
       setErrorMessage(

@@ -35,7 +35,8 @@ export default function LoginPage() {
     try {
       const response = await authService.loginSeller(email.trim(), password);
       setUser(response.user);
-      router.replace("/dashboard");
+      const nextUrl = await authService.getPostAuthRedirect();
+      router.replace(nextUrl);
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -66,7 +67,8 @@ export default function LoginPage() {
       const idToken = await getGoogleIdToken();
       const response = await authService.googleSeller(idToken);
       setUser(response.user);
-      router.replace("/dashboard");
+      const nextUrl = await authService.getPostAuthRedirect();
+      router.replace(nextUrl);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error

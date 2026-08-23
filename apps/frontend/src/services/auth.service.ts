@@ -127,4 +127,37 @@ export const authService = {
     const res = await apiClient.get<ApiResponse<User>>("/auth/seller/me");
     return res.data.data;
   },
+
+  /**
+   * Evaluates seller onboarding and KYC status to determine post-auth destination
+   */
+  async getPostAuthRedirect(): Promise<string> {
+    try {
+      const [kycRes, storeRes] = await Promise.allSettled([
+        apiClient.get<ApiResponse<any>>("/seller/kyc"),
+        apiClient.get<ApiResponse<any>>("/seller/store"),
+      ]);
+
+      const kyc = kycRes.status === "fulfilled" ? kycRes.value.data.data : null;
+      const store =
+        storeRes.status === "fulfilled" ? storeRes.value.data.data : null;
+
+      // If KYC has been submitted (pending review) or approved, and store is configured, navigate to dashboard
+      if (
+        kyc &&
+        (kyc.status === "approved" || kyc.status === "pending") &&
+        store &&
+        store.name &&
+        store.name !== "My Store"
+      ) {
+        return "/dashboard";
+      }
+
+      // Otherwise, seller needs to complete onboarding / KYC
+      return "/onboarding";
+    } catch {
+      return "/onboarding";
+    }
+  },
 };
+

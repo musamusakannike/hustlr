@@ -95,7 +95,8 @@ export default function RegisterPage() {
         referralCode.trim() || undefined,
       );
       setUser(response.user);
-      router.replace("/dashboard");
+      const nextUrl = await authService.getPostAuthRedirect();
+      router.replace(nextUrl);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
