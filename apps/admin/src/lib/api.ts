@@ -215,35 +215,91 @@ export interface AdminUserItem {
   _id: string;
   name: string;
   email: string;
-  role: "admin" | "seller" | "buyer";
-  banned?: boolean;
-  banReason?: string;
-  isVerified?: boolean;
-  referralCode?: string;
+  role: "admin" | "seller";
+  isVerified: boolean;
+  avatar?: string | null;
+  googleId?: string | null;
+  referralCode: string;
+  referredBy?: string | null;
+  banned: boolean;
+  bannedAt?: string | null;
+  banReason?: string | null;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserListMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface AdminUserStats {
+  totalSellers: number;
+  totalAdmins: number;
+  newThisWeek: number;
+  newThisMonth: number;
+  sellersByPlan: Record<string, number>;
+  kycByStatus: Record<string, number>;
+}
+
+export interface AdminUserDetail {
+  user: AdminUserItem;
+  store: (AdminStoreItem & { description?: string; logo?: string; currency?: string }) | null;
+  kyc: KycRecord | null;
+  subscription: {
+    planName: "free" | "pro" | "pro+";
+    billingCycle: "monthly" | "yearly" | "none";
+    status: "active" | "expired" | "cancelled" | "grace_period" | "pending";
+    endDate?: string | null;
+  } | null;
+  wallet: { balance: number } | null;
+  orderCount: number;
 }
 
 export const adminUsersService = {
-  async getStats(): Promise<{ totalUsers: number; totalSellers: number; totalBuyers: number; bannedUsers: number }> {
-    const res = await api.get<ApiResponse<{ totalUsers: number; totalSellers: number; totalBuyers: number; bannedUsers: number }>>("/admin/users/stats");
+  async getStats(): Promise<AdminUserStats> {
+    const res = await api.get<ApiResponse<AdminUserStats>>("/admin/users/stats");
     return res.data.data;
   },
-  async list(params?: Record<string, unknown>): Promise<{ users: AdminUserItem[]; total: number; page: number; limit: number }> {
-    const res = await api.get<ApiResponse<{ users: AdminUserItem[]; total: number; page: number; limit: number }>>("/admin/users", { params });
+  async list(
+    params?: Record<string, unknown>,
+  ): Promise<{ items: AdminUserItem[]; meta: AdminUserListMeta }> {
+    const res = await api.get<ApiResponse<{ items: AdminUserItem[]; meta: AdminUserListMeta }>>(
+      "/admin/users",
+      { params },
+    );
     return res.data.data;
   },
-  async getById(userId: string): Promise<AdminUserItem> {
-    const res = await api.get<ApiResponse<AdminUserItem>>(`/admin/users/${userId}`);
+  async getById(userId: string): Promise<AdminUserDetail> {
+    const res = await api.get<ApiResponse<AdminUserDetail>>(`/admin/users/${userId}`);
     return res.data.data;
   },
-  async ban(userId: string, reason?: string): Promise<void> {
-    await api.patch(`/admin/users/${userId}/ban`, { reason });
+  async ban(userId: string, reason: string): Promise<AdminUserItem> {
+    const res = await api.patch<ApiResponse<AdminUserItem>>(`/admin/users/${userId}/ban`, { reason });
+    return res.data.data;
   },
-  async unban(userId: string): Promise<void> {
-    await api.patch(`/admin/users/${userId}/unban`);
+  async unban(userId: string): Promise<AdminUserItem> {
+    const res = await api.patch<ApiResponse<AdminUserItem>>(`/admin/users/${userId}/unban`);
+    return res.data.data;
   },
-  async promoteAdmin(userId: string): Promise<void> {
-    await api.patch(`/admin/users/${userId}/promote-admin`);
+  async promoteAdmin(userId: string): Promise<AdminUserItem> {
+    const res = await api.patch<ApiResponse<AdminUserItem>>(`/admin/users/${userId}/promote-admin`);
+    return res.data.data;
+  },
+  async exportCsv(): Promise<void> {
+    const res = await api.get("/admin/users/export", { responseType: "blob" });
+    const url = window.URL.createObjectURL(res.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "users.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 };
 
