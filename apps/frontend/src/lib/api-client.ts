@@ -21,6 +21,15 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 /** Fetch wrapper that unwraps the `{ success, message, data }` envelope. */
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("hustlr_token") || localStorage.getItem("token")
+      : null;
+
+  const authHeaders: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
@@ -29,6 +38,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
         ...(init.body instanceof FormData
           ? {}
           : { "Content-Type": "application/json" }),
+        ...authHeaders,
         ...init.headers,
       },
     });
@@ -82,25 +92,39 @@ function qs(params?: Record<string, string | number | undefined>): string {
 
 /**
  * HTTP transport bound to the Express API. Route paths mirror
- * server/src/routes/{index,seller}.route.ts exactly, so switching
- * NEXT_PUBLIC_TRANSPORT from "mock" to "api" is the only change needed.
+ * server/src/routes/{index,seller}.route.ts exactly.
  */
 export class ApiTransport implements Transport {
   // ── Auth (§1): /auth/seller/* ────────────────────────────────
   registerSeller(input: { name: string; email: string; password: string; referralCode?: string }) {
     return send<RegisterPendingResponse>("POST", "/auth/seller/register", input);
   }
-  verifySellerOtp(input: { email: string; otp: string }) {
-    return send<AuthResponse>("POST", "/auth/seller/verify-otp", input);
+  async verifySellerOtp(input: { email: string; otp: string }) {
+    const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/verify-otp", input);
+    if (typeof window !== "undefined") {
+      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
+    }
+    return res;
   }
   resendSellerOtp(email: string) {
     return send<RegisterPendingResponse>("POST", "/auth/seller/resend-otp", { email });
   }
-  loginSeller(input: { email: string; password: string }) {
-    return send<AuthResponse>("POST", "/auth/seller/login", input);
+  async loginSeller(input: { email: string; password: string }) {
+    const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/login", input);
+    if (typeof window !== "undefined") {
+      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
+    }
+    return res;
   }
-  googleSeller(input: { idToken: string }) {
-    return send<AuthResponse>("POST", "/auth/seller/google", input);
+  async googleSeller(input: { idToken: string }) {
+    const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/google", input);
+    if (typeof window !== "undefined") {
+      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
+    }
+    return res;
   }
   forgotSellerPassword(input: { email: string }) {
     return send<{ message: string }>("POST", "/auth/seller/forgot-password", input);
@@ -108,11 +132,21 @@ export class ApiTransport implements Transport {
   resetSellerPassword(input: { email: string; otp: string; newPassword: string }) {
     return send<{ message: string }>("POST", "/auth/seller/reset-password", input);
   }
-  logoutSeller() {
-    return send<{ message: string }>("POST", "/auth/seller/logout");
+  async logoutSeller() {
+    try {
+      return await send<{ message: string }>("POST", "/auth/seller/logout");
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("hustlr_token");
+        localStorage.removeItem("hustlr_user");
+        localStorage.removeItem("hustlr_mock_session");
+      }
+    }
   }
-  getSellerMe() {
-    return get<AuthResponse>("/auth/seller/me");
+  async getSellerMe(): Promise<AuthResponse> {
+    const res = await get<any>("/auth/seller/me");
+    const user = (res && typeof res === "object" && "user" in res) ? res.user : res;
+    return { user };
   }
 
   // ── Store (§2) ───────────────────────────────────────────────

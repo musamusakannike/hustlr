@@ -138,22 +138,31 @@ export const authService = {
         apiClient.get<ApiResponse<any>>("/seller/store"),
       ]);
 
-      const kyc = kycRes.status === "fulfilled" ? kycRes.value.data.data : null;
+      const kyc =
+        kycRes.status === "fulfilled" && kycRes.value?.data?.data
+          ? kycRes.value.data.data
+          : null;
       const store =
-        storeRes.status === "fulfilled" ? storeRes.value.data.data : null;
+        storeRes.status === "fulfilled" && storeRes.value?.data?.data
+          ? storeRes.value.data.data
+          : null;
 
-      // If KYC has been submitted (pending review) or approved, and store is configured, navigate to dashboard
-      if (
-        kyc &&
-        (kyc.status === "approved" || kyc.status === "pending") &&
-        store &&
-        store.name &&
-        store.name !== "My Store"
-      ) {
+      const isKycSubmittedOrApproved =
+        Boolean(kyc) &&
+        (kyc.status === "approved" ||
+          kyc.status === "pending" ||
+          Boolean(kyc.submittedAt));
+
+      const isStoreConfigured =
+        Boolean(store) &&
+        typeof store.name === "string" &&
+        store.name.trim().length > 0 &&
+        store.name.trim().toLowerCase() !== "my store";
+
+      if (isKycSubmittedOrApproved && isStoreConfigured) {
         return "/dashboard";
       }
 
-      // Otherwise, seller needs to complete onboarding / KYC
       return "/onboarding";
     } catch {
       return "/onboarding";

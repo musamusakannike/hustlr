@@ -4,7 +4,7 @@ const PLATFORM_DOMAIN = (
   process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "hustlr.shop"
 ).toLowerCase();
 const DEV_DOMAIN = (process.env.NEXT_PUBLIC_DEV_DOMAIN ?? "lvh.me").toLowerCase();
-const TRANSPORT_MODE = process.env.NEXT_PUBLIC_TRANSPORT ?? "mock";
+const TRANSPORT_MODE = process.env.NEXT_PUBLIC_TRANSPORT ?? "api";
 const SELLER_SESSION_COOKIE = "hustlr_session";
 
 /** Subdomains that always route to the platform app, never a store. */

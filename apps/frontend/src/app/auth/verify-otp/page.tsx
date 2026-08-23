@@ -46,11 +46,12 @@ function VerifyOtpContent() {
     try {
       const response = await authService.verifySellerOtp(targetEmail, codeStr);
       setUser(response.user);
-      setSuccessInfo("Email verified successfully! Redirecting to setup...");
+      setSuccessInfo("Email verified successfully! Redirecting...");
 
+      const nextUrl = await authService.getPostAuthRedirect();
       setTimeout(() => {
-        router.replace("/onboarding");
-      }, 1200);
+        router.replace(nextUrl);
+      }, 1000);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error

@@ -130,22 +130,20 @@ export interface Transport {
 
 export type { ApiEnvelope };
 
-// Factory is appended at the module tail (after the interface) — see below.
-import { MockTransport } from "@/lib/mock/mock-transport";
 import { ApiTransport } from "@/lib/api-client";
 
-const TRANSPORT_MODE = process.env.NEXT_PUBLIC_TRANSPORT ?? "mock";
+const TRANSPORT_MODE = process.env.NEXT_PUBLIC_TRANSPORT ?? "api";
 
 let instance: Transport | null = null;
 
-/** Returns the singleton transport for the configured mode. */
+/** Returns the singleton transport for the configured mode. Always ApiTransport by default. */
 export function getTransport(): Transport {
   if (!instance) {
-    instance = TRANSPORT_MODE === "api" ? new ApiTransport() : new MockTransport();
+    instance = new ApiTransport();
   }
   return instance;
 }
 
 export function isMockTransportActive(): boolean {
-  return TRANSPORT_MODE !== "api";
+  return false;
 }

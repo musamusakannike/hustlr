@@ -22,27 +22,17 @@ interface SellerAuthContextValue {
 const SellerAuthContext = createContext<SellerAuthContextValue | null>(null);
 
 export function SellerAuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = window.localStorage.getItem("hustlr_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    let cancelled = false;
-    authService
-      .me()
-      .then(({ user: me }) => {
-        if (!cancelled) setUser(me);
-      })
-      .catch(() => {
-        /* not logged in — expected */
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handleSetUser = useCallback((newUser: User | null) => {
     setUser(newUser);
@@ -56,6 +46,34 @@ export function SellerAuthProvider({ children }: { children: React.ReactNode }) 
       }
     }
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    authService
+      .me()
+      .then((res) => {
+        if (!cancelled) {
+          const me =
+            res && typeof res === "object" && "user" in res
+              ? (res as any).user
+              : res;
+          if (me) {
+            handleSetUser(me);
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          handleSetUser(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [handleSetUser]);
 
   const logout = useCallback(async () => {
     await authService.logout().catch(() => undefined);
