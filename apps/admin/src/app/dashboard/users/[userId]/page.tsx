@@ -157,14 +157,16 @@ export default function UserDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-        <p className="text-xs sm:text-sm text-gray-400 font-normal">Loading user details...</p>
+        <p className="text-xs sm:text-sm text-gray-400 font-normal">
+          Loading user details...
+        </p>
       </div>
     );
   }
 
   if (error || !detail || !user) {
     return (
-      <div className="bg-[#F9FAFB] rounded-2xl border border-gray-100/80 p-12 text-center shadow-2xs">
+      <div className="bg-bg-soft rounded-2xl border border-gray-100/80 p-12 text-center shadow-2xs">
         <XCircle className="w-10 h-10 text-rose-400 mx-auto" />
         <h2 className="mt-4 text-base font-bold text-slate-800">
           {error || "User not found"}
@@ -181,11 +183,17 @@ export default function UserDetailPage() {
   }
 
   const infoRows = [
-    { label: "Email", value: user.email, icon: <Mail className="w-4 h-4 text-gray-400" /> },
+    {
+      label: "Email",
+      value: user.email,
+      icon: <Mail className="w-4 h-4 text-gray-400" />,
+    },
     {
       label: "Role",
       value: (
-        <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${roleBadgeClasses(user.role)}`}>
+        <span
+          className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${roleBadgeClasses(user.role)}`}
+        >
           {user.role}
         </span>
       ),
@@ -383,7 +391,7 @@ export default function UserDetailPage() {
         {overviewCards.map((card) => (
           <div
             key={card.label}
-            className="bg-[#F9FAFB] p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-2xs"
+            className="bg-bg-soft p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-2xs"
           >
             <card.icon className="w-4 h-4 text-primary mb-2" />
             <p className="text-base sm:text-lg font-bold text-slate-800 capitalize truncate">
@@ -401,7 +409,7 @@ export default function UserDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Account Information */}
-        <section className="bg-[#F9FAFB] rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
+        <section className="bg-bg-soft rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
           <div className="border-b border-gray-100/80 px-5 py-4 bg-gray-50/50">
             <h2 className="text-sm font-bold text-slate-800">
               Account Information
@@ -426,7 +434,7 @@ export default function UserDetailPage() {
         </section>
 
         {/* Store details */}
-        <section className="bg-[#F9FAFB] rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
+        <section className="bg-bg-soft rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
           <div className="border-b border-gray-100/80 px-5 py-4 flex items-center justify-between bg-gray-50/50">
             <h2 className="text-sm font-bold text-slate-800">Store Details</h2>
             {detail.store && (
@@ -488,7 +496,7 @@ export default function UserDetailPage() {
 
       {/* KYC Summary */}
       {detail.kyc && (
-        <section className="bg-[#F9FAFB] rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
+        <section className="bg-bg-soft rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
           <div className="border-b border-gray-100/80 px-5 py-4 flex items-center justify-between bg-gray-50/50">
             <h2 className="text-sm font-bold text-slate-800">
               KYC Verification Submission

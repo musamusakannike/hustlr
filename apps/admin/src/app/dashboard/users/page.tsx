@@ -85,7 +85,9 @@ export default function UsersPage() {
   // Action Dialogs
   const [banTarget, setBanTarget] = useState<AdminUserItem | null>(null);
   const [unbanTarget, setUnbanTarget] = useState<AdminUserItem | null>(null);
-  const [promoteTarget, setPromoteTarget] = useState<AdminUserItem | null>(null);
+  const [promoteTarget, setPromoteTarget] = useState<AdminUserItem | null>(
+    null,
+  );
   const [bulkBanOpen, setBulkBanOpen] = useState(false);
   const [bulkUnbanOpen, setBulkUnbanOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -176,7 +178,9 @@ export default function UsersPage() {
         setActionError("");
       } catch (e) {
         if (mounted)
-          setActionError(e instanceof Error ? e.message : "Failed to load users.");
+          setActionError(
+            e instanceof Error ? e.message : "Failed to load users.",
+          );
       } finally {
         if (mounted) setLoading(false);
       }
@@ -205,7 +209,10 @@ export default function UsersPage() {
 
   const toggleSelectAll = () => {
     const selectableUsers = users.filter((u) => u.role !== "admin");
-    if (selectedIds.size === selectableUsers.length && selectableUsers.length > 0) {
+    if (
+      selectedIds.size === selectableUsers.length &&
+      selectableUsers.length > 0
+    ) {
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(selectableUsers.map((u) => u._id)));
@@ -228,7 +235,9 @@ export default function UsersPage() {
       const detail = await adminUsersService.getById(userId);
       setDetailUser(detail);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to load user details.");
+      setActionError(
+        err instanceof Error ? err.message : "Failed to load user details.",
+      );
     } finally {
       setDetailLoading(false);
     }
@@ -278,7 +287,9 @@ export default function UsersPage() {
       setBulkBanOpen(false);
       fetchUsers();
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : "Failed to ban selected users.");
+      setActionError(
+        e instanceof Error ? e.message : "Failed to ban selected users.",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -296,7 +307,9 @@ export default function UsersPage() {
       setBulkUnbanOpen(false);
       fetchUsers();
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : "Failed to unban selected users.");
+      setActionError(
+        e instanceof Error ? e.message : "Failed to unban selected users.",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -379,9 +392,12 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Manage Users</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+            Manage Users
+          </h1>
           <p className="text-xs sm:text-sm text-gray-400 font-normal mt-0.5">
-            View, verify, and moderate all platform users, sellers, and administrators
+            View, verify, and moderate all platform users, sellers, and
+            administrators
           </p>
         </div>
         <button
@@ -413,10 +429,12 @@ export default function UsersPage() {
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="bg-[#F9FAFB] p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-2xs"
+            className="bg-bg-soft p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-2xs"
           >
             <card.icon className="w-4 h-4 text-primary mb-2" />
-            <p className="text-xl sm:text-2xl font-bold text-slate-800">{card.value}</p>
+            <p className="text-xl sm:text-2xl font-bold text-slate-800">
+              {card.value}
+            </p>
             <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
           </div>
         ))}
@@ -533,7 +551,7 @@ export default function UsersPage() {
       </div>
 
       {/* ==================== DESKTOP TABLE ==================== */}
-      <div className="hidden md:block bg-[#F9FAFB] rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
+      <div className="hidden md:block bg-bg-soft rounded-2xl border border-gray-100/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
@@ -683,7 +701,8 @@ export default function UsersPage() {
                             onClick={() => handleOpenDetail(u._id)}
                             className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-gray-50"
                           >
-                            <Eye className="w-3.5 h-3.5 text-gray-400" /> Quick preview
+                            <Eye className="w-3.5 h-3.5 text-gray-400" /> Quick
+                            preview
                           </button>
                           <button
                             onClick={() => {
@@ -692,7 +711,8 @@ export default function UsersPage() {
                             }}
                             className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-gray-50"
                           >
-                            <ExternalLink className="w-3.5 h-3.5 text-gray-400" /> View full page
+                            <ExternalLink className="w-3.5 h-3.5 text-gray-400" />{" "}
+                            View full page
                           </button>
                           {canBan &&
                             u.role !== "admin" &&
@@ -772,18 +792,18 @@ export default function UsersPage() {
       {/* ==================== MOBILE CARD LIST ==================== */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <div className="py-12 text-center text-gray-400 text-xs bg-[#F9FAFB] rounded-2xl border border-gray-100/80">
+          <div className="py-12 text-center text-gray-400 text-xs bg-bg-soft rounded-2xl border border-gray-100/80">
             Loading users...
           </div>
         ) : users.length === 0 ? (
-          <div className="py-12 text-center text-gray-400 text-xs bg-[#F9FAFB] rounded-2xl border border-gray-100/80">
+          <div className="py-12 text-center text-gray-400 text-xs bg-bg-soft rounded-2xl border border-gray-100/80">
             No users found matching your filters.
           </div>
         ) : (
           users.map((u) => (
             <div
               key={u._id}
-              className="bg-[#F9FAFB] rounded-2xl border border-gray-100/80 shadow-2xs p-4 space-y-3"
+              className="bg-bg-soft rounded-2xl border border-gray-100/80 shadow-2xs p-4 space-y-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -835,7 +855,8 @@ export default function UsersPage() {
                         onClick={() => handleOpenDetail(u._id)}
                         className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-gray-50"
                       >
-                        <Eye className="w-3.5 h-3.5 text-gray-400" /> Quick preview
+                        <Eye className="w-3.5 h-3.5 text-gray-400" /> Quick
+                        preview
                       </button>
                       <button
                         onClick={() => {
@@ -844,7 +865,8 @@ export default function UsersPage() {
                         }}
                         className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-gray-50"
                       >
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-400" /> View full page
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400" />{" "}
+                        View full page
                       </button>
                       {canBan &&
                         u.role !== "admin" &&
@@ -1003,7 +1025,9 @@ export default function UsersPage() {
                   <p className="text-gray-400">Status</p>
                   <p
                     className={`font-semibold mt-0.5 ${
-                      detailUser.user.banned ? "text-rose-600" : "text-emerald-600"
+                      detailUser.user.banned
+                        ? "text-rose-600"
+                        : "text-emerald-600"
                     }`}
                   >
                     {detailUser.user.banned ? "Banned" : "Active"}
@@ -1143,4 +1167,3 @@ export default function UsersPage() {
     </div>
   );
 }
-
