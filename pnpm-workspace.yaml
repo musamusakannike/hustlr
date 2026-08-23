@@ -1,6 +1,5 @@
 packages:
-  - 'frontend'
-  - 'server'
+  - 'apps/*'
 allowBuilds:
   '@firebase/util': true
   esbuild: true

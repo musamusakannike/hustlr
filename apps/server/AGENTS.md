@@ -31,7 +31,7 @@ If the product is rebranded, change that file only.
 ## Folder structure
 
 ```text
-server/
+apps/server/
 ├── src/
 │   ├── server.ts              # entry file (this name is the exception)
 │   ├── app.ts

@@ -52,8 +52,9 @@ Before modifying any files:
 ## 3. During Development
 
 * **Directory Boundaries**:
-  * **Frontend developers / agents**: Focus work inside `frontend/`.
-  * **Backend developers / agents**: Focus work inside `server/`.
+  * **Frontend developers / agents**: Focus work inside `apps/frontend/`.
+  * **Admin frontend developers / agents**: Focus work inside `apps/admin/`.
+  * **Backend developers / agents**: Focus work inside `apps/server/`.
 * **Keep commits focused**: Group changes logically and write clear semantic commit messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
 * **Never copy-paste code files between branches**: Use proper Git merges/PRs from `main` to maintain commit history and avoid 3-way merge conflicts.
 
@@ -92,7 +93,7 @@ When work on a contributor branch is complete and ready for integration:
    ```bash
    git merge <contributor-branch> -m "feat: merge <contributor-branch> into main"
    ```
-4. Verify tests / build across both `frontend/` and `server/`.
+4. Verify tests / build across `apps/frontend/`, `apps/admin/`, and `apps/server/`.
 5. Push to `origin/main`:
    ```bash
    git push origin main
