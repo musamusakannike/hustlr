@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Loader2 } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import type { Store } from "@/types/store";
 import type { Kyc } from "@/types/kyc";
 import type { Subscription } from "@/types/subscription";
@@ -69,6 +69,7 @@ export default function OnboardingChecklist({
   steps: OnboardingStep[];
   isLoading?: boolean;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   const completed = steps.filter((s) => s.isComplete).length;
   const progress = steps.length ? Math.round((completed / steps.length) * 100) : 0;
   const nextStep = steps.find((s) => !s.isComplete);
@@ -99,19 +100,63 @@ export default function OnboardingChecklist({
               </p>
             )}
           </div>
-          <div className="text-right shrink-0">
-            <p className="font-archivo text-3xl font-bold">{progress}%</p>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-right">
+              <p className="font-archivo text-3xl font-bold">{progress}%</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen((prev) => !prev)}
+              className="md:hidden p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+              aria-expanded={isOpen}
+              aria-label={isOpen ? "Collapse checklist" : "Expand checklist"}
+            >
+              <ChevronDown
+                className={cn(
+                  "w-5 h-5 transition-transform duration-300",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </button>
           </div>
         </div>
 
-        <div className="h-2 rounded-full bg-white/10 overflow-hidden mb-6">
+        <div
+          className={cn(
+            "h-2 rounded-full bg-white/10 overflow-hidden",
+            isOpen ? "mb-6" : "mb-0 md:mb-6"
+          )}
+        >
           <div
             className="h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        <ol className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="md:hidden w-full mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-medium text-neutral-300 hover:text-white transition-colors focus:outline-none"
+          aria-expanded={isOpen}
+        >
+          <span>{isOpen ? "Hide checklist steps" : `View all steps (${completed}/${steps.length})`}</span>
+          <span className="flex items-center gap-1 text-primary">
+            <span>{isOpen ? "Collapse" : "Expand"}</span>
+            <ChevronDown
+              className={cn(
+                "w-4 h-4 transition-transform duration-300",
+                isOpen && "rotate-180"
+              )}
+            />
+          </span>
+        </button>
+
+        <ol
+          className={cn(
+            "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3",
+            isOpen ? "grid mt-4 md:mt-0" : "hidden md:grid"
+          )}
+        >
           {isLoading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <li
@@ -169,3 +214,4 @@ export default function OnboardingChecklist({
     </section>
   );
 }
+

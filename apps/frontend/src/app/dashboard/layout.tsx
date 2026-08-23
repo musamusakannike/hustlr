@@ -26,7 +26,7 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg-soft flex items-center justify-center">
+      <div className="min-h-screen h-full bg-bg-soft flex items-center justify-center">
         <Spinner size="lg" label="Loading your dashboard…" />
       </div>
     );
@@ -34,14 +34,14 @@ export default function DashboardLayout({
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-bg-soft flex items-center justify-center">
+      <div className="min-h-screen h-full bg-bg-soft flex items-center justify-center">
         <Spinner size="lg" label="Redirecting to login…" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-bg-soft text-text">
+    <div className="min-h-screen h-full bg-bg-soft text-text">
       <DashboardShell>{children}</DashboardShell>
     </div>
   );

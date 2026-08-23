@@ -48,6 +48,7 @@ router.get("/templates", admin.templates);
 router.post("/templates", auditRequest("template_create", "templates"), admin.createTemplate);
 router.put("/templates/:templateId", admin.updateTemplate);
 router.patch("/templates/:templateId/deactivate", admin.deactivateTemplate);
+router.delete("/templates/:templateId", admin.deleteTemplate);
 
 router.get("/categories", admin.listCategories);
 router.post("/categories", admin.createCategory);

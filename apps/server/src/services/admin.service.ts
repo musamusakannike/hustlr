@@ -355,8 +355,9 @@ export async function reverseReferral(id: string) {
 }
 
 export async function createTemplate(payload: Record<string, unknown>) {
-  const name = String(payload.name);
-  const slug = await uniqueSlug(name, async (s) => Boolean(await WebsiteTemplate.exists({ slug: s })));
+  const name = String(payload.name || "Untitled Template");
+  const rawSlug = payload.slug ? String(payload.slug) : name;
+  const slug = await uniqueSlug(rawSlug, async (s) => Boolean(await WebsiteTemplate.exists({ slug: s })));
   return WebsiteTemplate.create({ ...payload, slug });
 }
 
@@ -372,13 +373,49 @@ export async function deactivateTemplate(id: string) {
   return t;
 }
 
+export async function deleteTemplate(id: string) {
+  const storesCount = await Store.countDocuments({ templateId: id });
+  if (storesCount > 0) {
+    throw ApiError.badRequest(
+      `Cannot delete this template because ${storesCount} merchant store(s) are currently using it. You can deactivate it instead.`,
+    );
+  }
+  const t = await WebsiteTemplate.findByIdAndDelete(id);
+  if (!t) throw ApiError.notFound("Template not found");
+  return t;
+}
+
 export async function listAdminTemplates(query: Record<string, unknown>) {
   const filter: Record<string, unknown> = {};
-  if (query.tier) filter.tier = query.tier;
-  if (query.category) filter.category = query.category;
+  if (query.tier && query.tier !== "all") filter.tier = query.tier;
+  if (query.category && query.category !== "all") filter.category = query.category;
   if (query.isActive === "true") filter.isActive = true;
   if (query.isActive === "false") filter.isActive = false;
-  return WebsiteTemplate.find(filter).sort({ createdAt: -1 });
+  if (query.search && typeof query.search === "string" && query.search.trim()) {
+    const regex = new RegExp(escapeRegex(query.search.trim()), "i");
+    filter.$or = [
+      { name: regex },
+      { slug: regex },
+      { category: regex },
+      { description: regex },
+    ];
+  }
+
+  const templates = await WebsiteTemplate.find(filter).sort({ createdAt: -1 }).lean();
+
+  const counts = await Store.aggregate([
+    { $match: { templateId: { $ne: null } } },
+    { $group: { _id: "$templateId", count: { $sum: 1 } } },
+  ]);
+  const countMap = new Map<string, number>();
+  for (const c of counts) {
+    if (c._id) countMap.set(String(c._id), c.count);
+  }
+
+  return templates.map((t) => ({
+    ...t,
+    storesUsing: countMap.get(String(t._id)) || 0,
+  }));
 }
 
 export async function upsertPlan(id: string | null, payload: Record<string, unknown>) {

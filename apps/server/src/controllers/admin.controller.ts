@@ -220,6 +220,10 @@ export const updateTemplate = asyncHandler(async (req: Request, res: Response) =
 export const deactivateTemplate = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, await adminService.deactivateTemplate(req.params.templateId));
 });
+export const deleteTemplate = asyncHandler(async (req: Request, res: Response) => {
+  await adminService.deleteTemplate(req.params.templateId);
+  sendSuccess(res, null, "Template deleted successfully");
+});
 
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, await adminService.createGlobalCategory(req.body), "Created", 201);

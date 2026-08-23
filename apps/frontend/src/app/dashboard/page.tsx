@@ -86,7 +86,7 @@ export default function DashboardOverviewPage() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center">
+            <span className="w-10 h-10 rounded-xl bg-primary-light/60 text-primary flex items-center justify-center">
               <PackageCheck className="w-5 h-5" />
             </span>
           </div>
@@ -98,7 +98,7 @@ export default function DashboardOverviewPage() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="w-10 h-10 rounded-xl bg-info-light text-info flex items-center justify-center">
+            <span className="w-10 h-10 rounded-xl bg-primary-light/60 text-primary flex items-center justify-center">
               <FolderTree className="w-5 h-5" />
             </span>
           </div>
@@ -110,7 +110,7 @@ export default function DashboardOverviewPage() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="w-10 h-10 rounded-xl bg-warning-light text-warning flex items-center justify-center">
+            <span className="w-10 h-10 rounded-xl bg-primary-light/60 text-primary flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </span>
           </div>
@@ -276,8 +276,7 @@ export default function DashboardOverviewPage() {
           </span>{" "}
           once your store is live.
         </span>
-        <CreditCard className="w-4 h-4 ml-2" />
-        <span>Payments are protected with Paystack escrow.</span>
+       
       </div>
     </div>
   );

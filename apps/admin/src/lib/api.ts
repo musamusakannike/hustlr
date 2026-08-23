@@ -499,3 +499,71 @@ export const adminAnalyticsService = {
     return res.data.data;
   },
 };
+
+// ─── Templates Service ────────────────────────────────────────────────────────
+export interface ColorVariable {
+  variableName: string;
+  defaultValue: string;
+  label: string;
+}
+
+export interface LayoutSection {
+  sectionId: string;
+  sectionName: string;
+  isRequired: boolean;
+}
+
+export interface AdminTemplateItem {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  previewImageUrl: string;
+  tier: "free" | "pro" | "pro+";
+  category: string;
+  isActive: boolean;
+  colorVariables: ColorVariable[];
+  layoutSections: LayoutSection[];
+  storesUsing?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminTemplatePayload {
+  name: string;
+  slug?: string;
+  description?: string;
+  previewImageUrl?: string;
+  tier: "free" | "pro" | "pro+";
+  category?: string;
+  isActive?: boolean;
+  colorVariables?: ColorVariable[];
+  layoutSections?: LayoutSection[];
+}
+
+export const adminTemplatesService = {
+  async list(params?: Record<string, unknown>): Promise<AdminTemplateItem[]> {
+    const res = await api.get<ApiResponse<AdminTemplateItem[]>>("/admin/templates", { params });
+    return res.data.data ?? [];
+  },
+  async create(payload: AdminTemplatePayload): Promise<AdminTemplateItem> {
+    const res = await api.post<ApiResponse<AdminTemplateItem>>("/admin/templates", payload);
+    return res.data.data;
+  },
+  async update(id: string, payload: Partial<AdminTemplatePayload>): Promise<AdminTemplateItem> {
+    const res = await api.put<ApiResponse<AdminTemplateItem>>(`/admin/templates/${id}`, payload);
+    return res.data.data;
+  },
+  async toggleActive(id: string, isActive: boolean): Promise<AdminTemplateItem> {
+    const res = await api.put<ApiResponse<AdminTemplateItem>>(`/admin/templates/${id}`, { isActive });
+    return res.data.data;
+  },
+  async deactivate(id: string): Promise<AdminTemplateItem> {
+    const res = await api.patch<ApiResponse<AdminTemplateItem>>(`/admin/templates/${id}/deactivate`);
+    return res.data.data;
+  },
+  async delete(id: string): Promise<void> {
+    await api.delete(`/admin/templates/${id}`);
+  },
+};
+
