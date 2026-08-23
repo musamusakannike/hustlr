@@ -137,7 +137,8 @@ export default function ContactPage() {
             </form>
           )}
         </Card>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }

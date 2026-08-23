@@ -50,7 +50,7 @@ export default function TemplatesPage() {
       </section>
 
       {/* Templates content */}
-      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+      <section className="flex-1 bg-white pt-12 md:pt-16 pb-16 sm:pb-20 md:pb-24 px-6 sm:px-12 lg:px-16 xl:px-20">
         <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:gap-12">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
           {filtered.map((template) => (

@@ -1,5 +1,6 @@
 import React from "react";
 import { APP_NAME, SUPPORT_EMAIL } from "@/constants/app.constants";
+import { SectionHeading } from "@/components/ui/Card";
 
 export const metadata = {
   title: "Terms of Service",
@@ -63,38 +64,38 @@ const SECTIONS: { heading: string; body: string[] }[] = [
 
 export default function TermsPage() {
   return (
-    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 font-space-grotesk">
-      <div className="max-w-3xl mx-auto flex flex-col gap-10">
-        <header>
-          <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3.5 py-1 rounded-md mb-3">
-            Legal
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Terms of Service
-          </h1>
-          <p className="text-sm text-muted mt-2">
-            Last updated: August 2026
-          </p>
-        </header>
+    <div className="flex-1 flex flex-col font-space-grotesk">
+      {/* Header band */}
+      <section className="bg-bg-soft py-14 md:py-20 px-6 sm:px-12 lg:px-16 xl:px-20 border-b border-black/5">
+        <SectionHeading
+          eyebrow="Legal"
+          title="Terms of Service"
+          description={`The terms governing use of ${APP_NAME}. Last updated: August 2026.`}
+        />
+      </section>
 
-        <div className="flex flex-col gap-8">
-          {SECTIONS.map((section) => (
-            <div key={section.heading}>
-              <h2 className="text-lg font-bold tracking-tight mb-2">
-                {section.heading}
-              </h2>
-              {section.body.map((paragraph, i) => (
-                <p
-                  key={i}
-                  className="text-sm text-muted leading-relaxed mb-2 last:mb-0"
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          ))}
+      {/* Content */}
+      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+        <div className="max-w-3xl mx-auto flex flex-col gap-10">
+          <div className="flex flex-col gap-8">
+            {SECTIONS.map((section) => (
+              <div key={section.heading}>
+                <h2 className="text-lg font-bold tracking-tight mb-2">
+                  {section.heading}
+                </h2>
+                {section.body.map((paragraph, i) => (
+                  <p
+                    key={i}
+                    className="text-sm text-muted leading-relaxed mb-2 last:mb-0"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import StartStoreModal from "@/components/StartStoreModal";
 import { APP_NAME, LOGO_PATH } from "@/constants/app.constants";
 
@@ -21,13 +20,11 @@ const MORE_LINKS = [
 ];
 
 /**
- * Shared header for secondary marketing pages, mirroring the landing page's
- * nav pattern: centered logo on top, centered nav links (with More dropdown
- * and Get Started CTA) below. Hidden on `/` where the Hero section provides
- * its own inline nav.
+ * Shared header for all marketing pages including the landing page,
+ * mirroring the original nav pattern: centered logo on top, centered
+ * nav links (with More dropdown and Get Started CTA) below.
  */
 export default function MarketingHeader() {
-  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -41,8 +38,6 @@ export default function MarketingHeader() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  if (pathname === "/") return null;
 
   return (
     <>
