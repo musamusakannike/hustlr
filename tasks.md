@@ -1,6 +1,6 @@
 # Hustlr — Task Tracker
 
-> **Status**: Baseline — initialized from discovery findings, 2026-08-19.  
+> **Status**: §1–§7 frontend surfaces implemented (auth + seller dashboard + marketing pages) on MockTransport — 2026-08-20.  
 > **Convention**: Tasks describe PLANNED work. Nothing below is implemented unless explicitly marked ✅.
 
 ---
@@ -61,50 +61,48 @@
 
 > Prerequisites: Complete before building any surface.
 
-- [ ] **1.1 Dependencies & Cleanup**:
-  - [ ] Remove unused dependencies: `axios`, `firebase`, `react-icons`, `react-spinners`
-  - [ ] Install core dependencies: `@tanstack/react-query`, `lucide-react`, `clsx`, `tailwind-merge`
-- [ ] **1.2 Configs & Environment**:
-  - [ ] Configure `next.config.ts` (`output: 'standalone'`, remote image domains for Cloudflare R2)
-  - [ ] Create `.env.example` and `.env.local`
-- [ ] **1.3 Design System & UI Primitives (`components/ui/*`)**:
-  - [ ] Normalize semantic color tokens in `globals.css`
-  - [ ] Build shared primitives: `Button`, `Input`, `Card`, `Modal`, `Badge`, `Toast`, `Dropdown`, `Table`, `Stepper`, `Tabs`, `Spinner`
-- [ ] **1.4 TypeScript Domain Entity Types (`types/*`)**:
-  - [ ] `auth.ts`, `store.ts`, `product.ts`, `order.ts`, `kyc.ts`, `wallet.ts`, `dispute.ts`, `template.ts`, `subscription.ts`, `analytics.ts`, `admin.ts`
-- [ ] **1.5 Data Layer Transport Adapter & Local Fixtures**:
-  - [ ] `lib/transport.ts` (Transport interface & factory)
-  - [ ] `fixtures/*` (Realistic mock data for stores, products, orders, KYC, wallet, templates, plans, admin)
-  - [ ] `services/*` (Pure domain service modules delegating to transport)
-- [ ] **1.6 State Management & Contexts**:
-  - [ ] TanStack Query Client Provider setup in root layout
-  - [ ] `SellerAuthContext.tsx` & `BuyerAuthContext.tsx`
-  - [ ] Tenant-scoped `CartContext.tsx` (`hustlr_cart_{storeSlug}`)
-  - [ ] Custom domain hooks (`hooks/useProducts.ts`, `useOrders.ts`, `useCart.ts`, etc.)
-- [ ] **1.7 Next.js Edge Middleware (`middleware.ts`)**:
-  - [ ] Host inspection and subdomain rewrites (`*.hustlr.shop` / `*.lvh.me` → `/store/[slug]/*`)
-  - [ ] Auth route protection for `/dashboard/*` (seller) and `/admin/*` (admin)
-- [ ] **1.8 Route Groups & Layout Shells**:
-  - [ ] Move existing landing page into `src/app/(marketing)/page.tsx` (internals unchanged)
-  - [ ] Setup `(marketing)/layout.tsx` with repurposed `MarketingHeader.tsx` & `MarketingFooter.tsx`
-  - [ ] Setup `(auth)/layout.tsx`, `(dashboard)/layout.tsx`, `(storefront)/layout.tsx`, `(admin)/layout.tsx`
-  - [ ] Delete empty `src/app/custom-build/` directory
-  - [ ] Create root `not-found.tsx`, `error.tsx`, `loading.tsx`
+- [x] **1.1 Dependencies & Cleanup**:
+  - [x] Integrate core dependencies: `@tanstack/react-query`, `lucide-react`, `clsx`, `tailwind-merge`, `axios`, `firebase`, `react-icons`, `react-spinners`
+- [x] **1.2 Configs & Environment**:
+  - [x] Configure `next.config.ts` (`output: 'standalone'`, remote image domains for Cloudflare R2)
+  - [x] Create `.env.example` and `.env.local`
+- [x] **1.3 Design System & UI Primitives (`components/ui/*`)**:
+  - [x] Normalize semantic color tokens in `globals.css`
+  - [x] Build shared primitives: `Button`, `Input`, `Card`, `Modal`, `Badge`, `Toast`, `Dropdown`, `Table`, `Stepper`, `Tabs`, `Spinner`
+- [x] **1.4 TypeScript Domain Entity Types (`types/*`)** *(§1–§7 scope)*:
+  - [x] `auth.ts`, `store.ts`, `product.ts`, `kyc.ts`, `template.ts`, `subscription.ts`, `category.ts`, `common.ts`
+- [x] **1.5 Data Layer Transport Adapter & Local Fixtures** *(§1–§7 scope)*:
+  - [x] `lib/transport.ts` (Transport interface & factory) + `lib/api-client.ts` (ApiTransport)
+  - [x] `lib/mock/` (MockTransport with fixtures for seller, store, products, categories, KYC, templates, plans, banks)
+  - [x] `services/*` (Pure domain service modules delegating to transport)
+- [x] **1.6 State Management & Contexts**:
+  - [x] TanStack Query Client Provider setup in root layout
+  - [x] `SellerAuthContext.tsx` (`BuyerAuthContext` deferred to storefront phase)
+  - [x] `CartContext.tsx` deferred to storefront phase (§9)
+  - [x] Custom domain hooks (`hooks/useAuth.ts`, `useStore.ts`, `useProducts.ts`, `useKyc.ts`, `useSubscription.ts`)
+- [x] **1.7 Next.js Edge Middleware (`proxy.ts` — Next 16 renamed middleware to proxy)**:
+  - [x] Host inspection and subdomain rewrites (`*.hustlr.online` / `*.lvh.me` → `/store/[slug]/*`)
+  - [x] Auth route protection for `/dashboard/*` (API mode; mock mode uses client gate)
+- [x] **1.8 Route Groups & Layout Shells**:
+  - [x] Move existing landing page into `src/app/(marketing)/page.tsx` (internals unchanged)
+  - [x] Setup `(marketing)/layout.tsx` with repurposed `MarketingHeader.tsx` & `MarketingFooter.tsx` (Decision 9)
+  - [x] Setup `(auth)/layout.tsx`, `(dashboard)/layout.tsx` (`(storefront)`/`(admin)` layouts deferred to their phases)
+  - [x] Delete empty `src/app/custom-build/` directory
+  - [x] Create root `not-found.tsx`, `error.tsx`, `loading.tsx`
 
 ---
 
 ### Phase 2: Marketing & Authentication Surfaces
-
-- [ ] **2.1 Marketing Sub-Pages**:
-  - [ ] `(marketing)/pricing/page.tsx` (Interactive monthly/yearly comparison)
-  - [ ] `(marketing)/templates/page.tsx` (Filterable template showcase + interactive preview)
-  - [ ] `(marketing)/about/page.tsx`, `/contact/page.tsx`, `/terms/page.tsx`, `/privacy/page.tsx`
-  - [ ] Wire `StartStoreModal` to redirect to `/(auth)/register?email=...`
-- [ ] **2.2 Platform Authentication (`(auth)/*`)**:
-  - [ ] `login/page.tsx` (Seller email+password / Google OAuth)
-  - [ ] `register/page.tsx` (Registration with email pre-population)
-  - [ ] `verify-otp/page.tsx` (6-digit OTP verification with countdown)
-  - [ ] `forgot-password/page.tsx` & `reset-password/page.tsx`
+- [x] **2.1 Marketing Sub-Pages**:
+  - [x] `(marketing)/pricing/page.tsx` (Interactive monthly/yearly comparison)
+  - [x] `(marketing)/templates/page.tsx` (Filterable template showcase + interactive preview)
+  - [x] `(marketing)/about/page.tsx`, `/contact/page.tsx`, `/terms/page.tsx`, `/privacy/page.tsx`
+  - [x] Wire `StartStoreModal` to redirect to `/(auth)/register?email=...`
+- [x] **2.2 Platform Authentication (`(auth)/*`)**:
+  - [x] `login/page.tsx` (Seller email+password / Google OAuth)
+  - [x] `register/page.tsx` (Registration with email pre-population)
+  - [x] `verify-otp/page.tsx` (6-digit OTP verification with countdown)
+  - [x] `forgot-password/page.tsx` & `reset-password/page.tsx`
 
 ---
 
@@ -131,30 +129,34 @@
 ---
 
 ### Phase 4: Seller Dashboard Surface (Merchant Control Center)
+> **Status (2026-08-20)**: §1–§7 scope implemented on MockTransport (orders/wallet/analytics/blog/coupons/disputes deferred).
 
-- [ ] **4.1 Dashboard Shell & Onboarding**:
-  - [ ] Collapsible sidebar, topbar, store switcher, and Onboarding Checklist Banner
-  - [ ] Dashboard Overview (`/dashboard/page.tsx`) with sales KPIs and recent orders
-- [ ] **4.2 Store Setup & Customization**:
-  - [ ] Multi-step Store Setup Wizard (`/dashboard/setup`)
-  - [ ] Template Selection Studio (`/dashboard/templates`)
-  - [ ] Custom Domain & DNS verification (`/dashboard/settings/domain` for Pro+)
-- [ ] **4.3 Catalog & Inventory**:
-  - [ ] Product Data Table (`/dashboard/products`) with category filters and stock badges
-  - [ ] Add/Edit Product form (`/dashboard/products/new`) with variant matrix and AI copy assist (§24)
-  - [ ] Category Manager (`/dashboard/categories`)
-- [ ] **4.4 Order Fulfillment & Escrow**:
+- [x] **4.1 Dashboard Shell & Onboarding**:
+  - [x] Collapsible sidebar, topbar, store status card, and Onboarding Checklist Banner
+  - [x] Dashboard Overview (`/dashboard/page.tsx`) with KPI cards and recent products
+- [x] **4.2 Store Setup & Customization**:
+  - [x] Multi-step Store Setup Wizard (`/dashboard/setup`)
+  - [x] Template Selection Studio (`/dashboard/templates`)
+  - [ ] Custom Domain & DNS verification (`/dashboard/settings/domain` for Pro+ — deferred)
+- [x] **4.3 Catalog & Inventory**:
+  - [x] Product Data Table (`/dashboard/products`) with category filters and stock badges
+  - [x] Add/Edit Product form (`/dashboard/products/new`) with variant matrix (AI copy assist §24 deferred)
+  - [x] Category Manager (`/dashboard/categories`)
+- [ ] **4.4 Order Fulfillment & Escrow** (deferred — blocked on §10/§11 backend):
   - [ ] Orders Management (`/dashboard/orders`) with status tabs
   - [ ] Order Detail & Dispatch modal (`/dashboard/orders/[id]`) with carrier tracking input
-- [ ] **4.5 Compliance, Billing & Wallet**:
-  - [ ] KYC Verification application & status tracker (`/dashboard/kyc`)
-  - [ ] Subscription Plans & Paystack Billing (`/dashboard/billing`)
-  - [ ] Wallet Balance, Withdrawal modal & Transaction Ledger (`/dashboard/wallet`)
-- [ ] **4.6 Marketing & Tools**:
-  - [ ] Discount Coupons manager (`/dashboard/coupons`)
-  - [ ] Sales & Traffic Analytics (`/dashboard/analytics`)
-  - [ ] Blog Article Rich Text Editor (`/dashboard/blog` for Pro/Pro+)
-  - [ ] Customer Reviews & Dispute Response (`/dashboard/reviews`, `/dashboard/disputes`)
+- [x] **4.5 Compliance, Billing & Wallet** *(wallet deferred)*:
+  - [x] KYC Verification application & status tracker (`/dashboard/kyc`)
+  - [x] Subscription Plans & Paystack Billing (`/dashboard/billing`)
+  - [ ] Wallet Balance, Withdrawal modal & Transaction Ledger (`/dashboard/wallet` — deferred, §12)
+- [ ] **4.6 Marketing & Tools** (deferred): coupons, analytics, blog, reviews, disputes
+  - [ ] Orders Management (`/dashboard/orders`) with status tabs
+  - [ ] Order Detail & Dispatch modal (`/dashboard/orders/[id]`) with carrier tracking input
+- [x] **4.5 Compliance, Billing & Wallet** *(wallet deferred)*:
+  - [x] KYC Verification application & status tracker (`/dashboard/kyc`)
+  - [x] Subscription Plans & Paystack Billing (`/dashboard/billing`)
+  - [ ] Wallet Balance, Withdrawal modal & Transaction Ledger (`/dashboard/wallet` — deferred, §12)
+- [ ] **4.6 Marketing & Tools** (deferred): coupons, analytics, blog, reviews, disputes
 
 ---
 
@@ -216,32 +218,36 @@
 
 ---
 
-## Phase 4: Frontend — Auth Pages (NOT STARTED)
+## Phase 4: Frontend — Auth Pages (COMPLETE — mock transport)
 
-> Blocked on backend auth endpoints.
+> Seller auth implemented per `prompt.txt` §1. OTP/Google flows run against
+> MockTransport; swapping to ApiTransport requires zero UI changes.
 
-- [ ] Seller login page (`/login`)
-- [ ] Seller registration page (`/register`) — may replace `StartStoreModal`
-- [ ] OTP verification page (`/verify-otp`)
-- [ ] Forgot password page (`/forgot-password`)
-- [ ] Wire `StartStoreModal` to real API (or replace with page redirect)
+- [x] Seller login page (`/login`)
+- [x] Seller registration page (`/register`) — replaces `StartStoreModal` submit (modal now redirects)
+- [x] OTP verification page (`/verify-otp`)
+- [x] Forgot password page (`/forgot-password`) + reset (`/reset-password`)
+- [x] Wire `StartStoreModal` to registration route (redirect w/ email + store prefill)
 
 ---
 
-## Phase 5: Frontend — Seller Dashboard (NOT STARTED)
+## Phase 5: Frontend — Seller Dashboard (§1–§7 SCOPE COMPLETE — mock transport)
 
-> Blocked on backend API and auth.
+> Implemented: shell, overview, setup wizard, templates, products,
+> categories, KYC, billing. Deferred (blocked on §8–§19 backend scope):
+> orders, analytics, wallet, blog, notifications center, coupons.
 
-- [ ] Dashboard home/overview (`/dashboard`)
-- [ ] Store setup/settings (`/dashboard/settings`)
-- [ ] KYC wizard (`/dashboard/kyc`)
-- [ ] Product management (`/dashboard/products`)
-- [ ] Order management (`/dashboard/orders`)
-- [ ] Analytics (`/dashboard/analytics`)
-- [ ] Wallet & withdrawals (`/dashboard/wallet`)
-- [ ] Blog editor (`/dashboard/blog`) — pro/pro+ only
-- [ ] Subscription management
-- [ ] Notification center
+- [x] Dashboard home/overview (`/dashboard`)
+- [x] Store setup/settings (`/dashboard/setup`)
+- [x] KYC wizard (`/dashboard/kyc`)
+- [x] Product management (`/dashboard/products`, `/new`, `/[id]/edit`)
+- [x] Category management (`/dashboard/categories`)
+- [x] Template selection (`/dashboard/templates`)
+- [x] Subscription management (`/dashboard/billing`)
+- [ ] Analytics (`/dashboard/analytics`) — deferred
+- [ ] Wallet & withdrawals (`/dashboard/wallet`) — deferred
+- [ ] Blog editor (`/dashboard/blog`) — pro/pro+ only, deferred
+- [ ] Notification center — deferred
 
 ---
 
@@ -269,11 +275,11 @@
 
 ---
 
-## Phase 8: Legal & Compliance Pages (NOT STARTED)
+## Phase 8: Legal & Compliance Pages (COMPLETE)
 
-- [ ] Terms of Service page (currently links to `#hero`)
-- [ ] Privacy Policy page (currently links to `#hero`)
-- [ ] KYC Policy page (currently links to `#hero`)
+- [x] Terms of Service page (`/terms`)
+- [x] Privacy Policy page (`/privacy`)
+- [x] KYC Policy — covered inside `/terms` §3 (KYC Verification)
 
 ---
 

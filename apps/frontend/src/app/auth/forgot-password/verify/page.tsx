@@ -15,7 +15,7 @@ function ForgotPasswordVerifyContent() {
   const emailParam = searchParams.get("email") || "";
   const targetEmail = emailParam.trim() || "merchant@hustlr.shop";
 
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string>("");
   const [timer, setTimer] = useState(60);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -30,11 +30,11 @@ function ForgotPasswordVerifyContent() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const isValid = otp.every((digit) => digit.trim().length > 0) && !loading;
+  const isValid = otp.trim().length === 6 && !loading;
 
   const handleContinue = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const codeStr = otp.join("").trim();
+    const codeStr = otp.trim();
     if (codeStr.length !== 6 || loading) return;
 
     setLoading(true);
@@ -55,7 +55,7 @@ function ForgotPasswordVerifyContent() {
     try {
       await authService.forgotSellerPassword(targetEmail);
       setTimer(60);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp("");
       setSuccessInfo("A new password reset code has been sent to your email.");
     } catch (err: unknown) {
       setErrorMessage(

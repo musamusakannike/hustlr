@@ -17,7 +17,7 @@ function VerifyOtpContent() {
   const emailParam = searchParams.get("email") || "";
   const targetEmail = emailParam.trim() || "merchant@hustlr.shop";
 
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string>("");
   const [timer, setTimer] = useState(60);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -32,11 +32,11 @@ function VerifyOtpContent() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const isValid = otp.every((digit) => digit.trim().length > 0) && !loading;
+  const isValid = otp.trim().length === 6 && !loading;
 
   const handleVerify = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const codeStr = otp.join("").trim();
+    const codeStr = otp.trim();
     if (codeStr.length !== 6 || loading) return;
 
     setLoading(true);
@@ -48,15 +48,14 @@ function VerifyOtpContent() {
       setUser(response.user);
       setSuccessInfo("Email verified successfully! Redirecting to setup...");
 
-      const nextUrl = await authService.getPostAuthRedirect();
       setTimeout(() => {
-        router.replace(nextUrl);
+        router.replace("/onboarding");
       }, 1200);
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
           ? err.message
-          : "Invalid or expired verification code. Please request a new one.",
+          : "Invalid or expired OTP code. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -72,8 +71,8 @@ function VerifyOtpContent() {
     try {
       await authService.resendSellerOtp(targetEmail);
       setTimer(60);
-      setOtp(["", "", "", "", "", ""]);
-      setSuccessInfo("A fresh verification code has been sent to your email.");
+      setOtp("");
+      setSuccessInfo("A new 6-digit code has been sent to your email.");
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error

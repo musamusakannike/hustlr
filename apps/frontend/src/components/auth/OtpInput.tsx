@@ -1,118 +1,113 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-
-interface OtpInputProps {
-  value: string[];
-  onChange: (otp: string[]) => void;
-  length?: number;
-  disabled?: boolean;
-}
+import React, { useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function OtpInput({
+  length = 6,
   value,
   onChange,
-  length = 6,
+  onComplete,
   disabled = false,
-}: OtpInputProps) {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  hasError = false,
+}: {
+  length?: number;
+  value: string;
+  onChange: (value: string) => void;
+  onComplete?: (value: string) => void;
+  disabled?: boolean;
+  hasError?: boolean;
+}) {
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const [focusIndex, setFocusIndex] = useState(0);
 
-  useEffect(() => {
-    // Focus first input automatically on mount
-    if (inputRefs.current[0] && !disabled) {
-      inputRefs.current[0].focus();
-    }
-  }, [disabled]);
+  const digits = Array.from({ length }, (_, i) => value[i] ?? "");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number,
-  ) => {
-    const rawVal = e.target.value;
-    const digit = rawVal.replace(/\D/g, "").slice(-1); // Take last digit if multiple
-
-    const newOtp = [...value];
-    newOtp[index] = digit;
-    onChange(newOtp);
-
-    // Auto-focus next field
-    if (digit && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+  const handleChange = (index: number, raw: string) => {
+    const digit = raw.replace(/\D/g, "").slice(-1);
+    if (!digit) return;
+    const next = value.split("");
+    next[index] = digit;
+    const joined = next.join("").replace(/\s/g, "").slice(0, length);
+    onChange(joined);
+    const nextIndex = Math.min(index + 1, length - 1);
+    inputsRef.current[nextIndex]?.focus();
+    setFocusIndex(nextIndex);
+    if (joined.length === length && !joined.includes(" ")) {
+      onComplete?.(joined);
     }
   };
 
   const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
     index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Backspace") {
-      if (!value[index] && index > 0) {
-        // Current is empty, focus and clear previous
-        const newOtp = [...value];
-        newOtp[index - 1] = "";
-        onChange(newOtp);
-        inputRefs.current[index - 1]?.focus();
-      } else {
-        const newOtp = [...value];
-        newOtp[index] = "";
-        onChange(newOtp);
+      e.preventDefault();
+      const next = value.split("");
+      if (next[index]) {
+        next[index] = "";
+        onChange(next.join(""));
+      } else if (index > 0) {
+        next[index - 1] = "";
+        onChange(next.join(""));
+        inputsRef.current[index - 1]?.focus();
+        setFocusIndex(index - 1);
       }
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    } else if (e.key === "ArrowRight" && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+    }
+    if (e.key === "ArrowLeft" && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+      setFocusIndex(index - 1);
+    }
+    if (e.key === "ArrowRight" && index < length - 1) {
+      inputsRef.current[index + 1]?.focus();
+      setFocusIndex(index + 1);
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasteData = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, length);
-
-    if (!pasteData) return;
-
-    const newOtp = Array(length).fill("");
-    for (let i = 0; i < pasteData.length; i++) {
-      newOtp[i] = pasteData[i];
-    }
-    onChange(newOtp);
-
-    // Focus last filled box or next empty box
-    const nextIndex = Math.min(pasteData.length, length - 1);
-    inputRefs.current[nextIndex]?.focus();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
+    if (!pasted) return;
+    onChange(pasted);
+    const focusTarget = Math.min(pasted.length, length - 1);
+    inputsRef.current[focusTarget]?.focus();
+    setFocusIndex(focusTarget);
+    if (pasted.length === length) onComplete?.(pasted);
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
-      {Array.from({ length }).map((_, index) => {
-        const isFilled = Boolean(value[index]);
-        return (
-          <input
-            key={index}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={1}
-            value={value[index] || ""}
-            disabled={disabled}
-            onChange={(e) => handleChange(e, index)}
-            onKeyDown={(e) => handleKeyDown(e, index)}
-            onPaste={handlePaste}
-            onFocus={(e) => e.target.select()}
-            className={`w-11 sm:w-13 h-13 sm:h-14 text-center text-xl sm:text-2xl font-bold font-space-grotesk rounded-xl sm:rounded-2xl border transition-all duration-150 outline-none select-none ${
-              isFilled
-                ? "border-primary bg-primary/5 text-[#0A0E11] shadow-xs"
-                : "border-neutral-200 bg-white text-neutral-800 focus:border-primary focus:ring-2 focus:ring-primary/15"
-            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-            autoComplete="one-time-code"
-          />
-        );
-      })}
+    <div className="flex items-center justify-between gap-2 sm:gap-3">
+      {digits.map((digit, index) => (
+        <input
+          key={index}
+          ref={(el) => {
+            inputsRef.current[index] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={index === 0 ? "one-time-code" : "off"}
+          maxLength={1}
+          value={digit}
+          disabled={disabled}
+          onChange={(e) => handleChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          onFocus={() => setFocusIndex(index)}
+          aria-label={`Digit ${index + 1}`}
+          className={cn(
+            "w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold rounded-xl border bg-white text-text",
+            "focus:outline-none transition-all",
+            hasError
+              ? "border-danger"
+              : focusIndex === index
+                ? "border-primary shadow-xs"
+                : digit
+                  ? "border-text/30"
+                  : "border-border"
+          )}
+        />
+      ))}
     </div>
   );
 }
