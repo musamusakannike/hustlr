@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
-import StartStoreModal from "./StartStoreModal";
+import Link from "next/link";
 
 export default function WhatWeDo() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
-    <>
-      <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk border-t border-neutral-100">
+    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-white font-space-grotesk border-t border-neutral-100">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Left Column - Content & Feature Sub-columns */}
           <div className="lg:col-span-7 xl:col-span-7 flex flex-col items-start">
@@ -50,8 +47,8 @@ export default function WhatWeDo() {
                   colors, logo, and templates.
                 </p>
 
-                <button
-                  onClick={() => setIsModalOpen(true)}
+                <Link
+                  href="/auth/register"
                   className="inline-flex items-center gap-1.5 text-primary font-semibold text-sm sm:text-base hover:underline mt-1 group cursor-pointer"
                 >
                   <span>Build Your Store</span>
@@ -68,7 +65,7 @@ export default function WhatWeDo() {
                       d="M14 5l7 7m0 0l-7 7m7-7H3"
                     />
                   </svg>
-                </button>
+                </Link>
               </div>
 
               {/* Column 2 - Escrow Wallet & Paystack */}
@@ -136,12 +133,6 @@ export default function WhatWeDo() {
             </div>
           </div>
         </div>
-      </section>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
+    </section>
   );
 }

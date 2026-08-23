@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import StartStoreModal from "./StartStoreModal";
 import { APP_NAME, NAV_LINKS, LOGO_PATH } from "@/constants/app.constants";
 
 export default function Footer() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
-    <>
-      <footer className="bg-light text-black pt-36 sm:pt-44 md:pt-48 pb-12 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk border-t border-black/10">
+    <footer className="bg-light text-black pt-36 sm:pt-44 md:pt-48 pb-12 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk border-t border-black/10">
         <div className="max-w-7xl mx-auto flex flex-col gap-8 sm:gap-10">
           {/* Top Row: Logo Branding + Main Nav Links */}
           <div className="flex flex-col md:flex-row items-center md:items-center justify-between gap-6 md:gap-8">
@@ -40,12 +36,12 @@ export default function Footer() {
                 </a>
               ))}
 
-              <button
-                onClick={() => setIsModalOpen(true)}
+              <Link
+                href="/auth/register"
                 className="hover:text-primary-hover transition-colors cursor-pointer text-primary font-semibold"
               >
                 Register Store
-              </button>
+              </Link>
             </nav>
           </div>
 
@@ -115,12 +111,6 @@ export default function Footer() {
             </div>
           </div>
         </div>
-      </footer>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
+    </footer>
   );
 }

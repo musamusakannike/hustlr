@@ -49,7 +49,7 @@ function VerifyOtpContent() {
       setSuccessInfo("Email verified successfully! Redirecting to setup...");
 
       setTimeout(() => {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }, 1200);
     } catch (err: unknown) {
       setErrorMessage(

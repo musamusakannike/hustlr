@@ -8,9 +8,12 @@ import { FcGoogle } from "react-icons/fc";
 import { ClipLoader } from "react-spinners";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { authService } from "@/services/auth.service";
+import { useAuth } from "@/context/auth.context";
+import { getGoogleIdToken } from "@/services/firebase.client";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -60,7 +63,7 @@ export default function RegisterPage() {
       });
 
       // Redirect directly to the 6-digit OTP verification screen
-      router.push(
+      router.replace(
         `/auth/verify-otp?email=${encodeURIComponent(response.email || email.trim())}`,
       );
     } catch (err: unknown) {
@@ -75,9 +78,33 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignUp = async () => {
-    setErrorMessage(
-      "Google merchant registration can be completed with your active Google account.",
-    );
+    if (loading) return;
+
+    if (!isAgreed) {
+      setErrorMessage("Please accept the privacy policy and terms first.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const idToken = await getGoogleIdToken();
+      const response = await authService.googleSeller(
+        idToken,
+        referralCode.trim() || undefined,
+      );
+      setUser(response.user);
+      router.replace("/dashboard");
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Google registration failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

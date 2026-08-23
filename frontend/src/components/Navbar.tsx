@@ -3,12 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import StartStoreModal from "./StartStoreModal";
 import { APP_NAME, NAV_LINKS, LOGO_PATH } from "@/constants/app.constants";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -200,11 +198,6 @@ export default function Navbar() {
           </Link>
         </div>
       </div>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </>
   );
 }

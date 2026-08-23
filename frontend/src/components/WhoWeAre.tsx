@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import StartStoreModal from "./StartStoreModal";
+import Link from "next/link";
 
 const DEMO_VIDEO_URL =
   "https://media.istockphoto.com/id/1405993999/video/vfx-animated-background-with-virtual-social-media-reality-interconnected-by-internet-into.mp4";
 
 export default function WhoWeAre() {
   const [videoOpen, setVideoOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
@@ -97,8 +96,8 @@ export default function WhoWeAre() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4 items-center">
-              <button
-                onClick={() => setIsModalOpen(true)}
+              <Link
+                href="/auth/register"
                 className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <span>Start Your Store</span>
@@ -115,7 +114,7 @@ export default function WhoWeAre() {
                     d="M7 17L17 7M17 7H7M17 7V17"
                   />
                 </svg>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -146,11 +145,6 @@ export default function WhoWeAre() {
           />
         </div>
       )}
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </>
   );
 }

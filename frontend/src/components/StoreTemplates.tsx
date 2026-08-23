@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
-import StartStoreModal from "./StartStoreModal";
+import Link from "next/link";
 import { STORE_TEMPLATES } from "@/constants/app.constants";
 
 export default function StoreTemplates() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <>
       {/* Hidden SVG Definition for Starburst Mask */}
@@ -45,9 +43,9 @@ export default function StoreTemplates() {
 
               if (isDarkCenterCard) {
                 return (
-                  <div
+                  <Link
                     key={tmpl.id}
-                    onClick={() => setIsModalOpen(true)}
+                    href="/auth/register"
                     className="bg-[#0A0E11] rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-120 shadow-xl relative group text-white cursor-pointer hover:shadow-2xl transition-all duration-300 border border-neutral-800"
                   >
                     {/* Center Starburst Image */}
@@ -96,14 +94,14 @@ export default function StoreTemplates() {
                         </svg>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               }
 
               return (
-                <div
+                <Link
                   key={tmpl.id}
-                  onClick={() => setIsModalOpen(true)}
+                  href="/auth/register"
                   className="bg-bg-soft rounded-3xl p-6 sm:p-7 flex flex-col justify-between h-full min-h-120 shadow-xs relative group text-[#0A0E11] cursor-pointer hover:shadow-md transition-all duration-300 border border-neutral-200/80"
                 >
                   {/* Top Info Row */}
@@ -144,17 +142,12 @@ export default function StoreTemplates() {
                       priority
                     />
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
         </div>
       </section>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </>
   );
 }

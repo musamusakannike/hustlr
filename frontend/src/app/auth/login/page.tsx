@@ -9,6 +9,7 @@ import { ClipLoader } from "react-spinners";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { authService } from "@/services/auth.service";
 import { useAuth } from "@/context/auth.context";
+import { getGoogleIdToken } from "@/services/firebase.client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function LoginPage() {
     try {
       const response = await authService.loginSeller(email.trim(), password);
       setUser(response.user);
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -56,9 +57,25 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    setErrorMessage(
-      "Google authentication for merchants can be initiated with your registered Google account.",
-    );
+    if (loading) return;
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const idToken = await getGoogleIdToken();
+      const response = await authService.googleSeller(idToken);
+      setUser(response.user);
+      router.replace("/dashboard");
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Google sign-in failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

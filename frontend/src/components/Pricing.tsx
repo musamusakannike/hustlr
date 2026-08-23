@@ -1,16 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import StartStoreModal from "./StartStoreModal";
+import Link from "next/link";
 import { PRICING_PLANS } from "@/constants/app.constants";
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <>
-      <section
+    <section
         id="pricing"
         className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 bg-bg-soft font-space-grotesk"
       >
@@ -141,8 +139,8 @@ export default function Pricing() {
                     </ul>
                   </div>
 
-                  <button
-                    onClick={() => setIsModalOpen(true)}
+                  <Link
+                    href="/auth/register"
                     className={`w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-200 cursor-pointer shadow-sm ${
                       plan.isPopular
                         ? "bg-primary hover:bg-primary-hover text-white"
@@ -150,18 +148,12 @@ export default function Pricing() {
                     }`}
                   >
                     Get Started with {plan.name}
-                  </button>
+                  </Link>
                 </div>
               );
             })}
           </div>
         </div>
-      </section>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
+    </section>
   );
 }

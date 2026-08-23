@@ -1,14 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import StartStoreModal from "./StartStoreModal";
+import React from "react";
+import Link from "next/link";
 
 export default function CTA() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
-    <>
-      <section className="relative z-20 max-w-6xl mx-auto px-6 font-space-grotesk -mb-24 sm:-mb-32 md:-mb-36">
+    <section className="relative z-20 max-w-6xl mx-auto px-6 font-space-grotesk -mb-24 sm:-mb-32 md:-mb-36">
         <div className="bg-black rounded-3xl sm:rounded-[32px] py-12 px-6 sm:py-16 sm:px-12 md:py-20 md:px-16 text-center text-white flex flex-col items-center justify-center shadow-2xl">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-3 sm:mb-4">
             Ready to Launch Your Online Store Today?
@@ -19,8 +16,8 @@ export default function CTA() {
             with zero technical hassle.
           </p>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
+          <Link
+            href="/auth/register"
             className="inline-flex items-center gap-2 bg-light hover:bg-neutral-200 text-black px-8 py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
           >
             <span>Create Your Free Store Now</span>
@@ -37,14 +34,8 @@ export default function CTA() {
                 d="M7 17L17 7M17 7H7M17 7V17"
               />
             </svg>
-          </button>
+          </Link>
         </div>
       </section>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
   );
 }
