@@ -1,4 +1,5 @@
 import { apiClient } from "./api.client";
+import { setAuthCookie, clearAuthCookie } from "@/lib/auth-cookie";
 
 export interface User {
   id: string;
@@ -53,6 +54,7 @@ export const authService = {
     if (res.data.data.token && typeof window !== "undefined") {
       localStorage.setItem("hustlr_token", res.data.data.token);
       localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
+      setAuthCookie(res.data.data.token);
     }
     return res.data.data;
   },
@@ -73,6 +75,7 @@ export const authService = {
     if (res.data.data.token && typeof window !== "undefined") {
       localStorage.setItem("hustlr_token", res.data.data.token);
       localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
+      setAuthCookie(res.data.data.token);
     }
     return res.data.data;
   },
@@ -88,6 +91,7 @@ export const authService = {
     if (res.data.data.token && typeof window !== "undefined") {
       localStorage.setItem("hustlr_token", res.data.data.token);
       localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
+      setAuthCookie(res.data.data.token);
     }
     return res.data.data;
   },
@@ -119,6 +123,7 @@ export const authService = {
       if (typeof window !== "undefined") {
         localStorage.removeItem("hustlr_token");
         localStorage.removeItem("hustlr_user");
+        clearAuthCookie();
       }
     }
   },

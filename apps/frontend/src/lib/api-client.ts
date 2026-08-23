@@ -1,5 +1,6 @@
 import type { Transport, UploadContext } from "@/lib/transport";
 import { TransportError } from "@/lib/transport";
+import { setAuthCookie, clearAuthCookie } from "@/lib/auth-cookie";
 import type { ApiEnvelope } from "@/types/common";
 import type { RegisterPendingResponse, AuthResponse } from "@/types/auth";
 import type { Store, SlugCheckResult, UploadResult, StoreSetupInput } from "@/types/store";
@@ -102,7 +103,10 @@ export class ApiTransport implements Transport {
   async verifySellerOtp(input: { email: string; otp: string }) {
     const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/verify-otp", input);
     if (typeof window !== "undefined") {
-      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.token) {
+        localStorage.setItem("hustlr_token", res.token);
+        setAuthCookie(res.token);
+      }
       if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
     }
     return res;
@@ -113,7 +117,10 @@ export class ApiTransport implements Transport {
   async loginSeller(input: { email: string; password: string }) {
     const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/login", input);
     if (typeof window !== "undefined") {
-      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.token) {
+        localStorage.setItem("hustlr_token", res.token);
+        setAuthCookie(res.token);
+      }
       if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
     }
     return res;
@@ -121,7 +128,10 @@ export class ApiTransport implements Transport {
   async googleSeller(input: { idToken: string }) {
     const res = await send<AuthResponse & { token?: string; user?: any }>("POST", "/auth/seller/google", input);
     if (typeof window !== "undefined") {
-      if (res.token) localStorage.setItem("hustlr_token", res.token);
+      if (res.token) {
+        localStorage.setItem("hustlr_token", res.token);
+        setAuthCookie(res.token);
+      }
       if (res.user) localStorage.setItem("hustlr_user", JSON.stringify(res.user));
     }
     return res;
@@ -140,6 +150,7 @@ export class ApiTransport implements Transport {
         localStorage.removeItem("hustlr_token");
         localStorage.removeItem("hustlr_user");
         localStorage.removeItem("hustlr_mock_session");
+        clearAuthCookie();
       }
     }
   }

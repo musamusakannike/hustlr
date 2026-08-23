@@ -10,6 +10,7 @@ import React, {
 import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/types/auth";
 import { authService } from "@/services/auth";
+import { setAuthCookie, clearAuthCookie } from "@/lib/auth-cookie";
 
 interface SellerAuthContextValue {
   user: User | null;
@@ -26,6 +27,8 @@ export function SellerAuthProvider({ children }: { children: React.ReactNode }) 
     if (typeof window === "undefined") return null;
     try {
       const stored = window.localStorage.getItem("hustlr_user");
+      const token = window.localStorage.getItem("hustlr_token") || window.localStorage.getItem("token");
+      if (token) setAuthCookie(token);
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -39,10 +42,13 @@ export function SellerAuthProvider({ children }: { children: React.ReactNode }) 
     if (typeof window !== "undefined") {
       if (newUser) {
         window.localStorage.setItem("hustlr_user", JSON.stringify(newUser));
+        const token = window.localStorage.getItem("hustlr_token") || window.localStorage.getItem("token");
+        if (token) setAuthCookie(token);
       } else {
         window.localStorage.removeItem("hustlr_user");
         window.localStorage.removeItem("hustlr_token");
         window.localStorage.removeItem("hustlr_mock_session");
+        clearAuthCookie();
       }
     }
   }, []);

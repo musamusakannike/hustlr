@@ -7,6 +7,7 @@ import React, {
   ReactNode,
 } from "react";
 import { User, authService } from "@/services/auth.service";
+import { setAuthCookie, clearAuthCookie } from "@/lib/auth-cookie";
 
 interface AuthContextType {
   user: User | null;
@@ -22,6 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return null;
     try {
       const storedUser = localStorage.getItem("hustlr_user");
+      const token = localStorage.getItem("hustlr_token") || localStorage.getItem("token");
+      if (token) setAuthCookie(token);
       return storedUser ? JSON.parse(storedUser) : null;
     } catch {
       return null;
@@ -35,10 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (newUser) {
         localStorage.setItem("hustlr_user", JSON.stringify(newUser));
+        const token = localStorage.getItem("hustlr_token") || localStorage.getItem("token");
+        if (token) setAuthCookie(token);
       } else {
         localStorage.removeItem("hustlr_user");
         localStorage.removeItem("hustlr_token");
         localStorage.removeItem("hustlr_mock_session");
+        clearAuthCookie();
       }
     } catch {}
   };
