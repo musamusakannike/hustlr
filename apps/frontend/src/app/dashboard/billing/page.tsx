@@ -7,8 +7,8 @@ import {
   CreditCard,
   ExternalLink,
   Loader2,
+  PartyPopper,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -135,10 +135,10 @@ export default function BillingPage() {
       {justWentLive && store?.isLive && (
         <div className="rounded-3xl bg-dark text-white p-6 sm:p-8 border border-primary/40 flex flex-col sm:flex-row items-start sm:items-center gap-5">
           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
-            <Sparkles className="w-6 h-6" />
+            <PartyPopper className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-lg">Your store is LIVE 🎉</h3>
+            <h3 className="font-bold text-lg">Your store is LIVE</h3>
             <p className="text-sm text-neutral-300 mt-0.5">
               Buyers can now shop at{" "}
               <span className="font-mono text-white font-semibold">
