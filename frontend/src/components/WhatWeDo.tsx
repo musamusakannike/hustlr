@@ -44,7 +44,7 @@ export default function WhatWeDo() {
                 </h3>
 
                 <p className="text-[#666666] text-sm sm:text-base leading-relaxed">
-                  Every seller gets a dedicated store URL (e.g. musa-store.hustlr.online)
+                  Every seller gets a dedicated store URL (e.g. musa-store.hustlr.shop)
                   or custom domain, with personalized colors, logo, and templates.
                 </p>
 

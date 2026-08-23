@@ -2,7 +2,7 @@ Using node.js, express, mongoose (for MongoDB), typescript, jsonwebtoken, bcrypt
 
 Throughout the codebase, make sure the mentions of the app name are from a global constant variable in order to make it easy to rebrand the whole app name at once. Also add an AGENTS.md file which guides AI agents on how to edit this codebase. For every new or updated routes, there must be a corresponding update to the postman collection json file to make it easy to test the route. All the routes in the postman collection must be accompanied with sample request bodies for testing purposes. There should also be a complete markdown documentation of features and readme markdown for how to run the server.The file/folder structure should feature an src folder which has the following folders: config, controllers, middlewares, models, routes, scripts, services, utils, validations and any other needed folder. The convention for naming any file in the codebase (apart from the entry file, server.ts) is filename.filetype.extension. e.g db.config.ts, user.controller.ts, auth.route.ts, transaction.model.ts …., Make sure the .env.example is also up to date at all times. In case there's any update needing .env changes, update the .env.example to follow suit. All those rules must also be in the AGENTS.md file
 
-Keep in mind that the frontend of this app would be using next.js. The main idea of the app is that a store-owner (seller) can register on our website "Hustlr", and get to build up his own storefront and template for his website and his store would be hosted on a "subdomain.domain.online" e.g musa-store.hustlr.online. 
+Keep in mind that the frontend of this app would be using next.js. The main idea of the app is that a store-owner (seller) can register on our website "Hustlr", and get to build up his own storefront and template for his website and his store would be hosted on a "subdomain.domain.online" e.g musa-store.hustlr.shop. 
 
 To make it easier for implement, I would be giving you a codebase for a project; "Africlana" in the folder you're currently in. Africlana is majorly an e-commerce mobile app where multiple sellers register on the same platform and buyers can buy products from sellers on that same platform. Although its different from the Hustlr idea where a seller owns his own website where users can buy from him, we can still use functionalities similar to it on the hustlr platform. Another difference is that africlana is a mobile app while hustlr is a web app.Typical flow:There are 3 major roles: "admin", "seller" and "buyer". Admin are people/accounts managing the hustlr platform, sellers are those that have stores on hustlr, and buyers are customers patronizing a seller. Take into consideration that a buyer can be a buyer of multiple sellers, a seller can be a buyer of another seller's store. Even an admin can have a seller account, and different buyer accounts for different sellers. All managed in one mongoldb database. The account instance I use to login on a particular seller's website is different from that I used to login on another seller's website.
 A seller registers on hustlr (normal username+password+mail verification required or simply using google oauth), and then setup their store details:Store name, Store icon upload, About store, Store social links (facebook, X, instagram, WhatsApp phone number, … all optional), color choices and any more details that can be collected which is expected to be on the seller's website.Admins can create website templates for sellers which a seller can pick from during store setup. The website templates are dynamic by color variables, images and text contents. Some are labelled pro, pro+ (more explanation on pro later)
@@ -16,12 +16,12 @@ SECTION 1: AUTHENTICATION & ACCOUNTS SYSTEM
 
 There are two completely different authentication contexts on Hustlr:
 
-(A) SELLER AUTHENTICATION (hustlr.online main platform)
-(B) BUYER AUTHENTICATION (on a seller's subdomain, e.g. musa-store.hustlr.online)
+(A) SELLER AUTHENTICATION (hustlr.shop main platform)
+(B) BUYER AUTHENTICATION (on a seller's subdomain, e.g. musa-store.hustlr.shop)
 
 --- (A) Seller Authentication ---
 
-A seller registers on the main hustlr.online website. The registration flow works like this:
+A seller registers on the main hustlr.shop website. The registration flow works like this:
 
 Step 1: The seller fills in their name, email, and password. The server validates the input using Joi, hashes the password with bcryptjs, creates a new User document with role "seller" and isVerified = false, and sends a 6-digit OTP to the seller's email via Resend/Nodemailer. The OTP has a 10-minute expiry. The email should be a beautifully designed HTML email with the Hustlr branding.
 
@@ -37,7 +37,7 @@ Forgot Password: Seller enters their email. Server generates a 6-digit OTP, stor
 
 --- (B) Buyer Authentication (Per-Store) ---
 
-This is the critical multi-tenant part. A buyer account is scoped to a specific seller's store. When a buyer visits musa-store.hustlr.online and registers, they create a BuyerProfile that is tied to that specific store (storeId). 
+This is the critical multi-tenant part. A buyer account is scoped to a specific seller's store. When a buyer visits musa-store.hustlr.shop and registers, they create a BuyerProfile that is tied to that specific store (storeId). 
 
 The BuyerProfile model is separate from the main User model. It stores:
 - storeId (reference to the Store this buyer belongs to)
@@ -56,10 +56,10 @@ The BuyerProfile model is separate from the main User model. It stores:
 
 The registration flow is the same pattern as seller auth (email+password with OTP verification, or Google OAuth), but the key difference is:
 - Every request from a buyer's frontend includes a storeId (derived from the subdomain). The server middleware resolves the subdomain to a storeId.
-- The buyer account only exists within that store's context. Example: If I register as a buyer on musa-store.hustlr.online, my BuyerProfile has storeId = Musa's store ID. If I then go to ada-fashion.hustlr.online, I'd need to create a separate BuyerProfile for Ada's store.
+- The buyer account only exists within that store's context. Example: If I register as a buyer on musa-store.hustlr.shop, my BuyerProfile has storeId = Musa's store ID. If I then go to ada-fashion.hustlr.shop, I'd need to create a separate BuyerProfile for Ada's store.
 - JWT tokens for buyers include both the buyerProfileId and the storeId in the payload. The auth middleware verifies both.
 
-The subdomain resolution middleware works like this: Every incoming request to a seller's store goes through a "resolveStore" middleware. This middleware extracts the subdomain from the Host header (e.g., "musa-store" from "musa-store.hustlr.online"), looks up the Store document by its slug field, and attaches the store info to the request object. If no store is found, return 404. If the store is not live (subscription expired, KYC not approved, etc.), return 403 with an appropriate message. If the store is live and found, proceed.
+The subdomain resolution middleware works like this: Every incoming request to a seller's store goes through a "resolveStore" middleware. This middleware extracts the subdomain from the Host header (e.g., "musa-store" from "musa-store.hustlr.shop"), looks up the Store document by its slug field, and attaches the store info to the request object. If no store is found, return 404. If the store is not live (subscription expired, KYC not approved, etc.), return 403 with an appropriate message. If the store is live and found, proceed.
 
 
 ===========================================
@@ -326,7 +326,7 @@ GET /storefront/info — Returns the store's public info: name, logo, banner, de
 
 GET /storefront/products — Returns all active products for this store with filters (category, search, minPrice, maxPrice, sort by price/newest/popular, pagination). This is the store's product listing page.
 
-GET /storefront/products/:slug — Returns a single product detail by slug (not by ID, since URLs should be human-readable like musa-store.hustlr.online/products/ankara-dress-blue).
+GET /storefront/products/:slug — Returns a single product detail by slug (not by ID, since URLs should be human-readable like musa-store.hustlr.shop/products/ankara-dress-blue).
 
 GET /storefront/categories — Returns active categories for this store with their product counts.
 
@@ -370,7 +370,7 @@ Hustlr uses an escrow system just like Africlana. Buyers pay the platform, the p
 
 The checkout flow step by step, told through an example:
 
-Story: Tayo visits musa-store.hustlr.online and adds 3 items to his cart worth a total of ₦45,000. He also has a 10% discount coupon code "WELCOME10" from Musa.
+Story: Tayo visits musa-store.hustlr.shop and adds 3 items to his cart worth a total of ₦45,000. He also has a 10% discount coupon code "WELCOME10" from Musa.
 
 Step 1 — Checkout Initiation: Tayo clicks "Checkout" on the frontend. The frontend calls POST /checkout/initiate with:
 - shippingAddress: { fullName, streetAddress, city, state, zipCode, country, phoneNumber }
@@ -401,7 +401,7 @@ e. Initiates a Paystack payment:
    - metadata: { orderId, storeId, buyerProfileId }
 f. Returns the Paystack authorization_url to the frontend, which redirects Tayo to Paystack's checkout page.
 
-Step 2 — Payment Verification: After Tayo pays, Paystack redirects him back to musa-store.hustlr.online/order-confirmation?reference=HUS-MS-20250818-0001. The frontend calls POST /checkout/verify with the reference.
+Step 2 — Payment Verification: After Tayo pays, Paystack redirects him back to musa-store.hustlr.shop/order-confirmation?reference=HUS-MS-20250818-0001. The frontend calls POST /checkout/verify with the reference.
 
 The server:
 a. Verifies the payment with Paystack's API.
@@ -951,12 +951,12 @@ Step 1: Seller enters their custom domain via PUT /seller/store/custom-domain wi
 The server saves the domain on the Store document and sets customDomainVerified = false.
 
 Step 2: The server returns DNS configuration instructions to the seller:
-- For subdomain (www.musastore.com): Add a CNAME record pointing to "stores.hustlr.online"
+- For subdomain (www.musastore.com): Add a CNAME record pointing to "stores.hustlr.shop"
 - For apex domain (musastore.com): Add an A record pointing to our server IP, or use a CNAME flattening service.
 
 Step 3: Seller configures their DNS. Then hits POST /seller/store/verify-domain. The server performs a DNS lookup on the domain to check if the CNAME/A record points to our infrastructure. If verified, sets customDomainVerified = true.
 
-Step 4: The resolveStore middleware is updated to also check incoming requests' Host header against the customDomain field (in addition to subdomain matching). So both musa-store.hustlr.online and www.musastore.com resolve to the same store.
+Step 4: The resolveStore middleware is updated to also check incoming requests' Host header against the customDomain field (in addition to subdomain matching). So both musa-store.hustlr.shop and www.musastore.com resolve to the same store.
 
 Step 5: If the seller downgrades from pro+ to a lower plan, the server sets customDomain = null and customDomainVerified = false. The custom domain stops working, and only the subdomain remains.
 
@@ -1134,7 +1134,7 @@ Rate limiting (same pattern as Africlana's rateLimiter.middleware.ts):
 
 Security:
 - Helmet middleware for HTTP headers.
-- CORS configured with CLIENT_ORIGINS from .env (seller dashboard origin, admin dashboard origin, and dynamically allow all *.hustlr.online subdomains for buyer storefronts). Also allow configured custom domains.
+- CORS configured with CLIENT_ORIGINS from .env (seller dashboard origin, admin dashboard origin, and dynamically allow all *.hustlr.shop subdomains for buyer storefronts). Also allow configured custom domains.
 - JWT verification on all protected endpoints.
 - Input validation with Joi on all write endpoints.
 - Mongoose query injection prevention (sanitize user inputs in queries).
@@ -1322,7 +1322,7 @@ JWT_EXPIRES_IN=7d
 CLIENT_ORIGINS=http://localhost:3000,http://localhost:3001
 ADMIN_WEBSITE_URL=http://localhost:3001
 FRONTEND_URL=http://localhost:3000
-PLATFORM_DOMAIN=hustlr.online
+PLATFORM_DOMAIN=hustlr.shop
 
 # Cloudflare R2 (S3-compatible)
 AWS_REGION=auto
@@ -1334,7 +1334,7 @@ R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 
 # Email (Resend - primary)
 RESEND_API_KEY=re_xxxxxxxxxxxx
-EMAIL_FROM=Hustlr <noreply@hustlr.online>
+EMAIL_FROM=Hustlr <noreply@hustlr.shop>
 
 # Email (SMTP - fallback)
 SMTP_HOST=smtp.gmail.com

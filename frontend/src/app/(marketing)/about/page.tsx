@@ -29,13 +29,21 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk">
-      <div className="max-w-7xl mx-auto flex flex-col gap-14">
-        <SectionHeading
-          eyebrow="About Us"
-          title={`Why ${APP_NAME} Exists`}
-          description={APP_TAGLINE}
-        />
+    <div className="flex-1 flex flex-col font-space-grotesk">
+      {/* Header band */}
+      <section className="bg-bg-soft py-14 md:py-20 px-6 sm:px-12 lg:px-16 xl:px-20 border-b border-black/5">
+        <div className="max-w-7xl mx-auto">
+          <SectionHeading
+            eyebrow="About Us"
+            title={`Why ${APP_NAME} Exists`}
+            description={APP_TAGLINE}
+          />
+        </div>
+      </section>
+
+      {/* Content */}
+      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+        <div className="max-w-7xl mx-auto flex flex-col gap-14">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="flex flex-col gap-5">
@@ -72,7 +80,7 @@ export default function AboutPage() {
           {VALUES.map((value) => (
             <div
               key={value.title}
-              className="rounded-3xl bg-white border border-border p-7"
+              className="rounded-3xl bg-bg-soft border border-black/5 p-7"
             >
               <span className="inline-block text-xs font-bold text-primary uppercase tracking-widest bg-primary-light px-3 py-1 rounded-md mb-4">
                 {value.title}
@@ -98,7 +106,8 @@ export default function AboutPage() {
             Start Your Free Store
           </Link>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }

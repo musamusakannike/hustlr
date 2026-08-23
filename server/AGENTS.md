@@ -96,7 +96,7 @@ Do not introduce a new framework, ORM, or package manager.
 
 ## Multi-tenancy
 
-- Seller/admin auth is platform-scoped (`hustlr.online`).
+- Seller/admin auth is platform-scoped (`hustlr.shop`).
 - Buyer auth is store-scoped. A buyer on store A is unrelated to a buyer on store B.
 - `resolveStore` reads subdomain, custom domain, or `X-Store-Slug` (dev/Postman).
 - Do not serve a storefront when the store is not live, unless the request is an authenticated seller preview explicitly added later.

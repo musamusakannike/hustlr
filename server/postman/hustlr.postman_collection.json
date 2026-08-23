@@ -200,7 +200,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@hustlr.online\",\n  \"password\": \"Admin1234!\"\n}"
+              "raw": "{\n  \"email\": \"admin@hustlr.shop\",\n  \"password\": \"Admin1234!\"\n}"
             },
             "url": "{{baseUrl}}/auth/seller/login",
             "description": "Admins use the same login endpoint; role is admin."

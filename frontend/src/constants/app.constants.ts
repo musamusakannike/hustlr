@@ -3,9 +3,9 @@ export const APP_SLOGAN = "Launch Your Custom E-Commerce Storefront in Minutes";
 export const APP_TAGLINE =
   "Empowering African merchants and creators to build branded online stores, accept Paystack payments with escrow protection, and manage sales seamlessly.";
 
-export const APP_DOMAIN = "hustlr.online";
+export const APP_DOMAIN = "hustlr.shop";
 export const APP_URL = `https://${APP_DOMAIN}`;
-export const SUPPORT_EMAIL = "support@hustlr.online";
+export const SUPPORT_EMAIL = "support@hustlr.shop";
 
 export const COLORS = {
   primary: "#800A1D", // Deep Maroon
@@ -51,7 +51,7 @@ export const FEATURE_CARDS = [
   {
     title: "Instant Store Setup",
     description:
-      "Launch your custom store with your own unique subdomain (e.g. musa-store.hustlr.online) in under 5 minutes. No coding required.",
+      "Launch your custom store with your own unique subdomain (e.g. musa-store.hustlr.shop) in under 5 minutes. No coding required.",
     isDark: false,
     badge: "5 Min Setup",
   },

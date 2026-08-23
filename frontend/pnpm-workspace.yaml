@@ -1,9 +1,0 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
-<<<<<<<<< Temporary merge branch 1
-=========
-onlyBuiltDependencies:
-  - '@firebase/util'
-  - protobufjs
->>>>>>>>> Temporary merge branch 2

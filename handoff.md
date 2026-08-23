@@ -7,14 +7,14 @@
 
 ## 1. Project State Summary
 
-| Dimension | State |
-|---|---|
-| **Current phase** | Discovery & planning complete; architecture decisions pending |
-| **Backend** | Not started — specification exists in `prompt.txt` (1,364 lines, 30 sections) |
-| **Frontend** | Static marketing landing page at `/` — functional, responsive, no API integration |
-| **Authentication** | Not started — no auth context, JWT handling, or login pages |
-| **Database** | Not started — no schemas, connections, or seed data |
-| **Deployment** | Not configured — no hosting target, Docker, or CI/CD |
+| Dimension          | State                                                                             |
+| ------------------ | --------------------------------------------------------------------------------- |
+| **Current phase**  | Discovery & planning complete; architecture decisions pending                     |
+| **Backend**        | Not started — specification exists in `prompt.txt` (1,364 lines, 30 sections)     |
+| **Frontend**       | Static marketing landing page at `/` — functional, responsive, no API integration |
+| **Authentication** | Not started — no auth context, JWT handling, or login pages                       |
+| **Database**       | Not started — no schemas, connections, or seed data                               |
+| **Deployment**     | Not configured — no hosting target, Docker, or CI/CD                              |
 
 ---
 
@@ -56,28 +56,28 @@
 
 ## 4. Architecture Decisions Status
 
-| # | Decision | Approved Architecture | Status |
-|---|---|---|---|
-| 1 | Subdomain routing strategy | Middleware rewrite with path-based dev fallback (`*.lvh.me`) | ✅ Approved & Locked |
-| 2 | Route group organization | Five groups: `(marketing)`, `(auth)`, `(dashboard)`, `(storefront)`, `(admin)` with dedicated layouts | ✅ Approved & Locked |
-| 3 | Authentication & session architecture | Cookie-backed JWT (`hustlr_session` on `.hustlr.online` + host-only `hustlr_buyer_session`), no localStorage tokens, coarse Edge middleware protection | ✅ Approved & Locked |
-| 4 | State management & data layer | Distributed: TanStack Query (client server-state) + focused `CartContext` + Next.js URL params + domain service transport adapter | ✅ Approved & Locked |
-| 5 | Deployment target | Vercel (Edge/Serverless) + Standalone Docker portability + `DomainProvider` abstraction | ✅ Approved & Locked |
+| #   | Decision                              | Approved Architecture                                                                                                                                | Status               |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| 1   | Subdomain routing strategy            | Middleware rewrite with path-based dev fallback (`*.lvh.me`)                                                                                         | ✅ Approved & Locked |
+| 2   | Route group organization              | Five groups: `(marketing)`, `(auth)`, `(dashboard)`, `(storefront)`, `(admin)` with dedicated layouts                                                | ✅ Approved & Locked |
+| 3   | Authentication & session architecture | Cookie-backed JWT (`hustlr_session` on `.hustlr.shop` + host-only `hustlr_buyer_session`), no localStorage tokens, coarse Edge middleware protection | ✅ Approved & Locked |
+| 4   | State management & data layer         | Distributed: TanStack Query (client server-state) + focused `CartContext` + Next.js URL params + domain service transport adapter                    | ✅ Approved & Locked |
+| 5   | Deployment target                     | Vercel (Edge/Serverless) + Standalone Docker portability + `DomainProvider` abstraction                                                              | ✅ Approved & Locked |
 
 ---
 
 ## 5. Documentation Map
 
-| Document | Path | Purpose |
-|---|---|---|
-| Product Requirements | [`prd.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/prd.md) | Product vision, user roles, feature scope, implementation status |
-| Architecture | [`architecture.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/architecture.md) | Tech stack, file structure, design system, planned backend, approved architecture decisions |
-| Task Tracker | [`tasks.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/tasks.md) | Phased task breakdown from discovery through implementation |
-| Project Memory | [`memory.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/memory.md) | Verified facts, constants, file locations, known issues, approved decisions |
-| Handoff | [`handoff.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/handoff.md) | This document — context snapshot for anyone continuing the project |
-| Discovery Report | [`discovery_report.md`](file:///home/ahbiz/.gemini/antigravity-ide/brain/616ebd16-b9db-4755-acca-8862eb8edeff/discovery_report.md) | Detailed repository inspection findings (conversation artifact) |
-| Backend Spec | [`prompt.txt`](file:///home/ahbiz/Hustle%20oooo/hustlr/prompt.txt) | Full backend feature specification (30 sections, ~100+ endpoints) |
-| Git Rules | [`AGENTS.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/AGENTS.md) | Branch safety rules (`abdullah` branch, never push to `main`) |
+| Document             | Path                                                                                                                               | Purpose                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Product Requirements | [`prd.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/prd.md)                                                                         | Product vision, user roles, feature scope, implementation status                            |
+| Architecture         | [`architecture.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/architecture.md)                                                       | Tech stack, file structure, design system, planned backend, approved architecture decisions |
+| Task Tracker         | [`tasks.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/tasks.md)                                                                     | Phased task breakdown from discovery through implementation                                 |
+| Project Memory       | [`memory.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/memory.md)                                                                   | Verified facts, constants, file locations, known issues, approved decisions                 |
+| Handoff              | [`handoff.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/handoff.md)                                                                 | This document — context snapshot for anyone continuing the project                          |
+| Discovery Report     | [`discovery_report.md`](file:///home/ahbiz/.gemini/antigravity-ide/brain/616ebd16-b9db-4755-acca-8862eb8edeff/discovery_report.md) | Detailed repository inspection findings (conversation artifact)                             |
+| Backend Spec         | [`prompt.txt`](file:///home/ahbiz/Hustle%20oooo/hustlr/prompt.txt)                                                                 | Full backend feature specification (30 sections, ~100+ endpoints)                           |
+| Git Rules            | [`AGENTS.md`](file:///home/ahbiz/Hustle%20oooo/hustlr/AGENTS.md)                                                                   | Branch safety rules (`abdullah` branch, never push to `main`)                               |
 
 ---
 

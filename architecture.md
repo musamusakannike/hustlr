@@ -53,22 +53,22 @@ hustlr/
 
 ### 2.1 Technology Stack
 
-| Layer | Technology | Version |
-|---|---|---|
-| Framework | Next.js (App Router) | 16.3.1 |
-| Runtime | React | 19.2.8 |
-| Language | TypeScript | 5.x |
-| Styling | Tailwind CSS (via `@tailwindcss/postcss`) | v4 |
-| Package Manager | pnpm | 10.33.0 |
+| Layer           | Technology                                | Version |
+| --------------- | ----------------------------------------- | ------- |
+| Framework       | Next.js (App Router)                      | 16.3.1  |
+| Runtime         | React                                     | 19.2.8  |
+| Language        | TypeScript                                | 5.x     |
+| Styling         | Tailwind CSS (via `@tailwindcss/postcss`) | v4      |
+| Package Manager | pnpm                                      | 10.33.0 |
 
 ### 2.2 Installed but Unused Dependencies
 
-| Package | Installed | Used |
-|---|---|---|
-| `axios` | ✅ | ❌ — no API calls exist |
-| `firebase` | ✅ | ❌ — no Firebase init or SDK usage |
-| `react-icons` | ✅ | ❌ — inline SVGs used instead |
-| `react-spinners` | ✅ | ❌ — no loading states exist |
+| Package          | Installed | Used                               |
+| ---------------- | --------- | ---------------------------------- |
+| `axios`          | ✅        | ❌ — no API calls exist            |
+| `firebase`       | ✅        | ❌ — no Firebase init or SDK usage |
+| `react-icons`    | ✅        | ❌ — inline SVGs used instead      |
+| `react-spinners` | ✅        | ❌ — no loading states exist       |
 
 ### 2.3 File Structure
 
@@ -136,7 +136,7 @@ The following standard architecture directories are absent:
 
 ```
 src/app/
-├── (marketing)/              ← hustlr.online (public)
+├── (marketing)/              ← hustlr.shop (public)
 │   ├── layout.tsx            ← Marketing layout (Navbar/Footer)
 │   └── page.tsx              ← Landing page (moved from src/app/page.tsx, internals unchanged)
 │
@@ -148,7 +148,7 @@ src/app/
 │   ├── layout.tsx            ← Sidebar + topbar dashboard shell
 │   └── dashboard/{pages}
 │
-├── (storefront)/             ← *.hustlr.online → /store/[slug]/* (buyer, public+auth)
+├── (storefront)/             ← *.hustlr.shop → /store/[slug]/* (buyer, public+auth)
 │   └── store/[slug]/
 │       ├── layout.tsx        ← Store-branded layout
 │       └── {storefront pages}
@@ -164,6 +164,7 @@ src/app/
 ```
 
 **Rules**:
+
 - Each surface has its own layout; layouts never bleed across surfaces
 - Root `layout.tsx` stays thin: fonts, global providers, `<html>` wrapper
 - The existing landing page moves into `(marketing)/page.tsx` without internal changes
@@ -173,13 +174,13 @@ src/app/
 
 ### 2.6 Configuration
 
-| File | State |
-|---|---|
-| `next.config.ts` | Empty — no rewrites, redirects, image domains, or env vars |
-| `.env` / `.env.local` | Does not exist |
-| `tsconfig.json` | Functional — includes `@/*` path alias |
-| `postcss.config.mjs` | Functional — Tailwind v4 configured |
-| `eslint.config.mjs` | Default Next.js ESLint config |
+| File                  | State                                                      |
+| --------------------- | ---------------------------------------------------------- |
+| `next.config.ts`      | Empty — no rewrites, redirects, image domains, or env vars |
+| `.env` / `.env.local` | Does not exist                                             |
+| `tsconfig.json`       | Functional — includes `@/*` path alias                     |
+| `postcss.config.mjs`  | Functional — Tailwind v4 configured                        |
+| `eslint.config.mjs`   | Default Next.js ESLint config                              |
 
 ---
 
@@ -189,25 +190,25 @@ src/app/
 
 Defined in `globals.css` via `@theme`:
 
-| Token | CSS Variable | Hex Value |
-|---|---|---|
-| Primary | `--color-primary` | `#800A1D` |
-| Primary Hover | `--color-primary-hover` | `#660817` |
-| Primary Light | `--color-primary-light` | `#FAD4D8` |
-| Text | `--color-text` | `#0A0E11` |
-| Background | `--color-bg` | `#FFFFFF` |
-| Background Soft | `--color-bg-soft` | `#EFEFEF` |
-| Black | `--color-black` | `#0A0E11` |
+| Token           | CSS Variable            | Hex Value |
+| --------------- | ----------------------- | --------- |
+| Primary         | `--color-primary`       | `#800A1D` |
+| Primary Hover   | `--color-primary-hover` | `#660817` |
+| Primary Light   | `--color-primary-light` | `#FAD4D8` |
+| Text            | `--color-text`          | `#0A0E11` |
+| Background      | `--color-bg`            | `#FFFFFF` |
+| Background Soft | `--color-bg-soft`       | `#EFEFEF` |
+| Black           | `--color-black`         | `#0A0E11` |
 
 > **Known Issue**: Components inconsistently use Tailwind tokens (`text-primary`) and hardcoded hex values (`bg-[#800A1D]`). Both approaches coexist.
 
 ### 3.2 Typography
 
-| Font Family | Google Font | Usage |
-|---|---|---|
-| Rajdhani | 500/600/700 | Base body font (applied on `<html>`) |
-| Archivo Black | 400 | Display headings, pricing numbers |
-| Space Grotesk | 400–700 | Primary UI font (applied per-section) |
+| Font Family   | Google Font | Usage                                 |
+| ------------- | ----------- | ------------------------------------- |
+| Rajdhani      | 500/600/700 | Base body font (applied on `<html>`)  |
+| Archivo Black | 400         | Display headings, pricing numbers     |
+| Space Grotesk | 400–700     | Primary UI font (applied per-section) |
 
 Font loading: via `next/font/google` in `layout.tsx`, exposed as CSS variables `--font-rajdhani`, `--font-archivo-black`, `--font-space-grotesk`.
 
@@ -243,6 +244,7 @@ Font loading: via `next/font/google` in `layout.tsx`, exposed as CSS variables `
 ```
 
 ### 4.1 Server / Remote State: TanStack Query (`@tanstack/react-query`)
+
 - **Scope**: TanStack Query manages **client-side server state** where client-side caching, request deduplication, background refetching, mutation handling, or query cache invalidation provide meaningful value (e.g. Seller Dashboard tables, order updates, stock adjustments, live review updates).
 - **Next.js Coexistence**:
   - **Next.js remains the core application framework.** TanStack Query is **not** a framework replacement.
@@ -254,7 +256,9 @@ Font loading: via `next/font/google` in `layout.tsx`, exposed as CSS variables `
   - TanStack Query is preferred over SWR for Hustlr because its structured mutation lifecycles (`useMutation`) and declarative multi-key invalidations (`queryClient.invalidateQueries()`) align cleanly with Hustlr's dashboard-heavy workflows (e.g. modifying product stock automatically invalidates inventory alerts and analytics).
 
 ### 4.2 Approved Data Boundary
+
 The UI components never make direct HTTP calls or directly import mock fixtures:
+
 ```
 UI Component (e.g. ProductsTable)
       │
@@ -270,44 +274,50 @@ Domain Service (e.g. productService.getProducts(filters))
       ▼
 Transport Adapter Interface
   ├── MockTransport (Local fixtures with realistic latency simulation)
-  └── ApiTransport  (HTTP client to https://api.hustlr.online)
+  └── ApiTransport  (HTTP client to https://api.hustlr.shop)
 ```
+
 - **Stability**: When the Express backend is ready, switching from `MockTransport` to `ApiTransport` requires **zero changes** to React hooks or UI components.
 
 ### 4.3 Multi-Tenant Query Keys (Cache Isolation, NOT Security)
+
 - Storefront remote queries must be explicitly scoped by tenant in query keys:
   ```ts
-  ['store', storeSlug]
-  ['products', storeSlug, filters]
-  ['categories', storeSlug]
+  ["store", storeSlug][("products", storeSlug, filters)][
+    ("categories", storeSlug)
+  ];
   ```
 - Platform seller queries are scoped to the authenticated seller:
   ```ts
-  ['seller-products', filters]
-  ['seller-orders', status, page]
-  ['seller-wallet']
-  ['seller-kyc']
+  ["seller-products", filters][("seller-orders", status, page)][
+    "seller-wallet"
+  ]["seller-kyc"];
   ```
 - **Critical Security Principle**: **Tenant-scoped query keys provide cache/data isolation within the client application. They are NOT an authorization or security mechanism.** Actual security is strictly enforced by the backend via JWT identity, tenant validation, and server-side authorization.
 
 ### 4.4 Tenant-Scoped Cart Architecture
+
 - **Abstraction**: Focused `CartContext` (`useCart()`).
 - **Persistence**: Scoped per tenant/store in browser storage (`hustlr_cart_{storeSlug}`) so that a customer's cart on Store A never leaks into Store B.
 - **Backend Sync**: Designed to synchronize with the backend Cart API (`prompt.txt` §9) when a buyer is authenticated without requiring UI restructuring.
 
 ### 4.5 Focused Contexts vs. No Generic Monolithic UIContext
+
 - **Rule**: Use focused React Contexts **only** when genuinely shared client-side state requires cross-component access (e.g. `CartContext`, `SellerAuthContext`, `BuyerAuthContext`).
 - Do **not** create a giant, catch-all `UIContext` that centralizes unrelated modal, toast, and layout states. Modal and toast states are evaluated individually and kept as close to their consumers as possible.
 
 ### 4.6 URL State
+
 - Table filters, search terms, sorting options, pagination, and multi-step wizard tabs live in Next.js search parameters (`useSearchParams()`, `useRouter()`).
 - Enables deep linking, bookmarking, and natural browser back/forward history without client store duplication.
 
 ### 4.7 Separation from Authentication
+
 - Authentication uses `HttpOnly` session cookies (Decision 3).
 - TanStack Query does **not** store JWT tokens or manage session cookies. Auth state and server-data caching remain architecturally distinct.
 
 ### 4.8 Planned Directory Structure
+
 ```
 frontend/src/
 ├── services/          ← Domain service modules (pure business/data methods)
@@ -345,18 +355,18 @@ frontend/src/
 
 The specification describes:
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js with Express.js |
-| Language | TypeScript |
-| Database | MongoDB (Mongoose ODM) |
-| Auth | JWT (access + refresh tokens), Google OAuth2, email OTP via Nodemailer |
-| Payments | Paystack API (checkout, transfers, webhooks) |
-| File Storage | Cloudflare R2 via AWS S3 SDK |
-| Cron | `node-cron` for background tasks |
-| PDF | PDFKit for receipts/invoices |
-| AI | OpenAI API for product content generation |
-| Email | Nodemailer with custom templates |
+| Layer        | Technology                                                             |
+| ------------ | ---------------------------------------------------------------------- |
+| Runtime      | Node.js with Express.js                                                |
+| Language     | TypeScript                                                             |
+| Database     | MongoDB (Mongoose ODM)                                                 |
+| Auth         | JWT (access + refresh tokens), Google OAuth2, email OTP via Nodemailer |
+| Payments     | Paystack API (checkout, transfers, webhooks)                           |
+| File Storage | Cloudflare R2 via AWS S3 SDK                                           |
+| Cron         | `node-cron` for background tasks                                       |
+| PDF          | PDFKit for receipts/invoices                                           |
+| AI           | OpenAI API for product content generation                              |
+| Email        | Nodemailer with custom templates                                       |
 
 ### 4.1 Planned API Structure
 
@@ -396,13 +406,14 @@ The spec defines ~100+ REST endpoints across the following route namespaces:
 ## 6. Multi-Tenancy & Subdomain Architecture (DECIDED — not yet implemented)
 
 ### 6.1 Subdomain Strategy
+
 **Decision**: Middleware rewrite with path-based development fallback (`*.lvh.me`).
 
 Each seller's store is accessed via a subdomain:
 
 ```
 Production:
-{store-slug}.hustlr.online
+{store-slug}.hustlr.shop
         ↓
 middleware.ts
         ↓
@@ -410,19 +421,22 @@ internal /store/[slug]
 ```
 
 **How it works**:
+
 1. `middleware.ts` inspects the `Host` header on every incoming request.
 2. If a subdomain is detected (e.g. `musa-store`), it internally rewrites the URL:
-   - `musa-store.hustlr.online/products` → `/store/musa-store/products`
-3. The buyer's browser URL bar remains unchanged (`musa-store.hustlr.online/products`).
-4. Requests to `hustlr.online` (no subdomain) pass through to marketing/dashboard/admin routes.
+   - `musa-store.hustlr.shop/products` → `/store/musa-store/products`
+3. The buyer's browser URL bar remains unchanged (`musa-store.hustlr.shop/products`).
+4. Requests to `hustlr.shop` (no subdomain) pass through to marketing/dashboard/admin routes.
 5. Custom domains (Pro+ future) will extend the same middleware with a domain→slug lookup.
 
 **Development Model**:
+
 - Realistic local subdomain testing via `http://{store-slug}.lvh.me:3000`.
 - Direct path-based route (`/store/[slug]/*`) also works as a dev/testing convenience (does not replace production subdomain model).
 
 ### 6.2 Data Isolation
-Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hustlr.online` has no relationship to the same person's account on `store-b.hustlr.online`.
+
+Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hustlr.shop` has no relationship to the same person's account on `store-b.hustlr.shop`.
 
 ---
 
@@ -434,12 +448,12 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                   HUSTLR AUTHENTICATION ARCHITECTURE                     │
 │                                                                          │
-│  1. Platform Authentication (hustlr.online)                              │
+│  1. Platform Authentication (hustlr.shop)                              │
 │     ├── Roles: Seller | Admin                                            │
-│     ├── Session Cookie: hustlr_session (Domain=.hustlr.online, HttpOnly) │
+│     ├── Session Cookie: hustlr_session (Domain=.hustlr.shop, HttpOnly) │
 │     └── Guards: /dashboard/* (seller), /admin/* (admin)                  │
 │                                                                          │
-│  2. Tenant Storefront Authentication (*.hustlr.online)                   │
+│  2. Tenant Storefront Authentication (*.hustlr.shop)                   │
 │     ├── Role: Buyer (strictly scoped to storeId)                         │
 │     ├── Session Cookie: hustlr_buyer_session (Host-only, HttpOnly)       │
 │     └── Isolation: Host-level cookie boundary + Backend storeId check    │
@@ -447,9 +461,10 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 ```
 
 ### 7.1 Platform Authentication (Seller & Admin)
-- **Scope**: Used for `hustlr.online/login`, `hustlr.online/register`, `hustlr.online/dashboard/*`, and `hustlr.online/admin/*`.
+
+- **Scope**: Used for `hustlr.shop/login`, `hustlr.shop/register`, `hustlr.shop/dashboard/*`, and `hustlr.shop/admin/*`.
 - **Session Cookie**: `hustlr_session`
-- **Cookie Attributes (Production)**: `HttpOnly`, `Secure`, `Path=/`, `SameSite=Lax`, `Domain=.hustlr.online`.
+- **Cookie Attributes (Production)**: `HttpOnly`, `Secure`, `Path=/`, `SameSite=Lax`, `Domain=.hustlr.shop`.
 - **JWT Claims**: Derived strictly from `prompt.txt`: `{ userId, email, role: "seller" | "admin", isVerified }`.
 - **Seller Registration Flow**:
   1. `/register` form submits `{ name, email, password }` to backend.
@@ -462,18 +477,21 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
   3. Backend verifies token via `firebase-admin`, provisions/finds User, and issues Hustlr `hustlr_session` cookie. (Firebase does not manage Hustlr application authorization).
 
 ### 7.2 Buyer Authentication (Tenant-Scoped)
-- **Scope**: Used on individual merchant storefronts (`{store-slug}.hustlr.online`).
+
+- **Scope**: Used on individual merchant storefronts (`{store-slug}.hustlr.shop`).
 - **Session Cookie**: `hustlr_buyer_session`
 - **Cookie Attributes (Production)**: `HttpOnly`, `Secure`, `Path=/`, `SameSite=Lax` (**Host-Only Cookie** — no wildcard domain).
 - **Tenant Isolation (Two-Tier)**:
-  1. *Host-level isolation*: The browser naturally isolates `hustlr_buyer_session` on `musa-store.hustlr.online` from `ada-fashion.hustlr.online`. Dynamic cookie names (e.g. `hustlr_buyer_{slug}`) are unnecessary and avoided.
-  2. *Backend validation*: Buyer JWT contains `{ buyerProfileId, storeId, email, name }`. Backend verifies that `storeId` matches the request's resolved tenant.
+  1. _Host-level isolation_: The browser naturally isolates `hustlr_buyer_session` on `musa-store.hustlr.shop` from `ada-fashion.hustlr.shop`. Dynamic cookie names (e.g. `hustlr_buyer_{slug}`) are unnecessary and avoided.
+  2. _Backend validation_: Buyer JWT contains `{ buyerProfileId, storeId, email, name }`. Backend verifies that `storeId` matches the request's resolved tenant.
 
 ### 7.3 Storage Policy: No localStorage
+
 - **Rule**: `localStorage` is **never** used for long-lived session tokens.
 - **Reason**: Next.js `middleware.ts` runs on the Edge before rendering. It cannot read `localStorage`. Cookie-backed auth allows middleware and server components to inspect session status before rendering HTML, eliminating client-side flash of unauthenticated content.
 
 ### 7.4 Middleware Responsibilities vs. Backend Authorization
+
 - **Middleware Role**: Coarse, fast route protection at the Edge:
   - `/dashboard/*` -> checks `hustlr_session` exists and `role === "seller"`; redirects unauthenticated requests to `/login`.
   - `/admin/*` -> checks `hustlr_session` exists and `role === "admin"`; redirects unauthenticated requests to `/admin/login` (or 403).
@@ -482,26 +500,31 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 - **Backend Authority**: Middleware is **not** the final authorization layer. The Express backend remains authoritative for token validation, role authorization, tenant access control, and business logic permissions.
 
 ### 7.5 React Authentication Contexts
+
 - **Abstractions**: `SellerAuthContext` (`useSellerAuth()`) for platform/dashboard, and `BuyerAuthContext` (`useBuyerAuth()`) for storefronts.
 - **Purpose**: Purely for UI state, conditional rendering (e.g. header avatar, logged-in states), navigation, and developer experience.
 - **Rule**: Client-side contexts are **not** security boundaries. All data mutations and private queries depend on backend authorization.
 
 ### 7.6 Production API Communication
-- **Architecture**: Shared Root Domain (`.hustlr.online`).
-- **Data Flow**: Browser makes direct requests to `https://api.hustlr.online` with `{ credentials: 'include' }`.
-- **Cookie Access**: The `Domain=.hustlr.online` cookie is presented to both `hustlr.online` (Next.js middleware) and `api.hustlr.online` (Express API).
+
+- **Architecture**: Shared Root Domain (`.hustlr.shop`).
+- **Data Flow**: Browser makes direct requests to `https://api.hustlr.shop` with `{ credentials: 'include' }`.
+- **Cookie Access**: The `Domain=.hustlr.shop` cookie is presented to both `hustlr.shop` (Next.js middleware) and `api.hustlr.shop` (Express API).
 - **Next.js BFF**: Not the primary production architecture; direct API communication is standard.
 
 ### 7.7 Local Development Model (`lvh.me`)
+
 - **Main Platform**: `http://lvh.me:3000`
 - **Storefronts**: `http://{store-slug}.lvh.me:3000`
 - **Backend API**: `http://api.lvh.me:5000`
 - **Dev Cookies**: `Domain=.lvh.me` for platform session; host-only for buyer sessions.
 
 ### 7.8 Mock Authentication Constraints
+
 - Client-side JavaScript cannot create true `HttpOnly` cookies. In mock transport mode, a lightweight server-controlled mechanism (e.g. Next.js internal auth route handler or lightweight cookie utility) simulates cookie issuance without introducing MSW or fake backend servers.
 
 ### 7.9 Security Principles
+
 - `HttpOnly` cookies prevent client JavaScript from reading raw JWT tokens, significantly mitigating token theft via XSS.
 - Full security defense also includes `SameSite=Lax` policies, CORS origin verification on the backend, and strict backend authorization.
 
@@ -516,13 +539,13 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 │                   HUSTLR DEPLOYMENT ARCHITECTURE                         │
 │                                                                          │
 │  1. Frontend Layer (Next.js 16 App Router on Vercel)                     │
-│     ├── Platform Host:      hustlr.online                                │
-│     ├── Wildcard Tenants:   *.hustlr.online                              │
+│     ├── Platform Host:      hustlr.shop                                │
+│     ├── Wildcard Tenants:   *.hustlr.shop                              │
 │     ├── Pro+ Custom Hosts:  www.musastore.com (via DomainProvider)       │
 │     └── Edge Middleware:    Sub-millisecond host rewriting at CDN edge   │
 │                                                                          │
 │  2. Backend Layer (Independent Express / Node.js Deployment)             │
-│     ├── API Endpoint:       https://api.hustlr.online                    │
+│     ├── API Endpoint:       https://api.hustlr.shop                    │
 │     ├── Database:           MongoDB Atlas                                │
 │     ├── Storage:            Cloudflare R2 (via AWS S3 SDK)               │
 │     └── Payments:           Paystack API (Escrow & Transfers)            │
@@ -534,15 +557,18 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 ```
 
 ### 8.1 Primary Deployment Target: Vercel
-- **Edge Middleware Execution**: Next.js 16 `middleware.ts` runs at the Vercel Edge, inspecting the `Host` header and rewriting `*.hustlr.online` into internal `/store/[slug]` routes with sub-millisecond global latency.
-- **Wildcard Subdomains**: `*.hustlr.online` is configured on the Vercel project, providing automatic wildcard SSL certificate issuance and renewal.
+
+- **Edge Middleware Execution**: Next.js 16 `middleware.ts` runs at the Vercel Edge, inspecting the `Host` header and rewriting `*.hustlr.shop` into internal `/store/[slug]` routes with sub-millisecond global latency.
+- **Wildcard Subdomains**: `*.hustlr.shop` is configured on the Vercel project, providing automatic wildcard SSL certificate issuance and renewal.
 - **Preview Environments**: Automated ephemeral preview URLs are generated on every Git push to working branches (e.g. `abdullah`) to support team review before merging to `main`.
 
 ### 8.2 Decoupled Backend Service (Express / Node.js)
-- As specified in `prompt.txt` (§1), the backend is an **independent Node.js + Express + MongoDB** application deployed separately (e.g. Render, Railway, AWS, or DigitalOcean) under `api.hustlr.online`.
-- Shares the parent `.hustlr.online` root domain to enable seamless `HttpOnly` cookie presentation for platform sessions.
+
+- As specified in `prompt.txt` (§1), the backend is an **independent Node.js + Express + MongoDB** application deployed separately (e.g. Render, Railway, AWS, or DigitalOcean) under `api.hustlr.shop`.
+- Shares the parent `.hustlr.shop` root domain to enable seamless `HttpOnly` cookie presentation for platform sessions.
 
 ### 8.3 Pro+ Custom Domains & `DomainProvider` Abstraction
+
 - As defined in `prompt.txt` (§22), Pro+ merchants can map custom domains (e.g. `www.musastore.com`).
 - **Clean Abstraction**: External domain/DNS provisioning APIs (e.g. Vercel Domains API) are strictly isolated behind a `DomainProvider` interface:
   ```ts
@@ -555,23 +581,24 @@ Per `prompt.txt`, buyer data is fully scoped per-store. A buyer on `store-a.hust
 - **Rule**: No Vercel-specific SDKs or business logic are embedded inside UI components or application services. Swapping DNS/domain providers (e.g. to Cloudflare for SaaS or self-hosted Caddy) requires zero changes to core business logic.
 
 ### 8.4 Standalone Container Portability (No Vendor Lock-in)
+
 - `next.config.ts` maintains `output: 'standalone'`, allowing Next.js to produce a self-contained production bundle.
 - The entire frontend remains 100% portable and can be deployed inside a standard Docker container (on AWS ECS, Coolify, or a VPS with Caddy/Nginx) if ever required.
 
 ## 9. Consolidated Architecture Decisions Log
 
-| # | Decision | Impact / Resolution | Status |
-|---|---|---|---|
-| 1 | Subdomain routing implementation | Middleware rewrite `*.hustlr.online` → `/store/[slug]` with `*.lvh.me` dev fallback | ✅ Decided & Locked |
-| 2 | Backend-first vs. frontend-first | Frontend-first with domain service + transport adapter (`MockTransport` → `ApiTransport`) | ✅ Decided & Locked |
-| 3 | Auth token & session architecture | Cookie-backed JWT (`hustlr_session` on `.hustlr.online` + host-only `hustlr_buyer_session`), no localStorage | ✅ Decided & Locked |
-| 4 | Route group organization | Five groups: `(marketing)`, `(auth)`, `(dashboard)`, `(storefront)`, `(admin)` with dedicated layouts | ✅ Decided & Locked |
-| 5 | State management & data layer | Distributed: TanStack Query (client server-state) + focused `CartContext` + Next.js URL params | ✅ Decided & Locked |
-| 6 | Deployment target | Vercel (Edge/Serverless) + Standalone Docker portability + `DomainProvider` abstraction | ✅ Decided & Locked |
-| 7 | Admin dashboard scope | Fully scoped in Phase C page inventory (16 views for KYC, disputes, templates, plans, audit) | ✅ Resolved |
-| 8 | Design token cleanup | Normalize hardcoded hex to semantic Tailwind tokens (`bg-primary`, `border-border`, etc.) | ✅ Resolved |
-| 9 | Unused dependency cleanup | Remove `axios`, `firebase`, `react-icons`, `react-spinners` during Phase 2 setup | ✅ Resolved |
-| 10 | `custom-build/` directory | Delete empty legacy directory during Phase 2 folder tree initialization | ✅ Resolved |
+| #   | Decision                          | Impact / Resolution                                                                                        | Status              |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------- |
+| 1   | Subdomain routing implementation  | Middleware rewrite `*.hustlr.shop` → `/store/[slug]` with `*.lvh.me` dev fallback                          | ✅ Decided & Locked |
+| 2   | Backend-first vs. frontend-first  | Frontend-first with domain service + transport adapter (`MockTransport` → `ApiTransport`)                  | ✅ Decided & Locked |
+| 3   | Auth token & session architecture | Cookie-backed JWT (`hustlr_session` on `.hustlr.shop` + host-only `hustlr_buyer_session`), no localStorage | ✅ Decided & Locked |
+| 4   | Route group organization          | Five groups: `(marketing)`, `(auth)`, `(dashboard)`, `(storefront)`, `(admin)` with dedicated layouts      | ✅ Decided & Locked |
+| 5   | State management & data layer     | Distributed: TanStack Query (client server-state) + focused `CartContext` + Next.js URL params             | ✅ Decided & Locked |
+| 6   | Deployment target                 | Vercel (Edge/Serverless) + Standalone Docker portability + `DomainProvider` abstraction                    | ✅ Decided & Locked |
+| 7   | Admin dashboard scope             | Fully scoped in Phase C page inventory (16 views for KYC, disputes, templates, plans, audit)               | ✅ Resolved         |
+| 8   | Design token cleanup              | Normalize hardcoded hex to semantic Tailwind tokens (`bg-primary`, `border-border`, etc.)                  | ✅ Resolved         |
+| 9   | Unused dependency cleanup         | Remove `axios`, `firebase`, `react-icons`, `react-spinners` during Phase 2 setup                           | ✅ Resolved         |
+| 10  | `custom-build/` directory         | Delete empty legacy directory during Phase 2 folder tree initialization                                    | ✅ Resolved         |
 
 ---
 
@@ -624,7 +651,7 @@ frontend/src/
 │   │           ├── page.tsx              ← General Store & Social Settings
 │   │           └── domain/page.tsx       ← Custom Domain & DNS Verification (Pro+)
 │   │
-│   ├── (storefront)/                     ← Buyer storefront (rewritten from *.hustlr.online)
+│   ├── (storefront)/                     ← Buyer storefront (rewritten from *.hustlr.shop)
 │   │   ├── layout.tsx                    ← Dynamic store theme provider (CSS variables)
 │   │   └── store/[slug]/
 │   │       ├── page.tsx                  ← Branded Storefront Landing
@@ -767,4 +794,3 @@ frontend/src/
 │
 └── middleware.ts                         ← Edge subdomain routing & route protection
 ```
-

@@ -12,45 +12,52 @@ export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
 
   return (
-    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk">
-      <div className="max-w-7xl mx-auto flex flex-col gap-12 lg:gap-14">
-        <SectionHeading
-          eyebrow="Subscription Plans"
-          title="Simple, Transparent Pricing for Every Merchant"
-          description={`Start free on ${APP_NAME}, upgrade as your business grows. No hidden transaction fees.`}
-        />
+    <div className="flex-1 flex flex-col font-space-grotesk">
+      {/* Header band */}
+      <section className="bg-bg-soft py-14 md:py-20 px-6 sm:px-12 lg:px-16 xl:px-20 border-b border-black/5">
+        <div className="max-w-7xl mx-auto flex flex-col gap-8 items-center">
+          <SectionHeading
+            eyebrow="Subscription Plans"
+            title="Simple, Transparent Pricing for Every Merchant"
+            description={`Start free on ${APP_NAME}, upgrade as your business grows. No hidden transaction fees.`}
+          />
 
-        <div className="flex items-center justify-center">
-          <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-xs border border-border">
-            <button
-              onClick={() => setIsYearly(false)}
-              className={cn(
-                "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer",
-                !isYearly
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted hover:text-black"
-              )}
-            >
-              Monthly Billing
-            </button>
-            <button
-              onClick={() => setIsYearly(true)}
-              className={cn(
-                "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5",
-                isYearly
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted hover:text-black"
-              )}
-            >
-              <span>Yearly Billing</span>
-              <span className="bg-primary-light text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
-                SAVE 17%
-              </span>
-            </button>
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-xs border border-border">
+              <button
+                onClick={() => setIsYearly(false)}
+                className={cn(
+                  "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer",
+                  !isYearly
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted hover:text-black"
+                )}
+              >
+                Monthly Billing
+              </button>
+              <button
+                onClick={() => setIsYearly(true)}
+                className={cn(
+                  "px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5",
+                  isYearly
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted hover:text-black"
+                )}
+              >
+                <span>Yearly Billing</span>
+                <span className="bg-primary-light text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  SAVE 17%
+                </span>
+              </button>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+      {/* Plans content */}
+      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+        <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
           {PRICING_PLANS.map((plan) => {
             const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
             return (
@@ -135,7 +142,8 @@ export default function PricingPage() {
           and secure payouts to any Nigerian bank account. Buyer payments are
           held in escrow until delivery is confirmed — on every plan.
         </p>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }

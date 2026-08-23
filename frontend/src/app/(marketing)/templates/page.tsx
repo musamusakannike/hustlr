@@ -25,26 +25,34 @@ export default function TemplatesPage() {
   );
 
   return (
-    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk">
-      <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:gap-14">
-        <SectionHeading
-          eyebrow="Store Templates"
-          title="Beautiful Storefronts, Zero Design Skills Needed"
-          description="Pick a template during store setup and make it yours with your own colors, logo and products. Upgrade anytime to unlock premium designs."
-        />
-
-        <div className="flex justify-center">
-          <Tabs
-            items={CATEGORIES.map((c) => ({
-              id: c,
-              label: c === "all" ? "All" : c.charAt(0).toUpperCase() + c.slice(1),
-            }))}
-            activeId={category}
-            onChange={setCategory}
+    <div className="flex-1 flex flex-col font-space-grotesk">
+      {/* Header band */}
+      <section className="bg-bg-soft py-14 md:py-20 px-6 sm:px-12 lg:px-16 xl:px-20 border-b border-black/5">
+        <div className="max-w-7xl mx-auto flex flex-col gap-8 items-center">
+          <SectionHeading
+            eyebrow="Store Templates"
+            title="Beautiful Storefronts, Zero Design Skills Needed"
+            description="Pick a template during store setup and make it yours with your own colors, logo and products. Upgrade anytime to unlock premium designs."
           />
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          <div className="flex justify-center">
+            <Tabs
+              items={CATEGORIES.map((c) => ({
+                id: c,
+                label:
+                  c === "all" ? "All" : c.charAt(0).toUpperCase() + c.slice(1),
+              }))}
+              activeId={category}
+              onChange={setCategory}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Templates content */}
+      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+        <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
           {filtered.map((template) => (
             <div
               key={template.id}
@@ -112,7 +120,8 @@ export default function TemplatesPage() {
             <Button variant="primary">Compare Plans</Button>
           </Link>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }

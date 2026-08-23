@@ -21,13 +21,21 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false);
 
   return (
-    <section className="py-16 md:py-24 px-6 sm:px-12 lg:px-16 xl:px-20 font-space-grotesk">
-      <div className="max-w-5xl mx-auto flex flex-col gap-12">
-        <SectionHeading
-          eyebrow="Contact Us"
-          title="Talk to a Human"
-          description={`Questions about ${APP_NAME}, your store or your payouts? We reply fast.`}
-        />
+    <div className="flex-1 flex flex-col font-space-grotesk">
+      {/* Header band */}
+      <section className="bg-bg-soft py-14 md:py-20 px-6 sm:px-12 lg:px-16 xl:px-20 border-b border-black/5">
+        <div className="max-w-5xl mx-auto">
+          <SectionHeading
+            eyebrow="Contact Us"
+            title="Talk to a Human"
+            description={`Questions about ${APP_NAME}, your store or your payouts? We reply fast.`}
+          />
+        </div>
+      </section>
+
+      {/* Content */}
+      <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
+        <div className="max-w-5xl mx-auto flex flex-col gap-12">
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="p-5 flex items-center gap-4">

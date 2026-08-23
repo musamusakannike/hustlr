@@ -80,26 +80,43 @@ export default function StartStoreModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
-              Store Name
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Musa's Fashion Hub"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-primary text-sm text-text"
-            />
-            <p className="text-xs text-neutral-400 mt-1">
-              Your store URL:{" "}
-              <span className="font-mono text-primary font-medium">
+        {submitted ? (
+          <div className="py-8 flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-[#800A1D]/10 text-[#800A1D] flex items-center justify-center text-3xl font-bold">
+              ✓
+            </div>
+            <h4 className="text-2xl font-bold text-[#0A0E11]">
+              Registration Started!
+            </h4>
+            <p className="text-sm text-[#666666] max-w-xs">
+              We&apos;re preparing your store dashboard at{" "}
+              <span className="font-mono text-[#800A1D] font-semibold">
                 {slugPreview}.hustlr.online
               </span>
+              . Check your email for OTP verification.
             </p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
+                Store Name
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Musa's Fashion Hub"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:border-[#800A1D] text-sm text-[#0A0E11]"
+              />
+              <p className="text-xs text-neutral-400 mt-1">
+                Your store URL:{" "}
+                <span className="font-mono text-[#800A1D] font-medium">
+                  {slugPreview}.hustlr.online
+                </span>
+              </p>
+            </div>
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1.5">
