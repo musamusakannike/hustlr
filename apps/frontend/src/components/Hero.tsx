@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
-import StartStoreModal from "./StartStoreModal";
+import Link from "next/link";
 import { APP_NAME } from "@/constants/app.constants";
 
 export default function Hero() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <section
       id="hero"
@@ -61,8 +59,8 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-              <button
-                onClick={() => setIsModalOpen(true)}
+              <Link
+                href="/auth/register"
                 className="inline-flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 shadow-md group cursor-pointer"
               >
                 <span>Start Your Free Store</span>
@@ -79,7 +77,7 @@ export default function Hero() {
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-              </button>
+              </Link>
 
               <a
                 href="#templates"
@@ -103,11 +101,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-
-      <StartStoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </section>
   );
 }
