@@ -2,97 +2,71 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Sparkles,
+  CreditCard,
   Check,
   Plus,
-  Edit3,
   RefreshCw,
+  Edit2,
+  Sparkles,
+  Users,
+  Percent,
+  Layers,
+  Globe,
+  FileText,
   AlertCircle,
   CheckCircle2,
   X,
-  Layers,
-  Percent,
-  Package,
-  Globe,
-  Palette,
-  FileText,
-  Users,
+  Loader2,
+  Shield,
+  Trash2,
+  Info,
+  DollarSign,
   TrendingUp,
-  ShieldCheck,
-  ToggleLeft,
-  ToggleRight,
 } from "lucide-react";
 import {
   adminPlansService,
-  type AdminPlanItem,
-  type AdminPlanPayload,
-  type AdminPlanAnalyticsItem,
   authService,
+  type SubscriptionPlanItem,
+  type PlanAnalyticsItem,
 } from "@/lib/api";
 import { hasPermission } from "@/lib/permissions";
-import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function PlansPage() {
-  const [plans, setPlans] = useState<AdminPlanItem[]>([]);
-  const [analytics, setAnalytics] = useState<AdminPlanAnalyticsItem[]>([]);
+  const [plans, setPlans] = useState<SubscriptionPlanItem[]>([]);
+  const [analytics, setAnalytics] = useState<PlanAnalyticsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [billingCycleView, setBillingCycleView] = useState<"monthly" | "yearly">("monthly");
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // Edit/Create Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<AdminPlanItem | null>(null);
-
-  // Toggle Status Confirm Dialog
-  const [toggleTarget, setToggleTarget] = useState<AdminPlanItem | null>(null);
-
-  // Permissions
-  const user = authService.getUser();
-  const canManage = hasPermission(user?.adminRole, "plans.manage");
-
-  // Form State
-  const [formData, setFormData] = useState<{
-    name: string;
-    slug: string;
+  // Edit Modal State
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlanItem | null>(null);
+  const [editForm, setEditForm] = useState<{
     monthlyPrice: number;
     yearlyPrice: number;
     commissionPercent: number;
+    maxProducts: number | null;
     isUnlimitedProducts: boolean;
-    maxProducts: number;
     allowCustomDomain: boolean;
     allowProTemplates: boolean;
     allowProPlusTemplates: boolean;
     allowBlog: boolean;
     isActive: boolean;
     features: string[];
-  }>({
-    name: "",
-    slug: "",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    commissionPercent: 10,
-    isUnlimitedProducts: true,
-    maxProducts: 25,
-    allowCustomDomain: false,
-    allowProTemplates: false,
-    allowProPlusTemplates: false,
-    allowBlog: false,
-    isActive: true,
-    features: [],
-  });
+    newFeatureText: string;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const [newFeatureText, setNewFeatureText] = useState("");
+  // Permissions
+  const user = authService.getUser();
+  const canManage = hasPermission(user?.adminRole, "plans.manage");
 
   const notify = (message: string, type: "success" | "error" = "success") => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const loadData = useCallback(async (isSilent = false) => {
+  const fetchPlansData = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
     try {
       const [plansData, analyticsData] = await Promise.all([
@@ -102,9 +76,8 @@ export default function PlansPage() {
       setPlans(plansData || []);
       setAnalytics(analyticsData || []);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to load subscription plans.";
-      notify(msg, "error");
+      const message = err instanceof Error ? err.message : "Failed to load subscription plans.";
+      notify(message, "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -112,516 +85,476 @@ export default function PlansPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    fetchPlansData();
+  }, [fetchPlansData]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadData(true);
+    fetchPlansData(true);
   };
 
-  // Plan analytics map
-  const analyticsMap = useMemo(() => {
-    const map: Record<string, { count: number; revenue: number }> = {};
-    for (const item of analytics) {
-      if (item._id) {
-        map[item._id.toLowerCase()] = {
-          count: item.count || 0,
-          revenue: item.revenue || 0,
-        };
-      }
-    }
-    return map;
-  }, [analytics]);
-
-  // High-level KPI metrics
-  const totalSubscribers = useMemo(() => {
-    return analytics.reduce((acc, curr) => acc + (curr.count || 0), 0);
-  }, [analytics]);
-
-  const totalMonthlyRunRate = useMemo(() => {
-    return plans.reduce((acc, p) => {
-      const stats = analyticsMap[p.name.toLowerCase()] || analyticsMap[p.slug.toLowerCase()];
-      const count = stats?.count || 0;
-      return acc + count * (p.monthlyPrice || 0);
-    }, 0);
-  }, [plans, analyticsMap]);
-
   // Open Edit Modal
-  const openEditModal = (plan: AdminPlanItem) => {
+  const handleOpenEdit = (plan: SubscriptionPlanItem) => {
+    if (!canManage) {
+      notify("You do not have permission to modify subscription plans.", "error");
+      return;
+    }
     setEditingPlan(plan);
-    setFormData({
-      name: plan.name,
-      slug: plan.slug,
-      monthlyPrice: plan.monthlyPrice ?? 0,
-      yearlyPrice: plan.yearlyPrice ?? 0,
-      commissionPercent: plan.commissionPercent ?? 10,
-      isUnlimitedProducts: plan.maxProducts === null || plan.maxProducts === undefined,
-      maxProducts: plan.maxProducts || 25,
+    setEditForm({
+      monthlyPrice: plan.monthlyPrice,
+      yearlyPrice: plan.yearlyPrice,
+      commissionPercent: plan.commissionPercent,
+      maxProducts: plan.maxProducts,
+      isUnlimitedProducts: plan.maxProducts === null,
       allowCustomDomain: Boolean(plan.allowCustomDomain),
       allowProTemplates: Boolean(plan.allowProTemplates),
       allowProPlusTemplates: Boolean(plan.allowProPlusTemplates),
       allowBlog: Boolean(plan.allowBlog),
-      isActive: plan.isActive !== false,
-      features: Array.isArray(plan.features) ? [...plan.features] : [],
+      isActive: Boolean(plan.isActive),
+      features: [...(plan.features || [])],
+      newFeatureText: "",
     });
-    setNewFeatureText("");
-    setIsModalOpen(true);
   };
 
-  // Open Create Modal
-  const openCreateModal = () => {
+  const handleCloseEdit = () => {
     setEditingPlan(null);
-    setFormData({
-      name: "",
-      slug: "",
-      monthlyPrice: 0,
-      yearlyPrice: 0,
-      commissionPercent: 10,
-      isUnlimitedProducts: true,
-      maxProducts: 25,
-      allowCustomDomain: false,
-      allowProTemplates: false,
-      allowProPlusTemplates: false,
-      allowBlog: false,
-      isActive: true,
-      features: [
-        "Storefront Subdomain",
-        "Paystack Escrow Protection",
-        "Product Management",
-      ],
-    });
-    setNewFeatureText("");
-    setIsModalOpen(true);
+    setEditForm(null);
   };
 
-  // Add Feature Tag
-  const handleAddFeature = () => {
-    const trimmed = newFeatureText.trim();
-    if (!trimmed) return;
-    if (formData.features.includes(trimmed)) {
-      setNewFeatureText("");
+  // Quick toggle active state
+  const handleTogglePlanActive = async (plan: SubscriptionPlanItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canManage) {
+      notify("You do not have permission to modify plans.", "error");
       return;
     }
-    setFormData((prev) => ({
-      ...prev,
-      features: [...prev.features, trimmed],
-    }));
-    setNewFeatureText("");
+
+    const nextState = !plan.isActive;
+    try {
+      await adminPlansService.toggleActive(plan._id, nextState);
+      setPlans((prev) =>
+        prev.map((p) => (p._id === plan._id ? { ...p, isActive: nextState } : p))
+      );
+      notify(`${plan.name.toUpperCase()} plan is now ${nextState ? "active" : "inactive"}.`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update plan status.";
+      notify(message, "error");
+    }
   };
 
-  // Remove Feature Tag
+  // Add Feature bullet
+  const handleAddFeature = () => {
+    if (!editForm || !editForm.newFeatureText.trim()) return;
+    const trimmed = editForm.newFeatureText.trim();
+    if (editForm.features.includes(trimmed)) return;
+    setEditForm({
+      ...editForm,
+      features: [...editForm.features, trimmed],
+      newFeatureText: "",
+    });
+  };
+
+  // Remove Feature bullet
   const handleRemoveFeature = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      features: prev.features.filter((_, i) => i !== index),
-    }));
+    if (!editForm) return;
+    setEditForm({
+      ...editForm,
+      features: editForm.features.filter((_, i) => i !== index),
+    });
   };
 
-  // Save Plan
+  // Save Plan Changes
   const handleSavePlan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      notify("Plan name is required", "error");
+    if (!editingPlan || !editForm) return;
+    if (!canManage) {
+      notify("Permission denied.", "error");
       return;
     }
-
-    const payload: AdminPlanPayload = {
-      name: formData.name.trim().toLowerCase(),
-      slug: (formData.slug.trim() || formData.name.trim().toLowerCase().replace(/\s+/g, "-")),
-      monthlyPrice: Number(formData.monthlyPrice) || 0,
-      yearlyPrice: Number(formData.yearlyPrice) || 0,
-      commissionPercent: Number(formData.commissionPercent) || 0,
-      maxProducts: formData.isUnlimitedProducts ? null : Number(formData.maxProducts),
-      allowCustomDomain: formData.allowCustomDomain,
-      allowProTemplates: formData.allowProTemplates,
-      allowProPlusTemplates: formData.allowProPlusTemplates,
-      allowBlog: formData.allowBlog,
-      isActive: formData.isActive,
-      features: formData.features,
-    };
 
     setSaving(true);
     try {
-      if (editingPlan) {
-        const updated = await adminPlansService.update(editingPlan._id, payload);
-        setPlans((prev) =>
-          prev.map((p) => (p._id === editingPlan._id ? updated : p))
-        );
-        notify(`Plan "${updated.name}" updated successfully.`);
-      } else {
-        const created = await adminPlansService.create(payload);
-        setPlans((prev) => [...prev, created]);
-        notify(`Plan "${created.name}" created successfully.`);
-      }
-      setIsModalOpen(false);
+      const payload: Partial<SubscriptionPlanItem> = {
+        monthlyPrice: Number(editForm.monthlyPrice) || 0,
+        yearlyPrice: Number(editForm.yearlyPrice) || 0,
+        commissionPercent: Number(editForm.commissionPercent) || 0,
+        maxProducts: editForm.isUnlimitedProducts ? null : Number(editForm.maxProducts) || 0,
+        allowCustomDomain: editForm.allowCustomDomain,
+        allowProTemplates: editForm.allowProTemplates,
+        allowProPlusTemplates: editForm.allowProPlusTemplates,
+        allowBlog: editForm.allowBlog,
+        isActive: editForm.isActive,
+        features: editForm.features.filter(Boolean),
+      };
+
+      const updated = await adminPlansService.update(editingPlan._id, payload);
+      setPlans((prev) =>
+        prev.map((p) => (p._id === editingPlan._id ? { ...p, ...updated } : p))
+      );
+      notify(`${editingPlan.name.toUpperCase()} plan updated successfully.`);
+      handleCloseEdit();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to save plan.";
-      notify(msg, "error");
+      const message = err instanceof Error ? err.message : "Failed to save plan changes.";
+      notify(message, "error");
     } finally {
       setSaving(false);
     }
   };
 
-  // Quick Toggle Active Status
-  const handleToggleStatus = async (plan: AdminPlanItem) => {
-    const nextState = !plan.isActive;
-    try {
-      const updated = await adminPlansService.toggleActive(plan._id, nextState);
-      setPlans((prev) =>
-        prev.map((p) => (p._id === plan._id ? updated : p))
-      );
-      notify(`Plan "${plan.name}" is now ${nextState ? "active" : "paused"}.`);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to update plan status.";
-      notify(msg, "error");
-    } finally {
-      setToggleTarget(null);
-    }
-  };
+  // Aggregates & KPI calculations
+  const totalSubscribers = useMemo(() => {
+    return plans.reduce((acc, p) => acc + (p.activeSubscribers || 0), 0);
+  }, [plans]);
 
-  const formatNaira = (amount: number) => {
+  const totalMonthlyRevenue = useMemo(() => {
+    return plans.reduce((acc, p) => {
+      // Estimate based on active subscribers & monthly price
+      return acc + (p.activeSubscribers || 0) * (p.monthlyPrice || 0);
+    }, 0);
+  }, [plans]);
+
+  const formatNaira = (val: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(val);
   };
 
   return (
-    <div className="space-y-7 font-sans pb-12 max-w-7xl mx-auto">
-      {/* Toast Alert Banner */}
+    <div className="space-y-6 font-sans pb-12">
+      {/* Toast Feedback Notification */}
       {feedback && (
         <div
-          className={`p-4 rounded-xl text-sm font-medium flex items-center justify-between border shadow-sm transition-all animate-in fade-in slide-in-from-top-2 ${
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border backdrop-blur-md transition-all animate-in slide-in-from-bottom-5 duration-300 ${
             feedback.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
+              ? "bg-emerald-900/90 text-white border-emerald-700/50 shadow-emerald-950/20"
+              : "bg-red-900/90 text-white border-red-700/50 shadow-red-950/20"
           }`}
         >
-          <div className="flex items-center gap-2.5">
-            {feedback.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
+          {feedback.type === "success" ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+          )}
+          <p className="text-xs font-semibold">{feedback.message}</p>
           <button
             onClick={() => setFeedback(null)}
-            className="p-1 hover:bg-black/5 rounded-md transition-colors"
+            className="p-1 text-white/60 hover:text-white rounded-lg transition-colors ml-2"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Header */}
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0A0E11] tracking-tight flex items-center gap-2.5">
-            <Layers className="w-6 h-6 text-primary" />
-            Subscription Plans
+          <h1 className="text-2xl font-extrabold text-[#0A0E11] tracking-tight">
+            Subscription Plans & Pricing Tiers
           </h1>
-          <p className="text-sm text-gray-500 font-normal mt-0.5">
-            Configure merchant subscription tiers, platform commissions, and feature allowances.
+          <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
+            Configure merchant subscription tiers, commission rates, and feature entitlements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
+          {/* Segmented Billing Toggle */}
+          <div className="bg-gray-100/90 p-1 rounded-full flex items-center border border-gray-200/70 text-xs font-bold">
+            <button
+              onClick={() => setBillingCycleView("monthly")}
+              className={`px-3.5 py-1.5 rounded-full transition-all ${
+                billingCycleView === "monthly"
+                  ? "bg-white text-[#0A0E11] shadow-xs"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingCycleView("yearly")}
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+                billingCycleView === "yearly"
+                  ? "bg-white text-[#0A0E11] shadow-xs"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <span>Yearly</span>
+              <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded-full font-bold">
+                Save
+              </span>
+            </button>
+          </div>
+
           <button
             onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 bg-white border border-gray-200/80 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs disabled:opacity-50"
+            disabled={refreshing}
+            className="p-2.5 rounded-full border border-gray-200/80 bg-white hover:bg-gray-50 text-gray-600 transition-all shadow-2xs disabled:opacity-50"
+            title="Refresh plans data"
           >
-            <RefreshCw
-              className={`w-3.5 h-3.5 text-gray-500 ${
-                refreshing ? "animate-spin" : ""
-              }`}
-            />
-            <span>Refresh</span>
+            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-primary" : ""}`} />
           </button>
-
-          {canManage && (
-            <button
-              onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-all shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create Plan</span>
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Top Summary KPI Cards */}
+      {/* KPI Stats Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-gray-500">Active Subscribers</p>
-            <h3 className="text-2xl font-bold text-[#0A0E11] mt-1">
-              {loading ? "..." : totalSubscribers}
-            </h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">Merchants currently enrolled</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-primary-bg flex items-center justify-center text-primary">
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-primary-bg text-primary flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
           </div>
+          <div>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Active Merchants
+            </span>
+            <p className="text-xl font-extrabold text-[#0A0E11] mt-0.5">
+              {loading ? "..." : totalSubscribers}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-gray-500">Monthly Run-Rate</p>
-            <h3 className="text-2xl font-bold text-[#0A0E11] mt-1">
-              {loading ? "..." : formatNaira(totalMonthlyRunRate)}
-            </h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">Estimated recurring revenue</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
+          <div>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Est. Monthly Run-Rate
+            </span>
+            <p className="text-xl font-extrabold text-[#0A0E11] mt-0.5">
+              {loading ? "..." : formatNaira(totalMonthlyRevenue)}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-medium text-gray-500">Platform Commission</p>
-            <h3 className="text-2xl font-bold text-[#0A0E11] mt-1">
-              {loading || plans.length === 0
-                ? "..."
-                : `${Math.min(...plans.map((p) => p.commissionPercent))}% – ${Math.max(...plans.map((p) => p.commissionPercent))}%`}
-            </h3>
-            <p className="text-[11px] text-gray-400 mt-0.5">Tiered transaction fee range</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/70 shadow-2xs flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Percent className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Commission Range
+            </span>
+            <p className="text-xl font-extrabold text-[#0A0E11] mt-0.5">
+              5% - 10%
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Loading Skeleton */}
-      {loading && (
+      {/* Plans Grid */}
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((n) => (
+          {[1, 2, 3].map((i) => (
             <div
-              key={n}
-              className="bg-white rounded-3xl p-6 border border-gray-200/70 shadow-2xs animate-pulse space-y-6"
+              key={i}
+              className="bg-white rounded-3xl p-6 border border-gray-200/70 shadow-xs animate-pulse space-y-4"
             >
-              <div className="flex justify-between items-center">
-                <div className="h-6 w-24 bg-gray-100 rounded-lg" />
-                <div className="h-5 w-16 bg-gray-100 rounded-full" />
+              <div className="h-6 bg-gray-100 rounded-md w-1/3" />
+              <div className="h-10 bg-gray-100 rounded-md w-2/3" />
+              <div className="h-4 bg-gray-100 rounded-md w-1/2" />
+              <div className="space-y-2 pt-6">
+                <div className="h-4 bg-gray-100 rounded-md w-full" />
+                <div className="h-4 bg-gray-100 rounded-md w-5/6" />
+                <div className="h-4 bg-gray-100 rounded-md w-4/6" />
               </div>
-              <div className="space-y-2">
-                <div className="h-8 w-32 bg-gray-100 rounded-lg" />
-                <div className="h-4 w-20 bg-gray-100 rounded-lg" />
-              </div>
-              <div className="h-20 bg-gray-50 rounded-xl" />
-              <div className="space-y-2.5 pt-4 border-t border-gray-100">
-                <div className="h-4 w-full bg-gray-100 rounded-lg" />
-                <div className="h-4 w-4/5 bg-gray-100 rounded-lg" />
-                <div className="h-4 w-3/4 bg-gray-100 rounded-lg" />
-              </div>
-              <div className="h-10 w-full bg-gray-100 rounded-xl pt-2" />
+              <div className="h-10 bg-gray-100 rounded-full w-full mt-6" />
             </div>
           ))}
         </div>
-      )}
-
-      {/* Plans Grid */}
-      {!loading && plans.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-dashed border-gray-200">
-          <Layers className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-gray-900">No subscription plans found</h3>
-          <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-            Get started by setting up merchant subscription tiers to define pricing, commissions, and feature limits.
+      ) : plans.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center border border-gray-200/70 shadow-xs">
+          <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-gray-800">No subscription plans found</h3>
+          <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 mb-4">
+            Could not retrieve plans. Click below to initialize standard pricing tiers.
           </p>
-          {canManage && (
-            <button
-              onClick={openCreateModal}
-              className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create First Plan</span>
-            </button>
-          )}
+          <button
+            onClick={handleRefresh}
+            className="px-5 py-2 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary-hover transition-all"
+          >
+            Load Default Plans
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
-            const isPopular =
-              plan.slug === "pro" ||
-              plan.name.toLowerCase() === "pro";
-            const stats =
-              analyticsMap[plan.name.toLowerCase()] ||
-              analyticsMap[plan.slug.toLowerCase()];
-            const subscriberCount = stats?.count || 0;
+            const isPro = plan.slug === "pro";
+            const isProPlus = plan.slug === "pro-plus";
+            const isFree = plan.slug === "free";
+
+            const displayPrice =
+              isFree
+                ? "₦0"
+                : billingCycleView === "yearly"
+                ? `${formatNaira(plan.yearlyPrice)} / yr`
+                : `${formatNaira(plan.monthlyPrice)} / mo`;
+
+            const savingsPercent =
+              !isFree && plan.monthlyPrice > 0 && plan.yearlyPrice > 0
+                ? Math.max(
+                    0,
+                    Math.round(
+                      ((plan.monthlyPrice * 12 - plan.yearlyPrice) /
+                        (plan.monthlyPrice * 12)) *
+                        100
+                    )
+                  )
+                : 0;
 
             return (
               <div
                 key={plan._id || plan.slug}
-                className={`bg-white rounded-3xl p-6.5 border shadow-2xs flex flex-col justify-between transition-all relative ${
-                  !plan.isActive
-                    ? "opacity-60 bg-gray-50/70 border-gray-200"
-                    : isPopular
-                    ? "border-primary ring-2 ring-primary/10 shadow-sm"
-                    : "border-gray-200/80 hover:border-gray-300"
-                }`}
+                className={`bg-white rounded-3xl p-6 border shadow-xs flex flex-col justify-between transition-all duration-200 relative ${
+                  isPro
+                    ? "border-primary ring-2 ring-primary/15 shadow-sm"
+                    : isProPlus
+                    ? "border-amber-400/80 ring-2 ring-amber-400/10 shadow-sm"
+                    : "border-gray-200/80"
+                } ${!plan.isActive ? "opacity-70 bg-gray-50/50" : ""}`}
               >
                 <div>
-                  {/* Plan Top Label & Status */}
+                  {/* Top Bar: Title, Badge & Active Toggle */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-slate-900 capitalize">
+                      <h3 className="text-xl font-black text-[#0A0E11] tracking-tight uppercase">
                         {plan.name}
                       </h3>
-                      {isPopular && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary-bg text-primary flex items-center gap-1">
-                          <Sparkles className="w-2.5 h-2.5" />
+                      {isPro && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-primary-bg text-primary border border-primary/20">
                           Popular
+                        </span>
+                      )}
+                      {isProPlus && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-300">
+                          Top Tier
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    {/* Active Status Badge / Quick Toggle */}
+                    <button
+                      onClick={(e) => handleTogglePlanActive(plan, e)}
+                      disabled={!canManage}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                        plan.isActive
+                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      } ${!canManage ? "cursor-default opacity-80" : "cursor-pointer"}`}
+                      title={canManage ? "Toggle active state for new subscriptions" : undefined}
+                    >
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                          plan.isActive
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-gray-100 text-gray-600"
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          plan.isActive ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
                         }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            plan.isActive ? "bg-emerald-500" : "bg-gray-400"
-                          }`}
-                        />
-                        {plan.isActive ? "Active" : "Paused"}
-                      </span>
-                    </div>
+                      />
+                      <span>{plan.isActive ? "Active" : "Inactive"}</span>
+                    </button>
                   </div>
 
-                  {/* Price */}
+                  {/* Pricing Display */}
                   <div className="mt-4">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-extrabold text-[#0A0E11] tracking-tight">
-                        {plan.monthlyPrice === 0
-                          ? "₦0"
-                          : formatNaira(plan.monthlyPrice)}
-                      </span>
-                      <span className="text-xs font-semibold text-gray-400">
-                        {plan.monthlyPrice === 0 ? "forever" : "/ month"}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-[#0A0E11] tracking-tight">
+                        {displayPrice}
                       </span>
                     </div>
 
-                    {plan.yearlyPrice > 0 ? (
-                      <p className="text-xs text-gray-500 font-medium mt-1">
-                        or {formatNaira(plan.yearlyPrice)} billed annually
-                      </p>
-                    ) : (
-                      <p className="text-xs text-gray-400 font-medium mt-1">
-                        Free tier access
+                    {billingCycleView === "yearly" && savingsPercent > 0 && (
+                      <p className="text-[11px] font-bold text-emerald-600 mt-1">
+                        Saves ~{savingsPercent}% compared to monthly billing
                       </p>
                     )}
                   </div>
 
-                  {/* Key Capabilities Pills */}
-                  <div className="mt-5 grid grid-cols-2 gap-2 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
-                    <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
-                      <Percent className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span>{plan.commissionPercent}% platform fee</span>
-                    </div>
+                  {/* Key Metrics Chips */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
+                      <Percent className="w-3.5 h-3.5 text-primary" />
+                      <span>{plan.commissionPercent}% Commission</span>
+                    </span>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
-                      <Package className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span>
-                        {plan.maxProducts === null
-                          ? "Unlimited items"
-                          : `Max ${plan.maxProducts} items`}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
+                      <Users className="w-3.5 h-3.5 text-gray-500" />
+                      <span>{plan.activeSubscribers ?? 0} active merchants</span>
+                    </span>
+                  </div>
+
+                  {/* Core Platform Entitlements Matrix */}
+                  <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100/80 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-gray-400">
+                        Products Limit
+                      </span>
+                      <span className="text-xs font-bold text-[#0A0E11] mt-0.5">
+                        {plan.maxProducts === null ? "Unlimited" : `Up to ${plan.maxProducts}`}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
-                      <Globe className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span>
-                        {plan.allowCustomDomain
-                          ? "Custom domain"
-                          : "Subdomain only"}
+                    <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100/80 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-gray-400">
+                        Custom Domain
+                      </span>
+                      <span className="text-xs font-bold text-[#0A0E11] mt-0.5">
+                        {plan.allowCustomDomain ? "Supported" : "Subdomain Only"}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-700 font-medium">
-                      <Palette className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span>
+                    <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100/80 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-gray-400">
+                        Template Tier
+                      </span>
+                      <span className="text-xs font-bold text-[#0A0E11] mt-0.5">
                         {plan.allowProPlusTemplates
-                          ? "All templates"
+                          ? "All Templates"
                           : plan.allowProTemplates
-                          ? "Pro templates"
-                          : "Free templates"}
+                          ? "Free + Pro"
+                          : "Free Only"}
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100/80 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-gray-400">
+                        Store Blog
+                      </span>
+                      <span className="text-xs font-bold text-[#0A0E11] mt-0.5">
+                        {plan.allowBlog ? "Enabled" : "Disabled"}
                       </span>
                     </div>
                   </div>
 
-                  {/* Live Subscribers Chip */}
-                  <div className="mt-4 flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <span className="text-gray-500 font-medium flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-gray-400" />
-                      Active Merchants
-                    </span>
-                    <span className="font-bold text-slate-800">
-                      {subscriberCount} {subscriberCount === 1 ? "store" : "stores"}
-                    </span>
-                  </div>
-
-                  {/* Feature Checklist */}
+                  {/* Features Bullet List */}
                   <div className="mt-5 pt-4 border-t border-gray-100 space-y-2.5">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                      Included Capabilities
-                    </p>
                     {plan.features && plan.features.length > 0 ? (
                       plan.features.map((feat, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start gap-2.5 text-xs text-gray-600 font-medium leading-tight"
+                          className="flex items-start gap-2.5 text-xs text-gray-600 font-medium"
                         >
                           <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                          <span>{feat}</span>
+                          <span className="leading-snug">{feat}</span>
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-400 italic">No features listed.</p>
+                      <p className="text-xs text-gray-400 italic">No feature bullets specified.</p>
                     )}
                   </div>
                 </div>
 
-                {/* Card Actions */}
-                <div className="mt-6 pt-4 border-t border-gray-100/80 flex items-center gap-2">
-                  {canManage && (
-                    <>
-                      <button
-                        onClick={() => openEditModal(plan)}
-                        className="flex-1 py-2.5 px-3 rounded-xl bg-gray-100 hover:bg-primary hover:text-white text-slate-800 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Edit Config</span>
-                      </button>
-
-                      <button
-                        onClick={() => setToggleTarget(plan)}
-                        title={plan.isActive ? "Pause Plan" : "Activate Plan"}
-                        className={`p-2.5 rounded-xl border transition-all ${
-                          plan.isActive
-                            ? "border-gray-200 text-gray-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50"
-                            : "border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                        }`}
-                      >
-                        {plan.isActive ? (
-                          <ToggleRight className="w-4 h-4" />
-                        ) : (
-                          <ToggleLeft className="w-4 h-4" />
-                        )}
-                      </button>
-                    </>
-                  )}
+                {/* Card Action Footer */}
+                <div className="mt-8 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => handleOpenEdit(plan)}
+                    disabled={!canManage}
+                    className={`w-full py-2.5 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                      isPro
+                        ? "bg-primary text-white hover:bg-primary-hover shadow-xs"
+                        : "bg-gray-100 hover:bg-gray-200 text-slate-800"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit Plan Config</span>
+                  </button>
                 </div>
               </div>
             );
@@ -629,416 +562,324 @@ export default function PlansPage() {
         </div>
       )}
 
-      {/* Edit / Create Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl w-full max-w-2xl border border-gray-100 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-gray-100 flex items-center justify-between">
+      {/* Edit Plan Modal */}
+      {editingPlan && editForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={handleCloseEdit}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+          />
+
+          <div className="relative bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div>
-                <h3 className="text-base font-bold text-[#0A0E11]">
-                  {editingPlan
-                    ? `Edit Subscription Tier: ${editingPlan.name.toUpperCase()}`
-                    : "Create Subscription Tier"}
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">
+                  Plan Configuration
+                </span>
+                <h3 className="text-lg font-black text-[#0A0E11] tracking-tight">
+                  Edit {editingPlan.name.toUpperCase()} Plan
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Set pricing, platform commission rates, listing quotas, and perks.
-                </p>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition-colors"
+                type="button"
+                onClick={handleCloseEdit}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleSavePlan} className="flex flex-col flex-1 overflow-hidden">
-              <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-800">
-                {/* 1. Basic Plan Info */}
+            <form onSubmit={handleSavePlan} className="mt-6 space-y-6">
+              {/* Section 1: Pricing & Commission */}
+              <div>
+                <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">
+                  1. Pricing & Commission
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Monthly Price (₦)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editForm.monthlyPrice}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, monthlyPrice: Number(e.target.value) })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Yearly Price (₦)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editForm.yearlyPrice}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, yearlyPrice: Number(e.target.value) })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Commission (%)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={editForm.commissionPercent}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, commissionPercent: Number(e.target.value) })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Entitlements & Platform Limits */}
+              <div>
+                <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">
+                  2. Feature Entitlements & Limits
+                </h4>
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    Tier Identity
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Products Limit */}
+                  <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Plan Display Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        placeholder="e.g. Pro, Growth, Enterprise"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/10 text-xs text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        URL / System Identifier (Slug)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.slug}
-                        onChange={(e) =>
-                          setFormData({ ...formData, slug: e.target.value })
-                        }
-                        placeholder="e.g. pro, pro-plus"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/10 text-xs text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Pricing & Commission */}
-                <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    Pricing & Platform Fee
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Monthly Price (₦)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="500"
-                        value={formData.monthlyPrice}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            monthlyPrice: Number(e.target.value),
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/10 text-xs text-gray-900"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Yearly Price (₦)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={formData.yearlyPrice}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            yearlyPrice: Number(e.target.value),
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/10 text-xs text-gray-900"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Platform Commission (%)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="50"
-                        step="0.5"
-                        value={formData.commissionPercent}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            commissionPercent: Number(e.target.value),
-                          })
-                        }
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/10 text-xs text-gray-900"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Product Listing Limit */}
-                <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    Product Listing Quota
-                  </h4>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900">
-                        Listing Limit Policy
-                      </p>
+                      <p className="text-xs font-bold text-gray-900">Product Listings Limit</p>
                       <p className="text-[11px] text-gray-500">
-                        {formData.isUnlimitedProducts
-                          ? "Merchants can list an unlimited number of products"
-                          : `Limited to a maximum of ${formData.maxProducts} active products`}
+                        {editForm.isUnlimitedProducts
+                          ? "Merchants can list unlimited products."
+                          : `Capped at max ${editForm.maxProducts || 0} products.`}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      {!editForm.isUnlimitedProducts && (
+                        <input
+                          type="number"
+                          min={1}
+                          value={editForm.maxProducts ?? 25}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, maxProducts: Number(e.target.value) })
+                          }
+                          className="w-20 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-bold text-center bg-white"
+                        />
+                      )}
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={formData.isUnlimitedProducts}
+                          checked={editForm.isUnlimitedProducts}
                           onChange={(e) =>
-                            setFormData({
-                              ...formData,
+                            setEditForm({
+                              ...editForm,
                               isUnlimitedProducts: e.target.checked,
+                              maxProducts: e.target.checked ? null : 25,
                             })
                           }
-                          className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                          className="rounded text-primary focus:ring-primary/20"
                         />
-                        <span className="text-xs font-semibold text-gray-700">
-                          Unlimited
-                        </span>
+                        <span>Unlimited</span>
                       </label>
-
-                      {!formData.isUnlimitedProducts && (
-                        <div className="w-28">
-                          <input
-                            type="number"
-                            min="1"
-                            value={formData.maxProducts}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                maxProducts: Math.max(1, Number(e.target.value)),
-                              })
-                            }
-                            placeholder="Limit"
-                            className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-gray-200 text-xs text-gray-900"
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
 
-                {/* 4. Feature Entitlements */}
-                <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    Feature Allowances & Permissions
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors bg-white">
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900">
-                          Custom Domain Mapping
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Allow yourname.com mapping
-                        </p>
-                      </div>
+                  {/* Custom Domain */}
+                  <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Custom Domain Mapping</p>
+                      <p className="text-[11px] text-gray-500">
+                        Allow sellers to map domains like yourstore.com
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.allowCustomDomain}
+                        checked={editForm.allowCustomDomain}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            allowCustomDomain: e.target.checked,
-                          })
+                          setEditForm({ ...editForm, allowCustomDomain: e.target.checked })
                         }
-                        className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                        className="sr-only peer"
                       />
+                      <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
+                  </div>
 
-                    <label className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors bg-white">
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900">
-                          Storefront Blog
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Publish articles & content
-                        </p>
-                      </div>
+                  {/* Pro Templates */}
+                  <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Access to Pro Templates</p>
+                      <p className="text-[11px] text-gray-500">
+                        Unlock modern Pro storefront templates
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.allowBlog}
+                        checked={editForm.allowProTemplates}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            allowBlog: e.target.checked,
-                          })
+                          setEditForm({ ...editForm, allowProTemplates: e.target.checked })
                         }
-                        className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                        className="sr-only peer"
                       />
+                      <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
+                  </div>
 
-                    <label className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors bg-white">
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900">
-                          Pro Store Templates
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Unlock pro layout themes
-                        </p>
-                      </div>
+                  {/* Pro+ Templates */}
+                  <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Access to Pro+ Exclusive Templates</p>
+                      <p className="text-[11px] text-gray-500">
+                        Unlock luxury Pro+ designer templates
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.allowProTemplates}
+                        checked={editForm.allowProPlusTemplates}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            allowProTemplates: e.target.checked,
-                          })
+                          setEditForm({ ...editForm, allowProPlusTemplates: e.target.checked })
                         }
-                        className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                        className="sr-only peer"
                       />
+                      <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
+                  </div>
 
-                    <label className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-gray-300 cursor-pointer transition-colors bg-white">
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900">
-                          Pro+ Luxury Templates
-                        </p>
-                        <p className="text-[11px] text-gray-500">
-                          Unlock all premium themes
-                        </p>
-                      </div>
+                  {/* Blog */}
+                  <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Store Blog & Articles</p>
+                      <p className="text-[11px] text-gray-500">
+                        Allow merchant blog posting for organic SEO
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.allowProPlusTemplates}
+                        checked={editForm.allowBlog}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            allowProPlusTemplates: e.target.checked,
-                          })
+                          setEditForm({ ...editForm, allowBlog: e.target.checked })
                         }
-                        className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                        className="sr-only peer"
                       />
+                      <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
                 </div>
+              </div>
 
-                {/* 5. Marketing Features Checklist */}
-                <div className="space-y-3 pt-4 border-t border-gray-100">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    Marketing Highlights (Bullet Points)
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newFeatureText}
-                        onChange={(e) => setNewFeatureText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddFeature();
-                          }
-                        }}
-                        placeholder="Add a bullet point feature and press Enter..."
-                        className="flex-1 px-3.5 py-2 rounded-xl border border-gray-200 focus:outline-hidden focus:border-primary text-xs"
-                      />
+              {/* Section 3: Feature Bullet Points */}
+              <div>
+                <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">
+                  3. Marketing Feature Highlights
+                </h4>
+                <div className="space-y-2">
+                  {editForm.features.map((feat, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-gray-50 border border-gray-200/70 text-xs text-gray-800"
+                    >
+                      <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="flex-1 font-medium">{feat}</span>
                       <button
                         type="button"
-                        onClick={handleAddFeature}
-                        className="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-slate-800 text-xs font-semibold transition-colors"
+                        onClick={() => handleRemoveFeature(idx)}
+                        className="p-1 text-gray-400 hover:text-red-600 rounded-md hover:bg-white transition-colors"
                       >
-                        Add
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
+                  ))}
 
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {formData.features.map((feat, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-100 text-gray-800 text-xs font-medium"
-                        >
-                          <span>{feat}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFeature(idx)}
-                            className="text-gray-400 hover:text-rose-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                  {/* Add New Feature Input */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="e.g. Priority 24/7 WhatsApp Support"
+                      value={editForm.newFeatureText}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, newFeatureText: e.target.value })
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddFeature();
+                        }
+                      }}
+                      className="flex-1 px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddFeature}
+                      disabled={!editForm.newFeatureText.trim()}
+                      className="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold flex items-center gap-1 transition-all disabled:opacity-40"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
                   </div>
                 </div>
+              </div>
 
-                {/* 6. Active Status */}
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-between p-3.5 bg-gray-50 rounded-2xl">
+              {/* Section 4: Active Visibility */}
+              <div className="pt-2">
+                <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200/70 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-gray-900">
-                      Tier Availability
-                    </p>
+                    <p className="text-xs font-bold text-gray-900">Plan Visibility Status</p>
                     <p className="text-[11px] text-gray-500">
-                      When active, merchants can view and subscribe to this tier.
+                      When active, sellers can view and subscribe to this tier.
                     </p>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.isActive}
+                      checked={editForm.isActive}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          isActive: e.target.checked,
-                        })
+                        setEditForm({ ...editForm, isActive: e.target.checked })
                       }
-                      className="w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary"
+                      className="sr-only peer"
                     />
-                    <span className="text-xs font-semibold text-gray-800">
-                      {formData.isActive ? "Active" : "Paused"}
-                    </span>
+                    <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+              {/* Footer Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseEdit}
                   disabled={saving}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
+                  className="px-5 py-2.5 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-all shadow-xs disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-primary hover:bg-primary-hover transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
                 >
-                  {saving ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <span>Save Tier</span>
-                  )}
+                  {saving && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                  <span>Save Plan Config</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-
-      {/* Confirm Toggle Dialog */}
-      {toggleTarget && (
-        <ConfirmDialog
-          isOpen={true}
-          title={toggleTarget.isActive ? "Pause Subscription Plan" : "Activate Subscription Plan"}
-          description={`Are you sure you want to ${
-            toggleTarget.isActive ? "pause" : "activate"
-          } the "${toggleTarget.name}" plan? ${
-            toggleTarget.isActive
-              ? "New merchants will not be able to select this tier until reactivated."
-              : "Merchants will immediately be able to upgrade or subscribe to this tier."
-          }`}
-          confirmLabel={toggleTarget.isActive ? "Pause Plan" : "Activate Plan"}
-          cancelLabel="Cancel"
-          isDestructive={toggleTarget.isActive}
-          onConfirm={() => handleToggleStatus(toggleTarget)}
-          onClose={() => setToggleTarget(null)}
-        />
       )}
     </div>
   );

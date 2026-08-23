@@ -420,7 +420,7 @@ export async function listAdminTemplates(query: Record<string, unknown>) {
 
 export async function upsertPlan(id: string | null, payload: Record<string, unknown>) {
   if (id) {
-    const plan = await SubscriptionPlan.findByIdAndUpdate(id, payload, { new: true });
+    const plan = await SubscriptionPlan.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
     if (!plan) throw ApiError.notFound("Plan not found");
     return plan;
   }
@@ -428,12 +428,12 @@ export async function upsertPlan(id: string | null, payload: Record<string, unkn
 }
 
 export async function listPlansAdmin() {
-  let plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 });
-  if (plans.length === 0) {
-    const defaults = [
+  let plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 }).lean();
+  if (!plans || plans.length === 0) {
+    const defaultPlans = [
       {
-        name: "free",
-        slug: "free",
+        name: "free" as const,
+        slug: "free" as const,
         monthlyPrice: 0,
         yearlyPrice: 0,
         features: [
@@ -451,8 +451,8 @@ export async function listPlansAdmin() {
         isActive: true,
       },
       {
-        name: "pro",
-        slug: "pro",
+        name: "pro" as const,
+        slug: "pro" as const,
         monthlyPrice: 15000,
         yearlyPrice: 150000,
         features: [
@@ -460,7 +460,7 @@ export async function listPlansAdmin() {
           "Access to All Pro Templates",
           "Discount Coupons & Promotions",
           "Custom Storefront Colors",
-          "Priority Email Support",
+          "Priority Support",
         ],
         maxProducts: null,
         allowCustomDomain: false,
@@ -471,15 +471,14 @@ export async function listPlansAdmin() {
         isActive: true,
       },
       {
-        name: "pro+",
-        slug: "pro-plus",
+        name: "pro+" as const,
+        slug: "pro-plus" as const,
         monthlyPrice: 35000,
         yearlyPrice: 350000,
         features: [
           "Everything in Pro",
           "Custom Domain Mapping (yourname.com)",
-          "Access to All Pro+ Templates",
-          "Zero Escrow Hold Delay Options",
+          "Access to All Templates (including Pro+)",
           "Lowest Platform Commission (5%)",
           "Dedicated Account Manager",
         ],
@@ -492,10 +491,24 @@ export async function listPlansAdmin() {
         isActive: true,
       },
     ];
-    await SubscriptionPlan.insertMany(defaults);
-    plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 });
+    await SubscriptionPlan.insertMany(defaultPlans);
+    plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 }).lean();
   }
-  return plans;
+
+  const counts = await Subscription.aggregate([
+    { $match: { status: { $in: ["active", "grace_period"] } } },
+    { $group: { _id: "$planName", count: { $sum: 1 }, revenue: { $sum: "$amount" } } },
+  ]);
+
+  const countMap = new Map(
+    counts.map((c) => [c._id, { count: c.count, revenue: c.revenue }]),
+  );
+
+  return plans.map((p) => ({
+    ...p,
+    activeSubscribers: countMap.get(p.name)?.count || 0,
+    activeRevenue: countMap.get(p.name)?.revenue || 0,
+  }));
 }
 
 export async function createGlobalCategory(payload: { name: string; description?: string; image?: string }) {

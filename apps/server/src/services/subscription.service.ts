@@ -201,11 +201,11 @@ export async function changePlan(
     if (nextPlan.name === "free") return subscribeFree(sellerId);
     return initializePaidSubscription(sellerId, email, planId, billingCycle);
   }
-  const rank: Record<string, number> = { free: 0, pro: 1, "pro+": 2, "pro-plus": 2 };
-  const upgrading = (rank[nextPlan.name] ?? 0) > (rank[current.planName] ?? 0);
+  const rank = { free: 0, pro: 1, "pro+": 2 };
+  const upgrading = rank[nextPlan.name] > rank[current.planName];
   if (!upgrading) {
     current.pendingPlanId = nextPlan._id;
-    current.pendingPlanName = nextPlan.name as "free" | "pro" | "pro+";
+    current.pendingPlanName = nextPlan.name;
     current.autoRenew = false;
     await current.save();
     return { mode: "downgrade_scheduled", subscription: current };
