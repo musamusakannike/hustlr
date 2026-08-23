@@ -1,8 +1,8 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface ISubscriptionPlan extends Document {
-  name: "free" | "pro" | "pro+";
-  slug: "free" | "pro" | "pro-plus";
+  name: string;
+  slug: string;
   monthlyPrice: number;
   yearlyPrice: number;
   features: string[];
@@ -19,8 +19,8 @@ export interface ISubscriptionPlan extends Document {
 
 const subscriptionPlanSchema = new Schema<ISubscriptionPlan>(
   {
-    name: { type: String, enum: ["free", "pro", "pro+"], required: true, unique: true },
-    slug: { type: String, enum: ["free", "pro", "pro-plus"], required: true, unique: true },
+    name: { type: String, required: true, unique: true },
+    slug: { type: String, required: true, unique: true },
     monthlyPrice: { type: Number, required: true, default: 0 },
     yearlyPrice: { type: Number, required: true, default: 0 },
     features: { type: [String], default: [] },

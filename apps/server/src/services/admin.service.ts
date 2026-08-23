@@ -428,7 +428,74 @@ export async function upsertPlan(id: string | null, payload: Record<string, unkn
 }
 
 export async function listPlansAdmin() {
-  return SubscriptionPlan.find().sort({ monthlyPrice: 1 });
+  let plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 });
+  if (plans.length === 0) {
+    const defaults = [
+      {
+        name: "free",
+        slug: "free",
+        monthlyPrice: 0,
+        yearlyPrice: 0,
+        features: [
+          "Up to 25 Products Listing",
+          "Access to Free Store Templates",
+          "Paystack Escrow Protection",
+          "Standard Email Support",
+        ],
+        maxProducts: 25,
+        allowCustomDomain: false,
+        allowProTemplates: false,
+        allowProPlusTemplates: false,
+        allowBlog: false,
+        commissionPercent: 10,
+        isActive: true,
+      },
+      {
+        name: "pro",
+        slug: "pro",
+        monthlyPrice: 15000,
+        yearlyPrice: 150000,
+        features: [
+          "Unlimited Product Listings",
+          "Access to All Pro Templates",
+          "Discount Coupons & Promotions",
+          "Custom Storefront Colors",
+          "Priority Email Support",
+        ],
+        maxProducts: null,
+        allowCustomDomain: false,
+        allowProTemplates: true,
+        allowProPlusTemplates: false,
+        allowBlog: true,
+        commissionPercent: 7,
+        isActive: true,
+      },
+      {
+        name: "pro+",
+        slug: "pro-plus",
+        monthlyPrice: 35000,
+        yearlyPrice: 350000,
+        features: [
+          "Everything in Pro",
+          "Custom Domain Mapping (yourname.com)",
+          "Access to All Pro+ Templates",
+          "Zero Escrow Hold Delay Options",
+          "Lowest Platform Commission (5%)",
+          "Dedicated Account Manager",
+        ],
+        maxProducts: null,
+        allowCustomDomain: true,
+        allowProTemplates: true,
+        allowProPlusTemplates: true,
+        allowBlog: true,
+        commissionPercent: 5,
+        isActive: true,
+      },
+    ];
+    await SubscriptionPlan.insertMany(defaults);
+    plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 });
+  }
+  return plans;
 }
 
 export async function createGlobalCategory(payload: { name: string; description?: string; image?: string }) {

@@ -567,3 +567,66 @@ export const adminTemplatesService = {
   },
 };
 
+// ─── Subscription Plans Service ───────────────────────────────────────────────
+export interface AdminPlanItem {
+  _id: string;
+  name: string;
+  slug: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+  maxProducts: number | null;
+  allowCustomDomain: boolean;
+  allowProTemplates: boolean;
+  allowProPlusTemplates: boolean;
+  allowBlog: boolean;
+  commissionPercent: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminPlanAnalyticsItem {
+  _id: string;
+  count: number;
+  revenue: number;
+}
+
+export interface AdminPlanPayload {
+  name: string;
+  slug: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+  maxProducts: number | null;
+  allowCustomDomain: boolean;
+  allowProTemplates: boolean;
+  allowProPlusTemplates: boolean;
+  allowBlog: boolean;
+  commissionPercent: number;
+  isActive?: boolean;
+}
+
+export const adminPlansService = {
+  async list(): Promise<AdminPlanItem[]> {
+    const res = await api.get<ApiResponse<AdminPlanItem[]>>("/admin/plans");
+    return res.data.data ?? [];
+  },
+  async getAnalytics(): Promise<AdminPlanAnalyticsItem[]> {
+    const res = await api.get<ApiResponse<AdminPlanAnalyticsItem[]>>("/admin/analytics/plans");
+    return res.data.data ?? [];
+  },
+  async create(payload: AdminPlanPayload): Promise<AdminPlanItem> {
+    const res = await api.post<ApiResponse<AdminPlanItem>>("/admin/plans", payload);
+    return res.data.data;
+  },
+  async update(id: string, payload: Partial<AdminPlanPayload>): Promise<AdminPlanItem> {
+    const res = await api.put<ApiResponse<AdminPlanItem>>(`/admin/plans/${id}`, payload);
+    return res.data.data;
+  },
+  async toggleActive(id: string, isActive: boolean): Promise<AdminPlanItem> {
+    const res = await api.put<ApiResponse<AdminPlanItem>>(`/admin/plans/${id}`, { isActive });
+    return res.data.data;
+  },
+};
+
