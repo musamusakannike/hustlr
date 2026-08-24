@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Wallet,
   Globe,
+  AlertCircle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -80,6 +81,7 @@ export default function AnalyticsDashboardPage() {
   const [topPerformers, setTopPerformers] = useState<TopPerformers | null>(null);
   const [payouts, setPayouts] = useState<PayoutSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Compute active date range
   const dateRange = useMemo(() => {
@@ -102,6 +104,7 @@ export default function AnalyticsDashboardPage() {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     const params = {
       from: dateRange.from,
       to: dateRange.to,
@@ -130,14 +133,69 @@ export default function AnalyticsDashboardPage() {
         adminAnalyticsService.getPayoutSummary(params),
       ]);
 
-      if (overviewRes.status === "fulfilled") setOverview(overviewRes.value);
-      if (trendRes.status === "fulfilled") setTrend(trendRes.value);
-      if (orderStatusRes.status === "fulfilled") setOrderStatus(orderStatusRes.value);
-      if (kycFunnelRes.status === "fulfilled") setKycFunnel(kycFunnelRes.value);
-      if (disputesRes.status === "fulfilled") setDisputes(disputesRes.value);
-      if (regionalRes.status === "fulfilled") setRegional(regionalRes.value);
-      if (topPerformersRes.status === "fulfilled") setTopPerformers(topPerformersRes.value);
-      if (payoutsRes.status === "fulfilled") setPayouts(payoutsRes.value);
+      let fulfilledCount = 0;
+
+      if (overviewRes.status === "fulfilled" && overviewRes.value) {
+        setOverview(overviewRes.value);
+        fulfilledCount++;
+      } else {
+        setOverview(null);
+      }
+
+      if (trendRes.status === "fulfilled" && trendRes.value) {
+        setTrend(trendRes.value);
+        fulfilledCount++;
+      } else {
+        setTrend([]);
+      }
+
+      if (orderStatusRes.status === "fulfilled" && orderStatusRes.value) {
+        setOrderStatus(orderStatusRes.value);
+        fulfilledCount++;
+      } else {
+        setOrderStatus([]);
+      }
+
+      if (kycFunnelRes.status === "fulfilled" && kycFunnelRes.value) {
+        setKycFunnel(kycFunnelRes.value);
+        fulfilledCount++;
+      } else {
+        setKycFunnel([]);
+      }
+
+      if (disputesRes.status === "fulfilled" && disputesRes.value) {
+        setDisputes(disputesRes.value);
+        fulfilledCount++;
+      } else {
+        setDisputes(null);
+      }
+
+      if (regionalRes.status === "fulfilled" && regionalRes.value) {
+        setRegional(regionalRes.value);
+        fulfilledCount++;
+      } else {
+        setRegional([]);
+      }
+
+      if (topPerformersRes.status === "fulfilled" && topPerformersRes.value) {
+        setTopPerformers(topPerformersRes.value);
+        fulfilledCount++;
+      } else {
+        setTopPerformers(null);
+      }
+
+      if (payoutsRes.status === "fulfilled" && payoutsRes.value) {
+        setPayouts(payoutsRes.value);
+        fulfilledCount++;
+      } else {
+        setPayouts(null);
+      }
+
+      if (fulfilledCount === 0) {
+        setError("Failed to load analytics data. Please check your network connection.");
+      }
+    } catch {
+      setError("Failed to load analytics data. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -150,26 +208,26 @@ export default function AnalyticsDashboardPage() {
   const kpis = [
     {
       label: "Platform GMV",
-      value: overview ? formatNgn(overview.gmv) : "₦0",
-      change: overview?.gmvChangePct ?? 18.4,
+      value: overview ? formatNgn(overview.gmv) : "—",
+      change: overview?.gmvChangePct ?? 0,
       icon: TrendingUp,
     },
     {
       label: "Commission Revenue",
-      value: overview ? formatNgn(overview.commission || overview.gmv * 0.08) : "₦0",
-      change: overview?.commissionChangePct ?? 12.1,
+      value: overview ? formatNgn(overview.commission || overview.gmv * 0.08) : "—",
+      change: overview?.commissionChangePct ?? 0,
       icon: Percent,
     },
     {
       label: "Completed Orders",
-      value: overview ? overview.totalOrders.toLocaleString() : "0",
-      change: overview?.orderCountChangePct ?? 15.3,
+      value: overview ? overview.totalOrders.toLocaleString() : "—",
+      change: overview?.orderCountChangePct ?? 0,
       icon: ShoppingBag,
     },
     {
       label: "Active Merchant Stores",
-      value: overview ? overview.activeStores.toLocaleString() : "0",
-      change: 8.5,
+      value: overview ? overview.activeStores.toLocaleString() : "—",
+      change: 0,
       icon: Store,
     },
   ];
@@ -218,6 +276,13 @@ export default function AnalyticsDashboardPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {kpis.map((card, idx) => {
@@ -232,14 +297,16 @@ export default function AnalyticsDashboardPage() {
                 <div className="w-10 h-10 rounded-2xl bg-primary-bg text-primary flex items-center justify-center">
                   <Icon className="w-5 h-5" />
                 </div>
-                <div
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                    isPos ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-                  }`}
-                >
-                  {isPos ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                  <span>{Math.abs(card.change)}%</span>
-                </div>
+                {overview && card.change !== 0 && (
+                  <div
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                      isPos ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    {isPos ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                    <span>{Math.abs(card.change)}%</span>
+                  </div>
+                )}
               </div>
               <div className="mt-4">
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0A0E11] tracking-tight">
@@ -272,34 +339,32 @@ export default function AnalyticsDashboardPage() {
         </div>
 
         <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={trend.length > 0 ? trend : [
-              { date: "Day 1", gmv: 420000, commission: 33600, orders: 12 },
-              { date: "Day 5", gmv: 890000, commission: 71200, orders: 25 },
-              { date: "Day 10", gmv: 650000, commission: 52000, orders: 18 },
-              { date: "Day 15", gmv: 1200000, commission: 96000, orders: 34 },
-              { date: "Day 20", gmv: 1650000, commission: 132000, orders: 48 },
-              { date: "Day 25", gmv: 1400000, commission: 112000, orders: 39 },
-              { date: "Day 30", gmv: 2100000, commission: 168000, orders: 62 },
-            ]}>
-              <defs>
-                <linearGradient id="colorGmv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#800A1D" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#800A1D" stopOpacity={0.0} />
-                </linearGradient>
-                <linearGradient id="colorComm" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} />
-              <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} tickFormatter={(val) => `₦${(val / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(value) => typeof value === "number" ? `₦${value.toLocaleString()}` : String(value)} />
-              <Area type="monotone" dataKey="gmv" stroke="#800A1D" strokeWidth={2.5} fillOpacity={1} fill="url(#colorGmv)" name="GMV" />
-              <Area type="monotone" dataKey="commission" stroke="#F59E0B" strokeWidth={2} fillOpacity={1} fill="url(#colorComm)" name="Commission" />
-            </AreaChart>
-          </ResponsiveContainer>
+          {trend.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trend}>
+                <defs>
+                  <linearGradient id="colorGmv" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#800A1D" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#800A1D" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="colorComm" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} tickFormatter={(val) => `₦${(val / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(value) => typeof value === "number" ? `₦${value.toLocaleString()}` : String(value)} />
+                <Area type="monotone" dataKey="gmv" stroke="#800A1D" strokeWidth={2.5} fillOpacity={1} fill="url(#colorGmv)" name="GMV" />
+                <Area type="monotone" dataKey="commission" stroke="#F59E0B" strokeWidth={2} fillOpacity={1} fill="url(#colorComm)" name="Commission" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-xs text-gray-400">
+              No GMV trend data available.
+            </div>
+          )}
         </div>
       </div>
 
@@ -309,31 +374,32 @@ export default function AnalyticsDashboardPage() {
         <div className="bg-white rounded-3xl p-6 border border-gray-200/70 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900">Order Delivery Status Distribution</h3>
           <div className="h-60 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={orderStatus.length > 0 ? orderStatus : [
-                    { status: "Confirmed", count: 184 },
-                    { status: "In Transit", count: 52 },
-                    { status: "Processing", count: 31 },
-                    { status: "Delivered", count: 245 },
-                  ]}
-                  dataKey="count"
-                  nameKey="status"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={75}
-                  innerRadius={45}
-                  paddingAngle={3}
-                >
-                  {(orderStatus.length > 0 ? orderStatus : [{ status: "A" }, { status: "B" }, { status: "C" }, { status: "D" }]).map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(val) => `${val} orders`} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {orderStatus.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={orderStatus}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={75}
+                    innerRadius={45}
+                    paddingAngle={3}
+                  >
+                    {orderStatus.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(val) => `${val} orders`} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-xs text-gray-400">
+                No order distribution data available.
+              </div>
+            )}
           </div>
         </div>
 
@@ -341,20 +407,21 @@ export default function AnalyticsDashboardPage() {
         <div className="bg-white rounded-3xl p-6 border border-gray-200/70 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900">Merchant KYC Verification Funnel</h3>
           <div className="h-60 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={kycFunnel.length > 0 ? kycFunnel : [
-                { status: "Draft", count: 45 },
-                { status: "Pending", count: 14 },
-                { status: "Approved", count: 128 },
-                { status: "Rejected", count: 8 },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="status" stroke="#94A3B8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#800A1D" radius={[8, 8, 0, 0]} name="Merchants" />
-              </BarChart>
-            </ResponsiveContainer>
+            {kycFunnel.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={kycFunnel}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis dataKey="status" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#800A1D" radius={[8, 8, 0, 0]} name="Merchants" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-gray-400">
+                No KYC funnel data available.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -374,20 +441,21 @@ export default function AnalyticsDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-slate-700">
-                {(topPerformers?.topSellers && topPerformers.topSellers.length > 0
-                  ? topPerformers.topSellers
-                  : [
-                      { name: "Apex Electronics Hub", orders: 184, gmv: 8420000 },
-                      { name: "Khadija Luxury Modest", orders: 142, gmv: 4210000 },
-                      { name: "Lagos Gadgets & Audio", orders: 95, gmv: 3100000 },
-                    ]
-                ).map((s, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50">
-                    <td className="py-3 font-bold text-slate-800">{s.name}</td>
-                    <td className="py-3 text-right text-gray-500 font-semibold">{s.orders}</td>
-                    <td className="py-3 text-right font-extrabold text-slate-900">{formatNgn(s.gmv)}</td>
+                {topPerformers?.topSellers && topPerformers.topSellers.length > 0 ? (
+                  topPerformers.topSellers.map((s, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50/50">
+                      <td className="py-3 font-bold text-slate-800">{s.name}</td>
+                      <td className="py-3 text-right text-gray-500 font-semibold">{s.orders}</td>
+                      <td className="py-3 text-right font-extrabold text-slate-900">{formatNgn(s.gmv)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      No merchant performance data available.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -406,20 +474,21 @@ export default function AnalyticsDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-slate-700">
-                {(topPerformers?.topCategories && topPerformers.topCategories.length > 0
-                  ? topPerformers.topCategories
-                  : [
-                      { category: "Fashion & Apparel", units: 310, gmv: 5200000 },
-                      { category: "Electronics & Gadgets", units: 140, gmv: 4100000 },
-                      { category: "Beauty & Cosmetics", units: 195, gmv: 2300000 },
-                    ]
-                ).map((c, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50">
-                    <td className="py-3 font-bold text-slate-800">{c.category}</td>
-                    <td className="py-3 text-right text-gray-500 font-semibold">{c.units}</td>
-                    <td className="py-3 text-right font-extrabold text-slate-900">{formatNgn(c.gmv)}</td>
+                {topPerformers?.topCategories && topPerformers.topCategories.length > 0 ? (
+                  topPerformers.topCategories.map((c, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50/50">
+                      <td className="py-3 font-bold text-slate-800">{c.category}</td>
+                      <td className="py-3 text-right text-gray-500 font-semibold">{c.units}</td>
+                      <td className="py-3 text-right font-extrabold text-slate-900">{formatNgn(c.gmv)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      No category performance data available.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

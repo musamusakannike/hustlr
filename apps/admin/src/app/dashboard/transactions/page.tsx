@@ -28,6 +28,7 @@ import {
   Percent,
   Undo2,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -99,6 +100,7 @@ export default function TransactionsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     adminTransactionsService.getStats().then(setStats).catch(() => {});
@@ -106,6 +108,7 @@ export default function TransactionsPage() {
 
   const loadTransactions = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await adminTransactionsService.listTransactions({
         type: typeFilter !== "All" ? typeFilter : undefined,
@@ -118,45 +121,9 @@ export default function TransactionsPage() {
       setTransactions(res.transactions || []);
       setTotal(res.total || 0);
     } catch {
-      // Sample fallback data
-      setTransactions([
-        {
-          _id: "tx_01",
-          type: "buyer_payment",
-          amount: 45000,
-          status: "completed",
-          reference: "HST-PAY-88219",
-          orderRef: "HST-ORD-88219",
-          gateway: "paystack",
-          holderType: "buyer",
-          customer: { _id: "u1", name: "David Adeleke", email: "david@example.com" },
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: "tx_02",
-          type: "withdrawal",
-          amount: 320000,
-          status: "completed",
-          reference: "HST-WTH-00129",
-          bankName: "Guaranty Trust Bank",
-          accountNumber: "0123456789",
-          gateway: "paystack",
-          holderType: "seller",
-          seller: { _id: "u2", name: "Apex Electronics", email: "sales@apex.ng", storeName: "Apex Electronics Hub" },
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          _id: "tx_03",
-          type: "commission",
-          amount: 3600,
-          status: "completed",
-          reference: "HST-COM-44120",
-          orderRef: "HST-ORD-88219",
-          holderType: "platform",
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ]);
-      setTotal(3);
+      setTransactions([]);
+      setTotal(0);
+      setError("Failed to load transactions. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -174,9 +141,9 @@ export default function TransactionsPage() {
 
   const statCards = [
     { label: "Total Transactions", value: (stats?.totalTransactions ?? total).toLocaleString(), icon: Receipt },
-    { label: "Gross Volume", value: formatCompact(stats?.grossVolume ?? 14500000), icon: PiggyBank },
-    { label: "Completed", value: (stats?.completed ?? 340).toLocaleString(), icon: CheckCircle2, color: "text-emerald-700" },
-    { label: "Pending Payouts", value: (stats?.pendingWithdrawals ?? 9).toLocaleString(), icon: Wallet, color: "text-amber-700" },
+    { label: "Gross Volume", value: stats?.grossVolume != null ? formatCompact(stats.grossVolume) : "—", icon: PiggyBank },
+    { label: "Completed", value: (stats?.completed ?? 0).toLocaleString(), icon: CheckCircle2, color: "text-emerald-700" },
+    { label: "Pending Payouts", value: (stats?.pendingWithdrawals ?? 0).toLocaleString(), icon: Wallet, color: "text-amber-700" },
   ];
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -195,6 +162,13 @@ export default function TransactionsPage() {
           </p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

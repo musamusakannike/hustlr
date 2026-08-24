@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Wallet,
   Undo2,
+  AlertCircle,
 } from "lucide-react";
 import { adminReferralsService, adminSettingsService, type ReferralRecord, type ReferralStats, type PlatformSettings } from "@/lib/api";
 import ConfirmDialog, { type ConfirmDialogConfig } from "@/components/ConfirmDialog";
@@ -43,9 +44,10 @@ export default function ReferralsPage() {
   // Table state
   const [referrals, setReferrals] = useState<ReferralRecord[]>([]);
   const [stats, setStats] = useState<ReferralStats>({});
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
   const [tableLoading, setTableLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [page, setPage] = useState(1);
 
   // Reverse state
   const [dialog, setDialog] = useState<ConfirmDialogConfig | null>(null);
@@ -76,33 +78,15 @@ export default function ReferralsPage() {
 
   const loadReferrals = async () => {
     setTableLoading(true);
+    setError(null);
     try {
       const res = await adminReferralsService.list();
       setReferrals(res.referrals || []);
       setStats(res.stats || {});
     } catch {
-      // Sample fallback data
-      setReferrals([
-        {
-          _id: "ref_01",
-          referrer: { name: "Oluwaseun Bakare", email: "seun@example.com" },
-          referee: { name: "Ibrahim Adeleke", email: "ibrahim@example.com" },
-          status: "rewarded",
-          rewardType: "Cash Bonus",
-          rewardAmount: 5000,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: "ref_02",
-          referrer: { name: "Khadija Modest", email: "khadija@example.com" },
-          referee: { name: "Zainab Ahmed", email: "zainab@example.com" },
-          status: "pending",
-          rewardType: "Discount Voucher",
-          rewardAmount: 2000,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ]);
-      setStats({ totalReferrals: 2, conversionRate: 50, totalRewarded: 5000 });
+      setReferrals([]);
+      setStats({});
+      setError("Failed to load referrals. Please check your network connection.");
     } finally {
       setTableLoading(false);
     }
@@ -176,6 +160,13 @@ export default function ReferralsPage() {
           Configure referral commissions, buyer incentive vouchers, and monitor reward disbursements.
         </p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

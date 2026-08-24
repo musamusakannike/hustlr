@@ -19,6 +19,7 @@ import {
   Loader2,
   X,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { adminOrdersService, type AdminOrderListItem, type AdminOrderDetail, type ShippingAddress } from "@/lib/api";
 import ConfirmDialog, { type ConfirmDialogConfig } from "@/components/ConfirmDialog";
@@ -46,6 +47,7 @@ export default function OrdersPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -78,6 +80,7 @@ export default function OrdersPage() {
 
   const loadOrders = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await adminOrdersService.list({
         search: search.trim() || undefined,
@@ -91,40 +94,9 @@ export default function OrdersPage() {
       setOrders(res.orders || []);
       setTotal(res.total || 0);
     } catch {
-      // Fallback sample orders if database empty
-      setOrders([
-        {
-          _id: "ord_101",
-          orderNumber: "HST-ORD-88219",
-          totalAmount: 45000,
-          subtotal: 42000,
-          shippingTotal: 3000,
-          currency: "NGN",
-          paymentStatus: "paid",
-          deliveryStatus: "shipped",
-          items: [{ title: "Wireless Noise Cancelling Headphones", price: 42000, quantity: 1 }],
-          shippingAddress: { fullName: "David Adeleke", streetAddress: "14 Victoria Island", city: "Lagos", state: "Lagos", country: "Nigeria", phoneNumber: "+2348012345678" },
-          buyerProfileId: { _id: "u1", name: "David Adeleke", email: "david@example.com" },
-          sellerId: { _id: "u2", name: "Apex Electronics", email: "support@apex.ng", storeName: "Apex Electronics Hub" },
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: "ord_102",
-          orderNumber: "HST-ORD-99120",
-          totalAmount: 18000,
-          subtotal: 16500,
-          shippingTotal: 1500,
-          currency: "NGN",
-          paymentStatus: "paid",
-          deliveryStatus: "confirmed",
-          items: [{ title: "Silk Modest Kaftan Dress", price: 16500, quantity: 1 }],
-          shippingAddress: { fullName: "Zainab Ahmed", streetAddress: "8 Ahmadu Bello Way", city: "Kaduna", state: "Kaduna", country: "Nigeria", phoneNumber: "+2348098765432" },
-          buyerProfileId: { _id: "u3", name: "Zainab Ahmed", email: "zainab@example.com" },
-          sellerId: { _id: "u4", name: "Khadija Luxury", email: "sales@khadija.ng", storeName: "Khadija Luxury" },
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ]);
-      setTotal(2);
+      setOrders([]);
+      setTotal(0);
+      setError("Failed to load orders. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -156,11 +128,7 @@ export default function OrdersPage() {
         });
       }
     } catch {
-      const found = orders.find((o) => o._id === orderId);
-      if (found) {
-        setSelectedOrder(found);
-        setEditAddress(found.shippingAddress);
-      }
+      flash("Failed to load order details.");
     } finally {
       setDetailLoading(false);
     }
@@ -239,6 +207,13 @@ export default function OrdersPage() {
           </p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* Filter Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3">

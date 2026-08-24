@@ -9,12 +9,14 @@ import {
   ToggleLeft,
   ToggleRight,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { adminStoresService, type AdminStoreItem } from "@/lib/api";
 
 export default function StoresPage() {
   const [stores, setStores] = useState<AdminStoreItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -27,36 +29,8 @@ export default function StoresPage() {
         }
       } catch {
         if (mounted) {
-          setStores([
-            {
-              _id: "str_01",
-              name: "Apex Electronics Hub",
-              slug: "apex-electronics",
-              subdomain: "apex.hustlr.shop",
-              customDomain: "www.apexelectronics.ng",
-              isLive: true,
-              sellerId: "usr_01",
-              createdAt: new Date().toISOString(),
-            },
-            {
-              _id: "str_02",
-              name: "Khadija Luxury Modest Wear",
-              slug: "khadija-luxury",
-              subdomain: "khadija.hustlr.shop",
-              isLive: true,
-              sellerId: "usr_02",
-              createdAt: new Date(Date.now() - 172800000).toISOString(),
-            },
-            {
-              _id: "str_03",
-              name: "Lagos Sneakers Vault",
-              slug: "lagos-sneakers",
-              subdomain: "sneakers.hustlr.shop",
-              isLive: false,
-              sellerId: "usr_03",
-              createdAt: new Date(Date.now() - 345600000).toISOString(),
-            },
-          ]);
+          setStores([]);
+          setError("Failed to load stores. Please check your network connection.");
         }
       } finally {
         if (mounted) setLoading(false);
@@ -67,6 +41,13 @@ export default function StoresPage() {
       mounted = false;
     };
   }, []);
+
+  const filteredStores = stores.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.subdomain?.toLowerCase().includes(search.toLowerCase()) ||
+      s.customDomain?.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div className="space-y-6 font-sans">
@@ -81,6 +62,13 @@ export default function StoresPage() {
           </p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       <div className="bg-white p-4 rounded-2xl border border-gray-200/70 shadow-xs flex items-center justify-between">
         <div className="relative w-full sm:w-80">
@@ -101,7 +89,7 @@ export default function StoresPage() {
             <thead className="bg-primary-bg border-b border-gray-200 text-primary font-bold">
               <tr>
                 <th className="px-6 py-4">Store Name</th>
-                <th className="px-6 py-4">Subdomain / Domain</th>
+                <th className="px-6 py-4">Domains</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Created Date</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -110,43 +98,39 @@ export default function StoresPage() {
             <tbody className="divide-y divide-gray-100 text-slate-700">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-12 text-center text-gray-400"
-                  >
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
-                    <p className="mt-2 text-xs">Loading stores...</p>
+                  <td colSpan={5} className="py-12 text-center text-gray-400 text-xs">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary mb-2" />
+                    Loading merchant stores...
                   </td>
                 </tr>
-              ) : stores.length === 0 ? (
+              ) : filteredStores.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-12 text-center text-gray-400"
-                  >
-                    No stores found.
+                  <td colSpan={5} className="py-12 text-center text-gray-400 text-xs">
+                    No merchant stores found.
                   </td>
                 </tr>
               ) : (
-                stores.map((store) => (
+                filteredStores.map((store) => (
                   <tr
                     key={store._id}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
-                    <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-slate-700">
-                        <Store className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div>{store.name}</div>
-                        <div className="text-[11px] text-gray-400 font-normal">
-                          ID: {store._id}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-2xl bg-primary-bg text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                          <Store className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900">{store.name}</p>
+                          <p className="text-gray-400 text-[11px]">
+                            ID: {store._id.slice(-6)}
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 font-mono text-xs text-primary">
-                        <Globe className="w-3.5 h-3.5" />
+                    <td className="px-6 py-4 font-mono text-xs">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <Globe className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span>{store.subdomain}</span>
                       </div>
                       {store.customDomain && (
@@ -165,7 +149,6 @@ export default function StoresPage() {
                       >
                         {store.isLive ? "Live / Active" : "Disabled"}
                       </span>
-                      -primary-bg
                     </td>
                     <td className="px-6 py-4 text-xs text-gray-500">
                       {new Date(store.createdAt).toLocaleDateString()}

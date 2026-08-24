@@ -13,6 +13,7 @@ import {
   Loader2,
   Upload,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { adminCategoriesService, type Category } from "@/lib/api";
 import ConfirmDialog, { type ConfirmDialogConfig } from "@/components/ConfirmDialog";
@@ -20,6 +21,7 @@ import ConfirmDialog, { type ConfirmDialogConfig } from "@/components/ConfirmDia
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -41,17 +43,13 @@ export default function CategoriesPage() {
 
   const loadCategories = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await adminCategoriesService.listAll();
       setCategories(data);
     } catch {
-      // Fallback sample data if empty
-      setCategories([
-        { id: "cat_01", name: "Electronics & Gadgets", slug: "electronics-gadgets", description: "Phones, accessories, and audio gear", isActive: true, order: 1 },
-        { id: "cat_02", name: "Fashion & Apparel", slug: "fashion-apparel", description: "Clothing, traditional wear, and shoes", isActive: true, order: 2 },
-        { id: "cat_03", name: "Beauty & Cosmetics", slug: "beauty-cosmetics", description: "Skincare, hair products, and fragrances", isActive: true, order: 3 },
-        { id: "cat_04", name: "Home & Kitchen", slug: "home-kitchen", description: "Appliances, decor, and cookware", isActive: true, order: 4 },
-      ]);
+      setCategories([]);
+      setError("Failed to load categories. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -168,6 +166,13 @@ export default function CategoriesPage() {
           <span>Add New Category</span>
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* Search Toolbar */}
       <div className="flex items-center justify-between gap-3">

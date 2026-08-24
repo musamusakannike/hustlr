@@ -11,6 +11,8 @@ import {
   ArrowUpRight,
   TrendingUp,
   CreditCard,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import {
   adminKycService,
@@ -27,6 +29,7 @@ export default function OverviewDashboardPage() {
   const [kycQueue, setKycQueue] = useState<KycRecord[]>([]);
   const [disputesQueue, setDisputesQueue] = useState<AdminDisputeItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -40,25 +43,32 @@ export default function OverviewDashboardPage() {
 
         if (!mounted) return;
 
+        let hasError = false;
+
         if (overviewRes.status === "fulfilled" && overviewRes.value) {
           setStats(overviewRes.value);
         } else {
-          // Fallback initial overview numbers
-          setStats({
-            gmv: 14500000,
-            totalOrders: 342,
-            activeStores: 128,
-            pendingKyc: 6,
-            openDisputes: 2,
-            pendingPayouts: 9,
-          });
+          hasError = true;
         }
 
         if (kycRes.status === "fulfilled" && kycRes.value?.kycs) {
           setKycQueue(kycRes.value.kycs);
+        } else if (kycRes.status === "rejected") {
+          hasError = true;
         }
+
         if (disputesRes.status === "fulfilled" && disputesRes.value?.disputes) {
           setDisputesQueue(disputesRes.value.disputes);
+        } else if (disputesRes.status === "rejected") {
+          hasError = true;
+        }
+
+        if (hasError && !stats) {
+          setError("There was an error loading dashboard overview data. Please check your network connection.");
+        }
+      } catch (err: unknown) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
         }
       } finally {
         if (mounted) setLoading(false);
@@ -73,36 +83,43 @@ export default function OverviewDashboardPage() {
   const statCards = [
     {
       icon: TrendingUp,
-      value: stats ? `₦${(stats.gmv / 1_000_000).toFixed(1)}M` : "₦0",
+      value: stats ? `₦${(stats.gmv / 1_000_000).toFixed(1)}M` : "—",
       label: "Platform GMV (Processed)",
-      change: "+18.4% this month",
+      change: stats ? "+18.4% this month" : "No data",
       href: "/dashboard/analytics",
     },
     {
       icon: Store,
-      value: stats ? String(stats.activeStores) : "0",
+      value: stats ? String(stats.activeStores) : "—",
       label: "Active Merchant Stores",
-      change: "+12 new stores",
+      change: stats ? "+12 new stores" : "No data",
       href: "/dashboard/stores",
     },
     {
       icon: IdCard,
-      value: stats ? String(stats.pendingKyc) : "0",
+      value: stats ? String(stats.pendingKyc) : "—",
       label: "KYC Verifications Pending",
-      change: "Action required",
+      change: stats?.pendingKyc ? "Action required" : "Up to date",
       href: "/dashboard/kyc",
     },
     {
       icon: Scale,
-      value: stats ? String(stats.openDisputes) : "0",
+      value: stats ? String(stats.openDisputes) : "—",
       label: "Open Escrow Disputes",
-      change: "Escrow on hold",
+      change: stats?.openDisputes ? "Escrow on hold" : "None active",
       href: "/dashboard/dispute",
     },
   ];
 
   return (
     <div className="space-y-6 font-sans">
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* 1. Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((card, i) => {
@@ -166,57 +183,39 @@ export default function OverviewDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-slate-600">
-                {kycQueue.length > 0
-                  ? kycQueue.map((row) => (
-                      <tr
-                        key={row._id}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="py-3 font-medium text-slate-800">
-                          {row.seller?.name || "Merchant Store"}
-                        </td>
-                        <td className="py-3 text-gray-500">
-                          {row.idType || "Govt ID & Utility"}
-                        </td>
-                        <td className="py-3 text-right">
-                          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  : [
-                      {
-                        name: "Apex Electronics Hub",
-                        doc: "CAC & NIN",
-                        time: "Pending review",
-                      },
-                      {
-                        name: "Khadija Couture",
-                        doc: "Passport & Bill",
-                        time: "Pending review",
-                      },
-                      {
-                        name: "Lagos Gadgets Ltd",
-                        doc: "CAC Certificate",
-                        time: "Pending review",
-                      },
-                    ].map((dummy, idx) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="py-3 font-medium text-slate-800">
-                          {dummy.name}
-                        </td>
-                        <td className="py-3 text-gray-500">{dummy.doc}</td>
-                        <td className="py-3 text-right">
-                          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
-                            Pending
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                {loading ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary mb-1" />
+                      Loading verification queue...
+                    </td>
+                  </tr>
+                ) : kycQueue.length > 0 ? (
+                  kycQueue.map((row) => (
+                    <tr
+                      key={row._id}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="py-3 font-medium text-slate-800">
+                        {row.seller?.name || "Merchant Store"}
+                      </td>
+                      <td className="py-3 text-gray-500">
+                        {row.idType || "Govt ID & Utility"}
+                      </td>
+                      <td className="py-3 text-right">
+                        <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      No pending KYC verifications.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -251,80 +250,54 @@ export default function OverviewDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-slate-600">
-                {disputesQueue.length > 0
-                  ? disputesQueue.map((row) => (
-                      <tr
-                        key={row._id}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="py-3 font-medium text-slate-800">
-                          {typeof row.orderId === "object"
-                            ? row.orderId?.orderNumber || "ORDER"
-                            : typeof row.orderId === "string"
-                            ? row.orderId.slice(-8).toUpperCase()
-                            : row._id.slice(-8).toUpperCase()}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold ${
-                              row.severity === "High"
-                                ? "bg-red-50 text-red-700"
-                                : "bg-orange-50 text-orange-700"
-                            }`}
-                          >
-                            {row.severity || "Medium"}
-                          </span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <Link
-                            href="/dashboard/dispute"
-                            className="text-xs font-bold text-primary hover:underline"
-                          >
-                            Review
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  : [
-                      {
-                        ref: "HST-ORD-88219",
-                        reason: "Item not as described",
-                        sev: "High",
-                      },
-                      {
-                        ref: "HST-ORD-99120",
-                        reason: "Delayed dispatch",
-                        sev: "Medium",
-                      },
-                    ].map((dummy, idx) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="py-3 font-medium text-slate-800">
-                          {dummy.ref}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold ${
-                              dummy.sev === "High"
-                                ? "bg-red-50 text-red-700"
-                                : "bg-orange-50 text-orange-700"
-                            }`}
-                          >
-                            {dummy.sev}
-                          </span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <Link
-                            href="/dashboard/dispute"
-                            className="text-xs font-bold text-primary hover:underline"
-                          >
-                            Review
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                {loading ? (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary mb-1" />
+                      Loading escrow disputes...
+                    </td>
+                  </tr>
+                ) : disputesQueue.length > 0 ? (
+                  disputesQueue.map((row) => (
+                    <tr
+                      key={row._id}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="py-3 font-medium text-slate-800">
+                        {typeof row.orderId === "object"
+                          ? row.orderId?.orderNumber || "ORDER"
+                          : typeof row.orderId === "string"
+                          ? row.orderId.slice(-8).toUpperCase()
+                          : row._id.slice(-8).toUpperCase()}
+                      </td>
+                      <td className="py-3">
+                        <span
+                          className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold ${
+                            row.severity === "High"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-orange-50 text-orange-700"
+                          }`}
+                        >
+                          {row.severity || "Medium"}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right">
+                        <Link
+                          href="/dashboard/dispute"
+                          className="text-xs font-bold text-primary hover:underline"
+                        >
+                          Review
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-8 text-center text-xs text-gray-400">
+                      No open escrow disputes.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -336,7 +309,7 @@ export default function OverviewDashboardPage() {
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-primary" />
           <h2 className="text-base font-bold text-slate-900">
-            Pending Operational Actions
+            Operational Quick Actions
           </h2>
         </div>
 
@@ -347,31 +320,31 @@ export default function OverviewDashboardPage() {
                 Payout Batch
               </p>
               <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                9 Merchant Payouts Ready
+                {stats?.pendingPayouts ? `${stats.pendingPayouts} Payouts Pending` : "Merchant Payouts Queue"}
               </p>
             </div>
             <Link
               href="/dashboard/payouts"
               className="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary-hover transition-colors"
             >
-              Approve
+              Inspect
             </Link>
           </div>
 
           <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
-                Subscription Upgrades
+                Merchant KYC
               </p>
               <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                4 Pro+ Custom Domains Pending
+                {stats?.pendingKyc ? `${stats.pendingKyc} Verifications Pending` : "KYC Verification Queue"}
               </p>
             </div>
             <Link
-              href="/dashboard/stores"
+              href="/dashboard/kyc"
               className="px-4 py-1.5 rounded-full bg-amber-700 text-white text-xs font-bold hover:bg-amber-800 transition-colors"
             >
-              Inspect
+              Verify
             </Link>
           </div>
 
@@ -381,7 +354,7 @@ export default function OverviewDashboardPage() {
                 Support Tickets
               </p>
               <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                3 Priority Tickets Unassigned
+                Merchant Support Desk
               </p>
             </div>
             <Link

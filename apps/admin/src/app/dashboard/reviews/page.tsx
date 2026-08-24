@@ -60,32 +60,9 @@ export default function ReviewsPage() {
       setTotal(res.pagination?.total || 0);
       setError(null);
     } catch (err) {
-      // Fallback sample reviews
-      setReviews([
-        {
-          _id: "rev_01",
-          productTitle: "Pro Wireless Noise Cancelling Headphones",
-          rating: 5,
-          comment: "Super fast delivery and the escrow protection gives so much confidence!",
-          status: "published",
-          isVerifiedPurchase: true,
-          orderRef: "HST-ORD-88219",
-          createdAt: new Date().toISOString(),
-          userId: { _id: "u1", name: "David Adeleke" },
-        },
-        {
-          _id: "rev_02",
-          productTitle: "Silk Modest Kaftan Dress",
-          rating: 4,
-          comment: "Great quality stitching, exactly as pictured in the catalog.",
-          status: "published",
-          isVerifiedPurchase: true,
-          orderRef: "HST-ORD-99120",
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          userId: { _id: "u2", name: "Zainab Ahmed" },
-        },
-      ]);
-      setTotal(2);
+      setReviews([]);
+      setTotal(0);
+      setError(errMsg(err, "Failed to load reviews. Please check your network connection."));
     } finally {
       setLoading(false);
     }

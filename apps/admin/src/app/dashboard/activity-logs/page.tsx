@@ -16,6 +16,7 @@ import {
   UserCircle,
   Clock,
   Filter,
+  AlertCircle,
 } from "lucide-react";
 import { auditLogService, type AuditLog } from "@/lib/api";
 
@@ -80,6 +81,7 @@ export default function ActivityLogsPage() {
   const [summary, setSummary] = useState({ successCount: 0, failureCount: 0 });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [selected, setSelected] = useState<AuditLog | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -107,18 +109,21 @@ export default function ActivityLogsPage() {
     queueMicrotask(() => {
       if (!active) return;
       setLoading(true);
+      setError(null);
       auditLogService
         .list({ ...filters, userId: scopeUserId || undefined, page })
         .then((result) => {
           if (!active) return;
-          setLogs(result.logs);
-          setTotal(result.total);
-          setSummary(result.summary);
+          setLogs(result.logs || []);
+          setTotal(result.total || 0);
+          setSummary(result.summary || { successCount: 0, failureCount: 0 });
           setLoading(false);
         })
-        .catch((error) => {
+        .catch((err) => {
           if (!active) return;
-          console.error("Failed to load activity logs", error);
+          setLogs([]);
+          setTotal(0);
+          setError("Failed to load activity logs. Please check your network connection.");
           setLoading(false);
         });
     });
@@ -216,6 +221,13 @@ export default function ActivityLogsPage() {
           <span>{exporting ? "Exporting..." : "Export CSV"}</span>
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* Scope banner if filtered by user */}
       {scopeUserId && (

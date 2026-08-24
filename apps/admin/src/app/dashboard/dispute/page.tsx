@@ -15,6 +15,7 @@ import {
   DollarSign,
   MessageSquare,
   ShieldAlert,
+  AlertCircle,
 } from "lucide-react";
 import { adminDisputesService, type AdminDisputeItem, type DisputeMessage } from "@/lib/api";
 import ConfirmDialog, { type ConfirmDialogConfig } from "@/components/ConfirmDialog";
@@ -39,6 +40,7 @@ const STATUS_BADGES: Record<string, { label: string; classes: string }> = {
 export default function DisputesMediationPage() {
   const [disputes, setDisputes] = useState<AdminDisputeItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -65,35 +67,15 @@ export default function DisputesMediationPage() {
 
   const loadDisputes = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await adminDisputesService.list({
         status: statusFilter !== "All" ? statusFilter.toLowerCase() : undefined,
       });
       setDisputes(res.disputes || []);
     } catch {
-      // Sample fallback data
-      setDisputes([
-        {
-          _id: "disp_01",
-          orderId: { _id: "ord_101", orderNumber: "HST-ORD-88219", gatewayReference: "HST-ORD-88219", totalAmount: 45000, currency: "NGN", items: [{ title: "Wireless Noise Cancelling Headphones", price: 45000, quantity: 1 }] },
-          buyerId: { _id: "usr_01", name: "David Adeleke", email: "david@example.com" },
-          sellerId: { _id: "usr_02", name: "Apex Electronics Hub", email: "support@apexhub.ng", storeName: "Apex Electronics Hub" },
-          status: "open",
-          severity: "High",
-          reason: "Item delivered does not match specifications; missing auxiliary accessories.",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: "disp_02",
-          orderId: { _id: "ord_102", orderNumber: "HST-ORD-99120", gatewayReference: "HST-ORD-99120", totalAmount: 18000, currency: "NGN", items: [{ title: "Silk Modest Kaftan Dress", price: 18000, quantity: 1 }] },
-          buyerId: { _id: "usr_03", name: "Zainab Ahmed", email: "zainab@example.com" },
-          sellerId: { _id: "usr_04", name: "Khadija Luxury", email: "sales@khadija.ng", storeName: "Khadija Luxury" },
-          status: "in_progress",
-          severity: "Medium",
-          reason: "Delayed dispatch past the promised 48-hour SLA.",
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ]);
+      setDisputes([]);
+      setError("Failed to load disputes. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -185,6 +167,13 @@ export default function DisputesMediationPage() {
               </p>
             </div>
           </div>
+
+          {error && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Filters Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3">

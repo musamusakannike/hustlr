@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   UserCircle,
   HelpCircle,
+  AlertCircle,
 } from "lucide-react";
 import { adminTicketsService, type AdminTicketItem, type TicketMessage } from "@/lib/api";
 
@@ -51,6 +52,7 @@ const priorityPillClass = (priority: string) => {
 export default function SupportTicketsDashboardPage() {
   const [tickets, setTickets] = useState<AdminTicketItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<AdminTicketItem | null>(null);
   const [openingTicket, setOpeningTicket] = useState(false);
 
@@ -67,6 +69,7 @@ export default function SupportTicketsDashboardPage() {
 
   const loadTickets = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await adminTicketsService.list({
         status: statusFilter !== "All" ? statusFilter.toLowerCase() : undefined,
@@ -75,51 +78,8 @@ export default function SupportTicketsDashboardPage() {
       });
       setTickets(res.tickets || []);
     } catch {
-      // Fallback sample tickets
-      setTickets([
-        {
-          _id: "tkt_01",
-          ticketNumber: "TK-9912",
-          subject: "Custom domain DNS records not propagating",
-          topic: "Domain Setup",
-          priority: "high",
-          status: "open",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: { _id: "u1", name: "Oluwaseun Bakare", email: "seun@apex.ng", role: "seller", storeName: "Apex Electronics" },
-          messages: [
-            {
-              senderId: "u1",
-              senderRole: "seller",
-              senderName: "Oluwaseun Bakare",
-              message: "Hello support, I added the CNAME and A records 24 hours ago but the SSL handshake is still pending.",
-              attachments: [],
-              createdAt: new Date().toISOString(),
-            },
-          ],
-        },
-        {
-          _id: "tkt_02",
-          ticketNumber: "TK-9910",
-          subject: "Inquiry about 5% transaction commission tier on Pro+",
-          topic: "Billing & Plans",
-          priority: "medium",
-          status: "in_progress",
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          updatedAt: new Date(Date.now() - 86400000).toISOString(),
-          userId: { _id: "u2", name: "Khadija Luxury", email: "sales@khadija.ng", role: "seller", storeName: "Khadija Luxury" },
-          messages: [
-            {
-              senderId: "u2",
-              senderRole: "seller",
-              senderName: "Khadija Luxury",
-              message: "Does the 5% commission apply automatically upon upgrade or starting next billing cycle?",
-              attachments: [],
-              createdAt: new Date(Date.now() - 86400000).toISOString(),
-            },
-          ],
-        },
-      ]);
+      setTickets([]);
+      setError("Failed to load support tickets. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -218,6 +178,13 @@ export default function SupportTicketsDashboardPage() {
               </p>
             </div>
           </div>
+
+          {error && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
