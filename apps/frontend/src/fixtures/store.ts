@@ -1,4 +1,5 @@
 import type { Store } from "@/types/store";
+import { DEFAULT_STOREFRONT_SECTIONS } from "./storefront-defaults";
 
 /** Store fixture: setup mostly complete, template not yet chosen, not live. */
 export const DEMO_STORE: Store = {
@@ -20,11 +21,11 @@ export const DEMO_STORE: Store = {
     youtube: "",
   },
   colorScheme: {
-    primary: "#800A1D",
-    secondary: "#0A0E11",
-    accent: "#FAD4D8",
-    background: "#FFFFFF",
-    text: "#0A0E11",
+    primary: "#E05315",
+    secondary: "#1F1610",
+    accent: "#FFEDE6",
+    background: "#FFFBF9",
+    text: "#1F1610",
   },
   templateId: null,
   currency: "NGN",
@@ -46,6 +47,8 @@ export const DEMO_STORE: Store = {
     "By purchasing from Musa's Fashion Hub you agree to our escrow-protected checkout flow and delivery confirmation process.",
   privacyPolicy:
     "We only collect the information needed to fulfil your orders. Your data is never shared with third parties.",
+  customSections: DEFAULT_STOREFRONT_SECTIONS as any,
+  themeSettings: { palettePreset: "terracotta-sunset" },
   createdAt: "2026-07-05T10:00:00.000Z",
   updatedAt: "2026-08-12T10:00:00.000Z",
 };

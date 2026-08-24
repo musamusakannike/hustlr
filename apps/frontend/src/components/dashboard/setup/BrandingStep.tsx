@@ -249,6 +249,21 @@ export default function BrandingStep({
         </div>
       </div>
 
+      <div className="rounded-2xl p-4 bg-bg-soft border border-border flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold text-neutral-800">Want deeper section customization?</p>
+          <p className="text-xs text-muted">
+            Drag, drop, reorder sections, and edit copy in real-time with the Visual Store Customizer.
+          </p>
+        </div>
+        <a
+          href="/dashboard/templates/customize"
+          className="px-3.5 py-2 rounded-xl bg-dark text-white text-xs font-bold shrink-0 hover:bg-neutral-800 transition-colors"
+        >
+          Open Customizer
+        </a>
+      </div>
+
       <button type="submit" disabled={saving} className="hidden" aria-hidden tabIndex={-1} />
     </form>
   );

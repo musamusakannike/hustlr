@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Lock, Sparkles } from "lucide-react";
+import { Check, Edit3, ExternalLink, Layers, Lock, Palette, Sliders } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import Tabs from "@/components/ui/Tabs";
@@ -106,15 +106,18 @@ function TemplateCard({
         {locked ? (
           <Link href="/dashboard/billing" className="block">
             <Button variant="dark" fullWidth>
-              <Sparkles className="w-4 h-4" />
               Upgrade to Unlock
             </Button>
           </Link>
         ) : isCurrent ? (
-          <Button variant="outline" fullWidth disabled>
-            <Check className="w-4 h-4" />
-            Current Template
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Link href="/dashboard/templates/customize" className="block">
+              <Button variant="primary" fullWidth>
+                <Sliders className="w-4 h-4" />
+                Customize Sections & Colors
+              </Button>
+            </Link>
+          </div>
         ) : (
           <Button
             onClick={onSelect}
@@ -165,12 +168,47 @@ export default function TemplatesPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Top Customizer Banner */}
+      <div className="rounded-3xl p-6 sm:p-8 bg-dark text-white border border-primary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md">
+        <div className="flex flex-col gap-2 max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/30 text-primary-light text-xs font-bold border border-primary/50 self-start">
+            <Palette className="w-3.5 h-3.5" />
+            Visual Customizer & Drag-and-Drop
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Customize {store?.name || "Your Store"}
+          </h2>
+          <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+            Reorder layout blocks with drag and drop, customize headings and images, toggle sections on or off, and fine-tune your color scheme with instant live preview.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {store?.slug && (
+            <a
+              href={`/store/${store.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-neutral-700 bg-neutral-800 text-xs font-bold hover:bg-neutral-700 transition-colors"
+            >
+              View Live Store
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+          <Link href="/dashboard/templates/customize">
+            <Button variant="primary" className="py-2.5 shadow-md">
+              <Sliders className="w-4 h-4" />
+              Open Customizer
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Storefront Templates</h2>
+          <h2 className="text-xl font-bold tracking-tight">Browse Base Templates</h2>
           <p className="text-sm text-muted mt-1">
-            Your template shapes how buyers experience {store?.name ?? "your store"}.
-            Switch anytime — your products carry over.
+            Choose a starting template style for your catalog. You can customize every section afterwards.
           </p>
         </div>
         <Tabs
@@ -198,7 +236,10 @@ export default function TemplatesPage() {
               <TemplateCard
                 key={templateId || template.slug}
                 template={template}
-                isCurrent={Boolean(templateId && currentTemplateId === templateId)}
+                isCurrent={Boolean(
+                  (templateId && currentTemplateId === templateId) ||
+                    (!currentTemplateId && template.slug === "modern-minimalist")
+                )}
                 locked={!tierAccessible(template.tier, entitlements)}
                 selecting={setTemplate.isPending}
                 onSelect={() => handleSelect(template)}

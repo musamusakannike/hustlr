@@ -48,6 +48,8 @@ export interface IStore extends Document {
   referrerRewardAmount: number;
   refereeDiscountPercent: number;
   refereeDiscountMaxAmount?: number | null;
+  customSections?: Array<Record<string, unknown>>;
+  themeSettings?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -96,6 +98,8 @@ const storeSchema = new Schema<IStore>(
     referrerRewardAmount: { type: Number, default: 0 },
     refereeDiscountPercent: { type: Number, default: 0 },
     refereeDiscountMaxAmount: { type: Number, default: null },
+    customSections: { type: [Schema.Types.Mixed], default: [] },
+    themeSettings: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true },
 );

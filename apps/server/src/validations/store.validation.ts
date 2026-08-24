@@ -38,6 +38,8 @@ export const storeSetupSchema = Joi.object({
   referrerRewardAmount: Joi.number().min(0),
   refereeDiscountPercent: Joi.number().min(0).max(100),
   refereeDiscountMaxAmount: Joi.number().min(0).allow(null),
+  customSections: Joi.array().items(Joi.object().unknown()).allow(null),
+  themeSettings: Joi.object().unknown().allow(null),
 }).min(1);
 
 export const templateSelectSchema = Joi.object({

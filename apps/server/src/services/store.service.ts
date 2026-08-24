@@ -59,6 +59,8 @@ export async function setupStore(
     "referrerRewardAmount",
     "refereeDiscountPercent",
     "refereeDiscountMaxAmount",
+    "customSections",
+    "themeSettings",
   ] as const;
 
   for (const key of allowed) {
@@ -180,6 +182,8 @@ export async function publicStoreInfo(store: IStore) {
     currency: store.currency,
     currencySymbol: store.currencySymbol,
     templateId: store.templateId,
+    customSections: store.customSections || [],
+    themeSettings: store.themeSettings || {},
     url: `https://${store.slug}.${APP_DOMAIN}`,
     customDomain: store.customDomainVerified ? store.customDomain : null,
   };

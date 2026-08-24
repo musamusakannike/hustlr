@@ -41,6 +41,8 @@ export interface Store {
   returnPolicy: string;
   termsOfService: string;
   privacyPolicy: string;
+  customSections?: Array<Record<string, unknown>>;
+  themeSettings?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -66,6 +68,8 @@ export type StoreSetupInput = Partial<
     | "returnPolicy"
     | "termsOfService"
     | "privacyPolicy"
+    | "customSections"
+    | "themeSettings"
   >
 >;
 
