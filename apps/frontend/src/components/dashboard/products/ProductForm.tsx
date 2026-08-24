@@ -4,12 +4,14 @@ import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Star, Upload, X } from "lucide-react";
+import { ArrowLeft, Sparkles, Star, Upload, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { useCategories, useCreateProduct, useUpdateProduct, useUploadAsset, useProduct } from "@/hooks";
+import { aiService } from "@/services/commerce";
+import Modal from "@/components/ui/Modal";
 import { getErrorMessage, cn } from "@/lib/utils";
 import type { ProductInput } from "@/types/product";
 import VariantBuilder from "./VariantBuilder";
@@ -53,6 +55,9 @@ export default function ProductForm({ productId }: { productId?: string }) {
     isEdit ? null : "new"
   );
   const [tagsText, setTagsText] = useState("");
+  const [aiBusy, setAiBusy] = useState<"title" | "description" | "seo" | null>(null);
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
+  const [descPreview, setDescPreview] = useState<string | null>(null);
 
   // Hydrate form when the existing product loads (render-time derived reset).
   if (isEdit && existing && hydratedFor !== existing.id) {
@@ -174,20 +179,83 @@ export default function ProductForm({ productId }: { productId?: string }) {
           <Card>
             <h3 className="font-bold text-lg mb-4">Basics</h3>
             <div className="flex flex-col gap-4">
-              <Input
-                label="Product Title"
-                required
-                placeholder="e.g. Handmade Ankara Wrap Dress"
-                value={form.title}
-                onChange={(e) => patch({ title: e.target.value })}
-              />
-              <Textarea
-                label="Description"
-                rows={5}
-                placeholder="Describe the material, fit, care instructions…"
-                value={form.description}
-                onChange={(e) => patch({ description: e.target.value })}
-              />
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                    Product Title
+                  </span>
+                  <button
+                    type="button"
+                    disabled={!form.title.trim() || aiBusy !== null}
+                    onClick={async () => {
+                      setAiBusy("title");
+                      try {
+                        const res = await aiService.improveTitle({ title: form.title });
+                        const list = res.suggestions?.filter(Boolean) ?? (res.title ? [res.title] : []);
+                        if (list.length === 0) {
+                          toast("No suggestions yet. Try a more specific title.", "error");
+                        } else {
+                          setTitleSuggestions(list);
+                        }
+                      } catch (err) {
+                        toast(getErrorMessage(err), "error");
+                      } finally {
+                        setAiBusy(null);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {aiBusy === "title" ? "Writing…" : "Improve with AI"}
+                  </button>
+                </div>
+                <Input
+                  required
+                  placeholder="e.g. Handmade Ankara Wrap Dress"
+                  value={form.title}
+                  onChange={(e) => patch({ title: e.target.value })}
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                    Description
+                  </span>
+                  <button
+                    type="button"
+                    disabled={!form.description.trim() || aiBusy !== null}
+                    onClick={async () => {
+                      setAiBusy("description");
+                      try {
+                        const res = await aiService.rewriteDescription({
+                          title: form.title,
+                          description: form.description,
+                        });
+                        const next = res.description || res.text || "";
+                        if (!next) {
+                          toast("Couldn't rewrite that yet. Try again.", "error");
+                        } else {
+                          setDescPreview(next);
+                        }
+                      } catch (err) {
+                        toast(getErrorMessage(err), "error");
+                      } finally {
+                        setAiBusy(null);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {aiBusy === "description" ? "Writing…" : "Rewrite with AI"}
+                  </button>
+                </div>
+                <Textarea
+                  rows={5}
+                  placeholder="Describe the material, fit, care instructions…"
+                  value={form.description}
+                  onChange={(e) => patch({ description: e.target.value })}
+                />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                   label="Category"
@@ -443,6 +511,52 @@ export default function ProductForm({ productId }: { productId?: string }) {
           {isEdit ? "Save & Publish" : "Publish Product"}
         </Button>
       </div>
+
+      <Modal
+        isOpen={titleSuggestions.length > 0}
+        onClose={() => setTitleSuggestions([])}
+        title="Title suggestions"
+        description="Pick one to replace your current title."
+      >
+        <ul className="flex flex-col gap-2">
+          {titleSuggestions.map((suggestion) => (
+            <li key={suggestion}>
+              <button
+                type="button"
+                onClick={() => {
+                  patch({ title: suggestion });
+                  setTitleSuggestions([]);
+                }}
+                className="w-full text-left rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:border-primary hover:bg-primary-light/30"
+              >
+                {suggestion}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(descPreview)}
+        onClose={() => setDescPreview(null)}
+        title="Rewritten description"
+        description="Replace your current copy with this version?"
+      >
+        <p className="text-sm text-muted whitespace-pre-wrap mb-4">{descPreview}</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDescPreview(null)}>
+            Keep original
+          </Button>
+          <Button
+            onClick={() => {
+              if (descPreview) patch({ description: descPreview });
+              setDescPreview(null);
+            }}
+          >
+            Use this
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

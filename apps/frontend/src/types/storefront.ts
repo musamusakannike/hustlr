@@ -101,6 +101,8 @@ export interface DomainDns {
 export interface AiTextResult {
   title?: string;
   description?: string;
+  suggestions?: string[];
+  highlights?: string[];
   metaTitle?: string;
   metaDescription?: string;
   result?: string;

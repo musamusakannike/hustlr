@@ -11,6 +11,7 @@ import {
   Archive,
   CheckCircle2,
   Circle,
+  MoreVertical,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -26,7 +27,9 @@ import {
   useCategories,
   useBulkProductStatus,
   useArchiveProduct,
+  useSetProductStatus,
 } from "@/hooks";
+import Dropdown from "@/components/ui/Dropdown";
 import { usePlanEntitlements } from "@/hooks/useSubscription";
 import { formatNaira, getErrorMessage, cn } from "@/lib/utils";
 import type { Product, ProductStatus } from "@/types/product";
@@ -54,6 +57,7 @@ function ProductsTable() {
   });
   const bulkStatus = useBulkProductStatus();
   const archive = useArchiveProduct();
+  const setStatus = useSetProductStatus();
   const { entitlements } = usePlanEntitlements();
 
   const products = data?.items ?? [];
@@ -140,9 +144,9 @@ function ProductsTable() {
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
         <Tabs
           items={[
-            { id: "all", label: "All", count: undefined },
-            { id: "active", label: "Active" },
-            { id: "draft", label: "Drafts" },
+            { id: "all", label: "ALL" },
+            { id: "active", label: "Live" },
+            { id: "draft", label: "Draft" },
             { id: "archived", label: "Archived" },
           ]}
           activeId={status}
@@ -329,25 +333,74 @@ function ProductsTable() {
                       </Badge>
                     </TD>
                     <TD className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/dashboard/products/${product.id}/edit`}
-                          aria-label={`Edit ${product.title}`}
-                          className="p-2 text-muted hover:text-primary transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                        {product.status !== "archived" && (
+                      <Dropdown
+                        trigger={
                           <button
-                            onClick={() => handleArchive(product)}
-                            disabled={archive.isPending}
-                            aria-label={`Archive ${product.title}`}
-                            className="p-2 text-muted hover:text-danger transition-colors cursor-pointer disabled:opacity-50"
+                            aria-label={`Actions for ${product.title}`}
+                            className="p-2 text-muted hover:text-primary"
                           >
-                            <Archive className="w-4 h-4" />
+                            <MoreVertical className="w-4 h-4" />
                           </button>
-                        )}
-                      </div>
+                        }
+                        options={[
+                          {
+                            value: "edit",
+                            label: "Edit",
+                            icon: <Pencil className="w-4 h-4" />,
+                          },
+                          ...(product.status === "active"
+                            ? [
+                                {
+                                  value: "unpublish",
+                                  label: "Unpublish",
+                                },
+                              ]
+                            : product.status === "draft"
+                              ? [
+                                  {
+                                    value: "publish",
+                                    label: "Publish",
+                                  },
+                                ]
+                              : []),
+                          ...(product.status !== "archived"
+                            ? [
+                                {
+                                  value: "archive",
+                                  label: "Archive",
+                                  danger: true,
+                                  icon: <Archive className="w-4 h-4" />,
+                                },
+                              ]
+                            : []),
+                        ]}
+                        onSelect={(value) => {
+                          if (value === "edit") {
+                            router.push(`/dashboard/products/${product.id}/edit`);
+                          }
+                          if (value === "unpublish") {
+                            setStatus.mutate(
+                              { productId: product.id, status: "draft" },
+                              {
+                                onSuccess: () =>
+                                  toast(`"${product.title}" unpublished.`, "success"),
+                                onError: (err) => toast(getErrorMessage(err), "error"),
+                              }
+                            );
+                          }
+                          if (value === "publish") {
+                            setStatus.mutate(
+                              { productId: product.id, status: "active" },
+                              {
+                                onSuccess: () =>
+                                  toast(`"${product.title}" is live.`, "success"),
+                                onError: (err) => toast(getErrorMessage(err), "error"),
+                              }
+                            );
+                          }
+                          if (value === "archive") handleArchive(product);
+                        }}
+                      />
                     </TD>
                   </TR>
                 );
