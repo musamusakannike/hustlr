@@ -7,6 +7,9 @@ import Button from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { APP_NAME, SUPPORT_EMAIL } from "@/constants/app.constants";
+import { useSellerAuth } from "@/context/SellerAuthContext";
+import { ticketService } from "@/services/commerce";
+import { getErrorMessage } from "@/lib/utils";
 
 const TOPICS = [
   { value: "getting-started", label: "Getting started" },
@@ -18,7 +21,9 @@ const TOPICS = [
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const { isAuthenticated } = useSellerAuth();
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
   return (
     <div className="flex-1 flex flex-col font-space-grotesk">
@@ -97,10 +102,32 @@ export default function ContactPage() {
             </div>
           ) : (
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setSent(true);
-                toast("Message sent! We'll be in touch soon.", "success");
+                const fd = new FormData(e.currentTarget);
+                const topic = String(fd.get("topic") ?? "other");
+                const name = String(fd.get("name") ?? "");
+                const email = String(fd.get("email") ?? "");
+                const message = String(fd.get("message") ?? "");
+                const subject = `${TOPICS.find((t) => t.value === topic)?.label ?? topic} — ${name}`;
+                setSending(true);
+                try {
+                  if (isAuthenticated) {
+                    await ticketService.create({
+                      topic,
+                      subject,
+                      message,
+                    });
+                    setSent(true);
+                    toast("Ticket opened. We'll reply in your support inbox.", "success");
+                  } else {
+                    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${message}\n\nFrom: ${name} <${email}>`)}`;
+                  }
+                } catch (err) {
+                  toast(getErrorMessage(err), "error");
+                } finally {
+                  setSending(false);
+                }
               }}
               className="flex flex-col gap-4"
             >
@@ -129,7 +156,7 @@ export default function ContactPage() {
                 placeholder="Tell us what you need help with…"
               />
               <div className="flex justify-end">
-                <Button type="submit" size="lg">
+                <Button type="submit" size="lg" loading={sending}>
                   <Send className="w-4 h-4" />
                   Send Message
                 </Button>

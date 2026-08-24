@@ -7,9 +7,25 @@ import Button from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/Card";
 import { PRICING_PLANS, APP_NAME } from "@/constants/app.constants";
 import { formatNaira, cn } from "@/lib/utils";
+import { usePlans } from "@/hooks/useSubscription";
 
 export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
+  const { data: livePlans } = usePlans();
+  const plans =
+    livePlans && livePlans.length > 0
+      ? livePlans.map((p) => ({
+          name: p.name === "pro+" ? "Pro+" : p.name.charAt(0).toUpperCase() + p.name.slice(1),
+          slug: p.slug,
+          monthlyPrice: p.monthlyPrice,
+          yearlyPrice: p.yearlyPrice,
+          commissionPercent: `${p.commissionPercent}%`,
+          description:
+            PRICING_PLANS.find((c) => c.slug === p.slug)?.description ?? p.features[0] ?? "",
+          isPopular: p.name === "pro",
+          features: p.features,
+        }))
+      : PRICING_PLANS;
 
   return (
     <div className="flex-1 flex flex-col font-space-grotesk">
@@ -58,7 +74,7 @@ export default function PricingPage() {
       <section className="flex-1 bg-white py-12 md:py-16 px-6 sm:px-12 lg:px-16 xl:px-20">
         <div className="max-w-7xl mx-auto flex flex-col gap-10 lg:gap-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-          {PRICING_PLANS.map((plan) => {
+          {plans.map((plan) => {
             const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
             return (
               <div
