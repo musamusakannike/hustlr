@@ -126,6 +126,14 @@ export function useToggleCoupon() {
   });
 }
 
+export function useDeleteCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => couponService.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seller-coupons"] }),
+  });
+}
+
 export function useSellerReviews(query?: PaginatedQuery) {
   return useQuery({
     queryKey: ["seller-reviews", query],
