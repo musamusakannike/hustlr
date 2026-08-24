@@ -7,12 +7,12 @@ import { ClipLoader } from "react-spinners";
 import AuthLayout from "@/components/auth/AuthLayout";
 import OtpInput from "@/components/auth/OtpInput";
 import { authService } from "@/services/auth.service";
-import { useAuth } from "@/context/auth.context";
+import { useSellerAuth } from "@/context/SellerAuthContext";
 
 function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setUser } = useAuth();
+  const { setUser } = useSellerAuth();
 
   const emailParam = searchParams.get("email") || "";
   const targetEmail = emailParam.trim() || "merchant@hustlr.shop";

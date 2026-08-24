@@ -5,13 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Store,
-  Palette,
-  Package,
-  FolderTree,
-  ShieldCheck,
-  CreditCard,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -19,17 +12,11 @@ import {
 import { cn, initialsOf } from "@/lib/utils";
 import { useSellerAuth } from "@/context/SellerAuthContext";
 import { useStore } from "@/hooks/useStore";
+import { usePlanEntitlements } from "@/hooks/useSubscription";
 import { APP_NAME, APP_DOMAIN, LOGO_PATH } from "@/constants/app.constants";
+import { DASHBOARD_NAV_GROUPS, DASHBOARD_NAV, isNavActive } from "./nav";
 
-export const DASHBOARD_NAV = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/setup", label: "Store Setup", icon: Store },
-  { href: "/dashboard/templates", label: "Templates", icon: Palette },
-  { href: "/dashboard/products", label: "Products", icon: Package },
-  { href: "/dashboard/categories", label: "Categories", icon: FolderTree },
-  { href: "/dashboard/kyc", label: "KYC Verification", icon: ShieldCheck },
-  { href: "/dashboard/billing", label: "Billing & Plan", icon: CreditCard },
-];
+export { DASHBOARD_NAV };
 
 function NavLinks({
   collapsed,
@@ -40,30 +27,47 @@ function NavLinks({
 }) {
   const pathname = usePathname();
   const { data: store } = useStore();
+  const { entitlements } = usePlanEntitlements();
 
   return (
-    <nav className="flex flex-col gap-1 px-3">
-      {DASHBOARD_NAV.map((item) => {
-        const isActive =
-          item.href === "/dashboard"
-            ? pathname === "/dashboard"
-            : pathname.startsWith(item.href);
+    <nav className="flex flex-col gap-4 px-3">
+      {DASHBOARD_NAV_GROUPS.map((group) => {
+        const items = group.items.filter((item) => {
+          if (item.entitlement === "allowBlog") return entitlements.allowBlog;
+          if (item.entitlement === "allowCustomDomain") return entitlements.allowCustomDomain;
+          return true;
+        });
+        if (items.length === 0) return null;
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            title={collapsed ? item.label : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
-              isActive
-                ? "bg-primary text-white shadow-sm"
-                : "text-neutral-600 hover:text-text hover:bg-black/5"
+          <div key={group.id}>
+            {!collapsed && (
+              <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted">
+                {group.label}
+              </p>
             )}
-          >
-            <item.icon className="w-5 h-5 shrink-0" />
-            {!collapsed && <span>{item.label}</span>}
-          </Link>
+            <div className="flex flex-col gap-0.5">
+              {items.map((item) => {
+                const isActive = isNavActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onNavigate}
+                    title={collapsed ? item.label : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+                      isActive
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-neutral-600 hover:text-text hover:bg-black/5"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5 shrink-0" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         );
       })}
 

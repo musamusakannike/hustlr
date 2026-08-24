@@ -51,7 +51,7 @@ export function useGoogleAuth() {
   const { setUser } = useSellerAuth();
   const router = useRouter();
   return useMutation({
-    mutationFn: () => authService.google({ idToken: "mock-google-id-token" }),
+    mutationFn: (idToken: string) => authService.google({ idToken }),
     onSuccess: ({ user }) => {
       setUser(user);
       router.replace("/dashboard");

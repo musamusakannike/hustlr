@@ -1,127 +1,52 @@
-import { apiClient } from "./api.client";
+import { getTransport } from "@/lib/transport";
+import type { Bank, BankDetails, Kyc, KycStatus, VerificationType } from "@/types/kyc";
 
-export type KycStatus =
-  | "draft"
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "info_requested"
-  | null;
+const transport = getTransport();
 
-export type VerificationType =
-  | "NIN"
-  | "Driver's License"
-  | "International Passport"
-  | "Voter's Card";
-
-export interface IBankDetails {
-  bankName: string;
-  bankCode: string;
-  accountNumber: string;
-  accountName: string;
-}
-
-export interface Bank {
-  name: string;
-  code: string;
-  slug?: string;
-}
-
-export interface IKyc {
-  _id?: string;
-  sellerId?: string;
-  status: KycStatus;
-  firstName?: string;
-  lastName?: string;
-  otherName?: string;
-  verificationType?: VerificationType;
-  documentId?: string;
-  idDocumentUrl?: string;
-  selfieUrl?: string;
-  address?: string;
-  proofOfAddressUrl?: string;
-  businessRegistrationUrl?: string;
-  bankDetails?: IBankDetails;
-  reviewerNote?: string;
-  requestedFiles?: string[];
-  submittedAt?: string | null;
-  reviewedAt?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-}
+export type { Bank, VerificationType };
+export type { KycStatus };
+export type IBankDetails = BankDetails;
+export type IKyc = Kyc;
 
 export const kycService = {
-  /**
-   * Fetch current seller's KYC application
-   */
   async getMyKyc(): Promise<IKyc | null> {
     try {
-      const res = await apiClient.get<ApiResponse<IKyc | null>>("/seller/kyc");
-      return res.data.data;
+      return await transport.getMyKyc();
     } catch {
       return null;
     }
   },
 
-  /**
-   * Save or update draft KYC fields
-   */
-  async upsertKyc(payload: Partial<IKyc>): Promise<IKyc> {
-    const res = await apiClient.put<ApiResponse<IKyc>>("/seller/kyc", payload);
-    return res.data.data;
+  upsertKyc(payload: Partial<IKyc>): Promise<IKyc> {
+    return transport.upsertKyc(payload);
   },
 
-  /**
-   * Submit the completed KYC application for admin review
-   */
-  async submitKyc(): Promise<IKyc> {
-    const res = await apiClient.post<ApiResponse<IKyc>>("/seller/kyc/submit");
-    return res.data.data;
+  submitKyc(): Promise<IKyc> {
+    return transport.submitKyc();
   },
 
-  /**
-   * Upload an image/document file to Cloudflare R2 through backend
-   */
   async uploadKycFile(
     file: File | Blob,
-    kind: "idDocument" | "selfie" | "proofOfAddress" | "businessRegistration" | "document" = "document"
+    _kind:
+      | "idDocument"
+      | "selfie"
+      | "proofOfAddress"
+      | "businessRegistration"
+      | "document" = "document"
   ): Promise<string> {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await apiClient.post<ApiResponse<{ url: string }>>(
-      `/seller/kyc/upload?kind=${encodeURIComponent(kind)}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    return res.data.data.url;
+    const asFile =
+      file instanceof File ? file : new File([file], "upload.jpg", { type: file.type || "image/jpeg" });
+    const res = await transport.uploadAsset({ kind: "kyc-document", file: asFile });
+    return res.url;
   },
 
-  /**
-   * List African / Nigerian banks for payout configuration
-   */
   async getBanks(): Promise<Bank[]> {
     try {
-      const res = await apiClient.get<ApiResponse<Bank[]>>("/paystack-banks");
-      if (Array.isArray(res.data.data) && res.data.data.length > 0) {
-        return res.data.data;
-      }
+      const banks = await transport.listBanks();
+      if (Array.isArray(banks) && banks.length > 0) return banks;
     } catch {
-      // fallback if API is unreachable
+      // fall through
     }
-
-    // Default Nigerian banks fallback
     return [
       { name: "Access Bank", code: "044" },
       { name: "First Bank of Nigeria", code: "011" },
@@ -131,12 +56,6 @@ export const kycService = {
       { name: "Palmpay", code: "999991" },
       { name: "United Bank for Africa (UBA)", code: "033" },
       { name: "Zenith Bank", code: "057" },
-      { name: "Fidelity Bank", code: "070" },
-      { name: "Stanbic IBTC Bank", code: "221" },
-      { name: "Sterling Bank", code: "232" },
-      { name: "Union Bank of Nigeria", code: "032" },
-      { name: "Wema Bank", code: "035" },
-      { name: "Moniepoint MFB", code: "50515" },
     ];
   },
 };

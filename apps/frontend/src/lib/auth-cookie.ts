@@ -1,4 +1,5 @@
 export const SELLER_SESSION_COOKIE = "hustlr_session";
+export const BUYER_SESSION_COOKIE = "hustlr_buyer_session";
 
 /**
  * Sets the seller session cookie on the client so that the Next.js Edge proxy
@@ -29,4 +30,17 @@ export function getAuthCookie(): string | null {
     .split("; ")
     .find((row) => row.startsWith(`${SELLER_SESSION_COOKIE}=`));
   return match ? decodeURIComponent(match.split("=")[1]) : null;
+}
+
+export function setBuyerAuthCookie(token: string): void {
+  if (typeof document === "undefined" || !token) return;
+  const maxAge = 7 * 24 * 60 * 60;
+  document.cookie = `${BUYER_SESSION_COOKIE}=${encodeURIComponent(
+    token
+  )}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+export function clearBuyerAuthCookie(): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${BUYER_SESSION_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
 }

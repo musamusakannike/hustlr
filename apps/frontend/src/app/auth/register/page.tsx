@@ -8,12 +8,12 @@ import { FcGoogle } from "react-icons/fc";
 import { ClipLoader } from "react-spinners";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { authService } from "@/services/auth.service";
-import { useAuth } from "@/context/auth.context";
+import { useSellerAuth } from "@/context/SellerAuthContext";
 import { getGoogleIdToken } from "@/services/firebase.client";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { setUser } = useSellerAuth();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SellerAuthProvider } from "@/context/SellerAuthContext";
-import { AuthProvider } from "@/context/auth.context";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -33,9 +32,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AuthProvider>
-          <SellerAuthProvider>{children}</SellerAuthProvider>
-        </AuthProvider>
+        <SellerAuthProvider>{children}</SellerAuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

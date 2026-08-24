@@ -17,7 +17,7 @@ import StepSuccessReview from "@/components/onboarding/steps/StepSuccessReview";
 import { CountryItem, SUPPORTED_COUNTRIES } from "@/components/onboarding/CountryPickerModal";
 import { kycService, VerificationType, IBankDetails } from "@/services/kyc.service";
 import { storeService } from "@/services/store.service";
-import { useAuth } from "@/context/auth.context";
+import { useSellerAuth } from "@/context/SellerAuthContext";
 
 const DRAFT_STORAGE_KEY = "hustlr_kyc_draft";
 
@@ -33,7 +33,7 @@ const STEPS: StepMilestone[] = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useSellerAuth();
 
   // Loading and flow state
   const [initialLoading, setInitialLoading] = useState(true);

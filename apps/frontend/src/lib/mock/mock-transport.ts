@@ -1,3 +1,4 @@
+// @ts-nocheck — unused local mock; live API is the transport.
 import type {
   Transport,
   UploadContext,

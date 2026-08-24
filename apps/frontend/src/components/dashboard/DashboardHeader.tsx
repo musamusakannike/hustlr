@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, LogOut, ExternalLink, Bell } from "lucide-react";
 import Dropdown from "@/components/ui/Dropdown";
@@ -8,8 +9,9 @@ import { Badge } from "@/components/ui/Badge";
 import { useSellerAuth } from "@/context/SellerAuthContext";
 import { useLogout } from "@/hooks/useAuth";
 import { useStore } from "@/hooks/useStore";
-import { initialsOf } from "@/lib/utils";
-import { DASHBOARD_NAV } from "./DashboardSidebar";
+import { initialsOf, storePublicUrl } from "@/lib/utils";
+import { currentNavItem } from "./nav";
+import { useUnreadCount } from "@/hooks/useCommerce";
 
 export default function DashboardHeader({
   onOpenMobileNav,
@@ -20,12 +22,10 @@ export default function DashboardHeader({
   const { user } = useSellerAuth();
   const logout = useLogout();
   const { data: store } = useStore();
+  const { data: unread } = useUnreadCount();
+  const unreadCount = unread?.count ?? 0;
 
-  const current =
-    DASHBOARD_NAV.find(
-      (item) =>
-        item.href !== "/dashboard" && pathname.startsWith(item.href)
-    ) ?? DASHBOARD_NAV[0];
+  const current = currentNavItem(pathname);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-border font-space-grotesk flex items-center justify-between px-4 sm:px-6 gap-3">
@@ -49,13 +49,16 @@ export default function DashboardHeader({
           </Badge>
         )}
 
-        <button
+        <Link
+          href="/dashboard/notifications"
           aria-label="Notifications"
-          className="relative p-2 text-neutral-500 hover:text-primary transition-colors cursor-pointer"
+          className="relative p-2 text-neutral-500 hover:text-primary transition-colors"
         >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
+          )}
+        </Link>
 
         <Dropdown
           trigger={
@@ -80,11 +83,8 @@ export default function DashboardHeader({
           ]}
           onSelect={(value) => {
             if (value === "logout") logout.mutate();
-            if (value === "store" && store) {
-              window.open(
-                `/store/${store.slug}`,
-                "_blank"
-              );
+            if (value === "store" && store?.slug) {
+              window.open(storePublicUrl(store.slug), "_blank");
             }
           }}
         />

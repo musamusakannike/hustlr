@@ -10,6 +10,8 @@ export const productService = {
   setStatus: transport.setProductStatus.bind(transport),
   bulkStatus: transport.bulkProductStatus.bind(transport),
   archive: transport.archiveProduct.bind(transport),
+  uploadImages: transport.uploadProductImages.bind(transport),
+  deleteImage: transport.deleteProductImage.bind(transport),
 };
 
 export const categoryService = {

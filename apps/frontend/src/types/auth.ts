@@ -33,6 +33,7 @@ export interface VerifyOtpInput {
 
 export interface GoogleAuthInput {
   idToken: string;
+  referralCode?: string;
 }
 
 export interface ForgotPasswordInput {
@@ -54,4 +55,5 @@ export interface RegisterPendingResponse {
 
 export interface AuthResponse {
   user: User;
+  token?: string;
 }

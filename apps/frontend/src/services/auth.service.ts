@@ -1,20 +1,13 @@
-import { apiClient } from "./api.client";
-import { setAuthCookie, clearAuthCookie } from "@/lib/auth-cookie";
+import { getTransport } from "@/lib/transport";
+import { setAuthCookie } from "@/lib/auth-cookie";
+import type { User } from "@/types/auth";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "seller" | "buyer" | "admin";
-  isVerified?: boolean;
-  avatar?: string;
-  referralCode?: string;
-  storeId?: string;
-  createdAt?: string;
-}
+const transport = getTransport();
+
+export type { User };
 
 export interface AuthResponse {
-  token: string;
+  token?: string;
   user: User;
 }
 
@@ -25,132 +18,62 @@ export interface RegisterResponse {
   storeId?: string;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-}
-
 export const authService = {
-  // --- Seller Authentication ---
   async registerSeller(input: {
     name: string;
     email: string;
     password: string;
     referralCode?: string;
   }): Promise<RegisterResponse> {
-    const res = await apiClient.post<ApiResponse<RegisterResponse>>(
-      "/auth/seller/register",
-      input
-    );
-    return res.data.data;
+    const res = await transport.registerSeller(input);
+    return { ...res, requiresOtp: true };
   },
 
   async verifySellerOtp(email: string, otp: string): Promise<AuthResponse> {
-    const res = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/seller/verify-otp",
-      { email, otp }
-    );
-    if (res.data.data.token && typeof window !== "undefined") {
-      localStorage.setItem("hustlr_token", res.data.data.token);
-      localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
-      setAuthCookie(res.data.data.token);
-    }
-    return res.data.data;
+    return transport.verifySellerOtp({ email, otp });
   },
 
   async resendSellerOtp(email: string): Promise<{ email: string }> {
-    const res = await apiClient.post<ApiResponse<{ email: string }>>(
-      "/auth/seller/resend-otp",
-      { email }
-    );
-    return res.data.data;
+    const res = await transport.resendSellerOtp(email);
+    return { email: res.email };
   },
 
   async loginSeller(email: string, password: string): Promise<AuthResponse> {
-    const res = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/seller/login",
-      { email, password }
-    );
-    if (res.data.data.token && typeof window !== "undefined") {
-      localStorage.setItem("hustlr_token", res.data.data.token);
-      localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
-      setAuthCookie(res.data.data.token);
-    }
-    return res.data.data;
+    return transport.loginSeller({ email, password });
   },
 
-  async googleSeller(
-    idToken: string,
-    referralCode?: string
-  ): Promise<AuthResponse> {
-    const res = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/seller/google",
-      { idToken, referralCode }
-    );
-    if (res.data.data.token && typeof window !== "undefined") {
-      localStorage.setItem("hustlr_token", res.data.data.token);
-      localStorage.setItem("hustlr_user", JSON.stringify(res.data.data.user));
-      setAuthCookie(res.data.data.token);
-    }
-    return res.data.data;
+  async googleSeller(idToken: string, referralCode?: string): Promise<AuthResponse> {
+    return transport.googleSeller({ idToken, referralCode });
   },
 
-  async forgotSellerPassword(email: string): Promise<{ email: string }> {
-    const res = await apiClient.post<ApiResponse<{ email: string }>>(
-      "/auth/seller/forgot-password",
-      { email }
-    );
-    return res.data.data;
+  async forgotSellerPassword(email: string): Promise<{ message: string }> {
+    return transport.forgotSellerPassword({ email });
   },
 
   async resetSellerPassword(
     email: string,
     otp: string,
-    password: string
-  ): Promise<{ email: string }> {
-    const res = await apiClient.post<ApiResponse<{ email: string }>>(
-      "/auth/seller/reset-password",
-      { email, otp, password }
-    );
-    return res.data.data;
+    newPassword: string
+  ): Promise<{ message: string }> {
+    return transport.resetSellerPassword({ email, otp, newPassword });
   },
 
-  async logoutSeller(): Promise<void> {
-    try {
-      await apiClient.post("/auth/seller/logout");
-    } finally {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("hustlr_token");
-        localStorage.removeItem("hustlr_user");
-        clearAuthCookie();
-      }
-    }
+  async logoutSeller(): Promise<{ message: string }> {
+    return transport.logoutSeller();
   },
 
-  async getSellerMe(): Promise<User> {
-    const res = await apiClient.get<ApiResponse<User>>("/auth/seller/me");
-    return res.data.data;
-  },
-
-  /**
-   * Evaluates seller onboarding and KYC status to determine post-auth destination
-   */
   async getPostAuthRedirect(): Promise<string> {
     try {
-      const [kycRes, storeRes] = await Promise.allSettled([
-        apiClient.get<ApiResponse<any>>("/seller/kyc"),
-        apiClient.get<ApiResponse<any>>("/seller/store"),
-      ]);
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("hustlr_token") || localStorage.getItem("token")
+          : null;
+      if (token) setAuthCookie(token);
 
-      const kyc =
-        kycRes.status === "fulfilled" && kycRes.value?.data?.data
-          ? kycRes.value.data.data
-          : null;
-      const store =
-        storeRes.status === "fulfilled" && storeRes.value?.data?.data
-          ? storeRes.value.data.data
-          : null;
+      const [kyc, store] = await Promise.all([
+        transport.getMyKyc().catch(() => null),
+        transport.getStore().catch(() => null),
+      ]);
 
       const isKycSubmittedOrApproved =
         Boolean(kyc) &&
@@ -167,11 +90,9 @@ export const authService = {
       if (isKycSubmittedOrApproved && isStoreConfigured) {
         return "/dashboard";
       }
-
       return "/onboarding";
     } catch {
       return "/onboarding";
     }
   },
 };
-
