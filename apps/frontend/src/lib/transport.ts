@@ -229,6 +229,7 @@ export interface Transport {
   getWishlist(slug: string): Promise<StorefrontProduct[]>;
   clearWishlist(slug: string): Promise<{ message?: string }>;
   buyerDisputes(slug: string): Promise<Paginated<Dispute> | Dispute[]>;
+  buyerReferrals(slug: string): Promise<ReferralSummary>;
 }
 
 export type { ApiEnvelope };

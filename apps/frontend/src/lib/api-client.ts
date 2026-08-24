@@ -680,4 +680,7 @@ export class ApiTransport implements Transport {
     }
     return mapList(raw as Dispute[]);
   }
+  buyerReferrals(slug: string) {
+    return get<ReferralSummary>("/referrals", sf(slug));
+  }
 }

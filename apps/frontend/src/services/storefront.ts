@@ -56,3 +56,7 @@ export const wishlistService = {
   list: t.getWishlist.bind(t),
   clear: t.clearWishlist.bind(t),
 };
+
+export const buyerReferralService = {
+  get: t.buyerReferrals.bind(t),
+};
