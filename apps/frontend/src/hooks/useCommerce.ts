@@ -45,9 +45,31 @@ export function useOrder(orderId: string) {
 
 export function useShipOrder() {
   const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["seller-orders"] });
+    qc.invalidateQueries({ queryKey: ["seller-order"] });
+    qc.invalidateQueries({ queryKey: ["seller-order-stats"] });
+  };
   return useMutation({
     mutationFn: ({ orderId, input }: { orderId: string; input: ShipOrderInput }) =>
       orderService.ship(orderId, input),
+    onSuccess: invalidate,
+  });
+}
+
+export function useAdvanceOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      action,
+    }: {
+      orderId: string;
+      action: "inTransit" | "delivered";
+    }) =>
+      action === "inTransit"
+        ? orderService.inTransit(orderId)
+        : orderService.delivered(orderId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["seller-orders"] });
       qc.invalidateQueries({ queryKey: ["seller-order"] });
