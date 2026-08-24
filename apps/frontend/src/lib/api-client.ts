@@ -255,7 +255,33 @@ export class ApiTransport implements Transport {
   }
 
   async getMyKyc() {
-    return mapDoc(await get<Kyc>("/kyc"));
+    try {
+      return mapDoc(await get<Kyc>("/kyc"));
+    } catch (err) {
+      if (err instanceof TransportError && err.status === 404) {
+        return {
+          id: "",
+          sellerId: "",
+          status: "draft",
+          firstName: "",
+          lastName: "",
+          otherName: "",
+          documentId: "",
+          idDocumentUrl: "",
+          selfieUrl: "",
+          address: "",
+          proofOfAddressUrl: "",
+          businessRegistrationUrl: "",
+          reviewerNote: "",
+          requestedFiles: [],
+          submittedAt: null,
+          reviewedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        } as Kyc;
+      }
+      throw err;
+    }
   }
   async upsertKyc(input: KycInput) {
     return mapDoc(await send<Kyc>("PUT", "/kyc", input));
