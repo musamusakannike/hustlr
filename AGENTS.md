@@ -52,9 +52,9 @@ Before modifying any files:
 ## 3. During Development
 
 * **Directory Boundaries**:
-  * **Frontend developers / agents**: Focus work inside `frontend/`.
-  * **Backend developers / agents**: Focus work inside `server/`.
-  * **Shared specifications**: Keep `architecture.md`, `prd.md`, `tasks.md`, and `handoff.md` updated as shared single sources of truth.
+  * **Frontend developers / agents**: Focus work inside `apps/frontend/`.
+  * **Admin frontend developers / agents**: Focus work inside `apps/admin/`.
+  * **Backend developers / agents**: Focus work inside `apps/server/`.
 * **Keep commits focused**: Group changes logically and write clear semantic commit messages (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
 * **Never copy-paste code files between branches**: Use proper Git merges/PRs from `main` to maintain commit history and avoid 3-way merge conflicts.
 
@@ -93,7 +93,7 @@ When work on a contributor branch is complete and ready for integration:
    ```bash
    git merge <contributor-branch> -m "feat: merge <contributor-branch> into main"
    ```
-4. Verify tests / build across both `frontend/` and `server/`.
+4. Verify tests / build across `apps/frontend/`, `apps/admin/`, and `apps/server/`.
 5. Push to `origin/main`:
    ```bash
    git push origin main
@@ -129,3 +129,28 @@ If a merge conflict occurs:
   ```bash
   git branch --show-current && git status && git fetch origin
   ```
+
+---
+
+## 8. Design & UI Guidelines
+
+### 8.1 Color Usage — Use `globals.css` Tokens Only
+
+* **Always use semantic color tokens defined in `globals.css` (`@theme { --color-* }`) via Tailwind utilities** — e.g. `bg-primary`, `text-primary`, `border-primary`, `bg-primary-light`, `text-muted`, `bg-bg-soft`, `border-border`, `bg-success`, `text-danger`, etc.
+* **Never hardcode hex colors** (e.g. `#800A1D`, `#FFFFFF`, `#0A0E11`, `#E5E7EB`) or `rgb()`/`hsl()` literals in components, inline styles, or CSS. If a needed token does not exist, add it to `apps/frontend/src/app/globals.css` and/or `apps/admin/src/app/globals.css` in `@theme` first, then reference it with the `-primary` / `-<token>` format.
+* **Reference locations:**
+  * Frontend: `apps/frontend/src/app/globals.css`
+  * Admin: `apps/admin/src/app/globals.css`
+* **Available tokens include (non-exhaustive):** `primary`, `primary-hover`, `primary-light`, `primary-bg`, `text`, `muted`, `subtle`, `bg`, `bg-soft`, `light`, `black`, `dark`, `dark-secondary`, `border`, `success`, `success-light`, `warning`, `warning-light`, `danger`, `danger-light`, `info`, `info-light`, `neutral-status`, `neutral-status-light`.
+
+### 8.2 No Emojis or Sparkle Icons
+
+* **Emojis and sparkle/decorative icons (e.g. ✨, 🎉, 🌟, 💫, ⭐, ✨) are not allowed** in code, UI copy, components, comments, or documentation. Use proper icon libraries (`lucide-react`, `react-icons`) or typographic elements instead.
+* This applies to all apps (`apps/frontend`, `apps/admin`, `apps/server`) — keep the UI professional and consistent.
+
+### 8.3 Simplicity & Information Density — Keep It Intuitively Usable
+
+* **Aim for simple, uncluttered, uncongested design that needs no explanation.** Any user should understand how to use a page without a walkthrough or tooltip tour. If a page needs explaining, simplify it.
+* **Do not overload a single page with too much information at once.** Prefer focus: one primary purpose per view, clear hierarchy, generous whitespace, and progressive disclosure.
+* **Split dense content across separate pages/flows when needed.** If information or actions compete for attention, separate them into dedicated pages or stepped flows (e.g. list → detail, tabs, wizard steps) rather than cramming everything into one view.
+* **Default to fewer elements, clearer labels, and obvious affordances** over dense dashboards, stacked cards, or long walls of controls. Optimize for scanability and self-evidence, not for showing everything at once.
