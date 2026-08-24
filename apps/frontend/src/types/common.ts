@@ -39,7 +39,7 @@ export function fromPaged<T>(raw: {
   const meta = raw.meta ?? {};
   const items = raw.items ?? [];
   const page = meta.page ?? raw.page ?? 1;
-  const limit = meta.limit ?? raw.limit ?? items.length || 20;
+  const limit = meta.limit ?? raw.limit ?? (items.length || 20);
   const total = meta.total ?? raw.total ?? items.length;
   const totalPages = meta.totalPages ?? raw.totalPages ?? Math.max(1, Math.ceil(total / (limit || 1)));
   return { items, page, limit, total, totalPages };

@@ -75,17 +75,19 @@ export const authService = {
         transport.getStore().catch(() => null),
       ]);
 
-      const isKycSubmittedOrApproved =
-        Boolean(kyc) &&
-        (kyc.status === "approved" ||
-          kyc.status === "pending" ||
-          Boolean(kyc.submittedAt));
+      const isKycSubmittedOrApproved = Boolean(
+        kyc &&
+          (kyc.status === "approved" ||
+            kyc.status === "pending" ||
+            Boolean(kyc.submittedAt))
+      );
 
-      const isStoreConfigured =
-        Boolean(store) &&
-        typeof store.name === "string" &&
-        store.name.trim().length > 0 &&
-        store.name.trim().toLowerCase() !== "my store";
+      const isStoreConfigured = Boolean(
+        store &&
+          typeof store.name === "string" &&
+          store.name.trim().length > 0 &&
+          store.name.trim().toLowerCase() !== "my store"
+      );
 
       if (isKycSubmittedOrApproved && isStoreConfigured) {
         return "/dashboard";
