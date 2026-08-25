@@ -38,7 +38,7 @@ export default function MarketingHeader() {
   }, []);
 
   return (
-    <header className="relative w-full font-space-grotesk overflow-hidden bg-bg-soft">
+    <header className="relative w-full shrink-0 font-space-grotesk bg-bg-soft">
       <div className="w-full flex flex-col items-center px-6 sm:px-10 lg:px-16 pt-4 sm:pt-5 pb-6 sm:pb-8 border-b border-black/5">
         {/* Centered Logo */}
         <Link href="/" className="group flex flex-col items-center">
@@ -49,6 +49,7 @@ export default function MarketingHeader() {
               width={180}
               height={120}
               className="w-auto h-12 sm:h-14 object-contain"
+              style={{ width: "auto" }}
               priority
             />
           </div>
