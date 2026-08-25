@@ -30,6 +30,7 @@ router.put("/store/setup", protectSeller, validate(storeSetupSchema), store.setu
 router.get("/store", protectSeller, store.getStore);
 router.put("/store/template", protectSeller, validate(templateSelectSchema), store.setTemplate);
 router.get("/templates", protectSeller, store.listTemplates);
+router.get("/template-sections", protectSeller, store.listTemplateSections);
 
 router.get("/kyc", protectSeller, kyc.getMyKyc);
 router.put("/kyc", protectSeller, validate(kycUpdateSchema), kyc.upsertKyc);

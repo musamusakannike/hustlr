@@ -22,6 +22,7 @@ export default function ProductRailSection({
 }: ProductRailSectionProps) {
   const limit = data.limit || 8;
   const displayProducts = products.slice(0, limit);
+  const cardVariant = info.themeSettings?.productCardVariant || "minimal";
 
   if (displayProducts.length === 0) return null;
 
@@ -69,6 +70,7 @@ export default function ProductRailSection({
             slug={info.slug}
             product={product}
             onWish={onWish}
+            variant={cardVariant}
           />
         ))}
       </div>

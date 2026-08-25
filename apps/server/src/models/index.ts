@@ -2,6 +2,7 @@ export { User } from "./user.model";
 export { BuyerProfile } from "./buyer-profile.model";
 export { Store } from "./store.model";
 export { WebsiteTemplate } from "./website-template.model";
+export { TemplateSection } from "./template-section.model";
 export { Kyc } from "./kyc.model";
 export { SubscriptionPlan } from "./subscription-plan.model";
 export { Subscription } from "./subscription.model";

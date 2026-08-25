@@ -50,6 +50,12 @@ router.put("/templates/:templateId", admin.updateTemplate);
 router.patch("/templates/:templateId/deactivate", admin.deactivateTemplate);
 router.delete("/templates/:templateId", admin.deleteTemplate);
 
+router.get("/template-sections", admin.listTemplateSections);
+router.post("/template-sections", auditRequest("template_section_create", "templates"), admin.createTemplateSection);
+router.post("/template-sections/preview", admin.previewTemplateSection);
+router.put("/template-sections/:sectionId", admin.updateTemplateSection);
+router.delete("/template-sections/:sectionId", admin.deleteTemplateSection);
+
 router.get("/categories", admin.listCategories);
 router.post("/categories", admin.createCategory);
 router.put("/categories/:categoryId", admin.updateCategory);

@@ -1,7 +1,10 @@
 import type { ColorScheme, SocialLinks } from "./store";
+import type { HtmlFieldSchema } from "@/lib/html-section";
+import type { StoreThemeSettings } from "@/lib/storefront-theme";
 
 export type StorefrontSectionType =
   | "hero"
+  | "hero-slider"
   | "stats"
   | "features"
   | "how-it-works"
@@ -12,7 +15,12 @@ export type StorefrontSectionType =
   | "categories"
   | "testimonials"
   | "cta-banner"
-  | "newsletter";
+  | "newsletter"
+  | "banner-grid"
+  | "icon-boxes"
+  | "brands"
+  | "lookbook-grid"
+  | "html-block";
 
 export interface HeroSectionData {
   badge?: string;
@@ -131,21 +139,88 @@ export interface NewsletterSectionData {
   buttonText?: string;
 }
 
+export interface HeroSlide {
+  id?: string;
+  badge?: string;
+  heading: string;
+  subheading?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  image?: string;
+}
+
+export interface HeroSliderSectionData {
+  slides: HeroSlide[];
+  autoplay?: boolean;
+}
+
+export interface BannerGridItem {
+  id?: string;
+  image?: string;
+  title: string;
+  subtitle?: string;
+  link?: string;
+}
+
+export interface BannerGridSectionData {
+  columns?: 2 | 3 | 4;
+  items: BannerGridItem[];
+}
+
+export interface IconBoxItem {
+  id?: string;
+  icon?: string;
+  title: string;
+  description?: string;
+}
+
+export interface IconBoxesSectionData {
+  items: IconBoxItem[];
+}
+
+export interface BrandItem {
+  id?: string;
+  name: string;
+  image?: string;
+}
+
+export interface BrandsSectionData {
+  heading?: string;
+  items: BrandItem[];
+}
+
+export interface LookbookItem {
+  id?: string;
+  image?: string;
+  title?: string;
+  link?: string;
+}
+
+export interface LookbookGridSectionData {
+  badge?: string;
+  heading?: string;
+  items: LookbookItem[];
+}
+
+export interface HtmlBlockSectionData {
+  html?: string;
+  css?: string;
+  fieldSchema?: HtmlFieldSchema[];
+  libraryKey?: string;
+  [key: string]: unknown;
+}
+
 export interface StorefrontSection<T = any> {
   id: string;
   type: StorefrontSectionType;
   name: string;
+  variant?: string;
   isEnabled: boolean;
   order: number;
   data: T;
 }
 
-export interface StorefrontThemeSettings {
-  palettePreset?: string;
-  heroLayout?: "split" | "centered" | "editorial";
-  cardRadius?: string;
-  showCategoryPills?: boolean;
-}
+export type StorefrontThemeSettings = StoreThemeSettings;
 
 export interface StorefrontInfo {
   name: string;

@@ -666,6 +666,207 @@ export function TestimonialsEditor({ section, onChange }: SectionEditorProps) {
   );
 }
 
+function ImageField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const upload = useUploadAsset();
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div>
+      <label className="font-semibold text-neutral-700 block mb-1">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 px-3 py-2 rounded-xl border border-border text-xs"
+        />
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="px-3 py-2 rounded-xl bg-neutral-100 border border-border text-xs font-semibold"
+        >
+          <Upload className="w-3.5 h-3.5" />
+        </button>
+        <input
+          ref={ref}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const res = await upload.mutateAsync({ kind: "store-banner", file });
+            onChange(res.url);
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function HeroSliderEditor({ section, onChange }: SectionEditorProps) {
+  const slides = section.data?.slides || [];
+  const update = (idx: number, patch: Record<string, string>) => {
+    onChange({
+      ...section.data,
+      slides: slides.map((s: Record<string, string>, i: number) => (i === idx ? { ...s, ...patch } : s)),
+    });
+  };
+  return (
+    <div className="flex flex-col gap-4 text-xs">
+      <label className="flex items-center gap-2 font-semibold">
+        <input
+          type="checkbox"
+          checked={Boolean(section.data?.autoplay)}
+          onChange={(e) => onChange({ ...section.data, autoplay: e.target.checked })}
+        />
+        Autoplay slides
+      </label>
+      {slides.map((slide: Record<string, string>, idx: number) => (
+        <div key={slide.id || idx} className="p-3 rounded-xl border border-border flex flex-col gap-2">
+          <input
+            className="px-3 py-2 rounded-xl border border-border font-bold"
+            value={slide.heading || ""}
+            placeholder="Slide heading"
+            onChange={(e) => update(idx, { heading: e.target.value })}
+          />
+          <textarea
+            className="px-3 py-2 rounded-xl border border-border"
+            rows={2}
+            value={slide.subheading || ""}
+            onChange={(e) => update(idx, { subheading: e.target.value })}
+          />
+          <ImageField label="Slide image" value={slide.image || ""} onChange={(url) => update(idx, { image: url })} />
+          <button
+            type="button"
+            className="text-danger text-left"
+            onClick={() =>
+              onChange({ ...section.data, slides: slides.filter((_: unknown, i: number) => i !== idx) })
+            }
+          >
+            Remove slide
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="text-primary font-bold"
+        onClick={() =>
+          onChange({
+            ...section.data,
+            slides: [...slides, { id: `slide_${Date.now()}`, heading: "New slide", subheading: "", image: "" }],
+          })
+        }
+      >
+        Add slide
+      </button>
+    </div>
+  );
+}
+
+export function RepeatImageEditor({
+  section,
+  onChange,
+  listKey,
+  titleKey = "title",
+}: SectionEditorProps & { listKey: string; titleKey?: string }) {
+  const items = section.data?.[listKey] || [];
+  return (
+    <div className="flex flex-col gap-3 text-xs">
+      {items.map((item: Record<string, string>, idx: number) => (
+        <div key={item.id || idx} className="p-3 rounded-xl border border-border flex flex-col gap-2">
+          <input
+            className="px-3 py-2 rounded-xl border border-border font-bold"
+            value={item[titleKey] || item.name || ""}
+            onChange={(e) =>
+              onChange({
+                ...section.data,
+                [listKey]: items.map((it: Record<string, string>, i: number) =>
+                  i === idx ? { ...it, [titleKey]: e.target.value, name: e.target.value } : it,
+                ),
+              })
+            }
+          />
+          <ImageField
+            label="Image"
+            value={item.image || ""}
+            onChange={(url) =>
+              onChange({
+                ...section.data,
+                [listKey]: items.map((it: Record<string, string>, i: number) => (i === idx ? { ...it, image: url } : it)),
+              })
+            }
+          />
+        </div>
+      ))}
+      <button
+        type="button"
+        className="text-primary font-bold"
+        onClick={() =>
+          onChange({
+            ...section.data,
+            [listKey]: [...items, { id: `item_${Date.now()}`, [titleKey]: "New item", image: "" }],
+          })
+        }
+      >
+        Add item
+      </button>
+    </div>
+  );
+}
+
+export function HtmlBlockEditor({ section, onChange }: SectionEditorProps) {
+  const schema = section.data?.fieldSchema || [];
+  if (!schema.length) {
+    return (
+      <p className="text-xs text-neutral-500">
+        This HTML section has no declared fields. Ask an admin to add field tokens such as {"{{heading}}"}.
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3 text-xs">
+      {schema.map((field: { key: string; label: string; type: string }) =>
+        field.type === "image" ? (
+          <ImageField
+            key={field.key}
+            label={field.label}
+            value={String(section.data?.[field.key] || "")}
+            onChange={(url) => onChange({ ...section.data, [field.key]: url })}
+          />
+        ) : field.type === "textarea" ? (
+          <div key={field.key}>
+            <label className="font-semibold block mb-1">{field.label}</label>
+            <textarea
+              rows={3}
+              className="w-full px-3 py-2 rounded-xl border border-border"
+              value={String(section.data?.[field.key] || "")}
+              onChange={(e) => onChange({ ...section.data, [field.key]: e.target.value })}
+            />
+          </div>
+        ) : (
+          <div key={field.key}>
+            <label className="font-semibold block mb-1">{field.label}</label>
+            <input
+              type={field.type === "color" ? "color" : "text"}
+              className="w-full px-3 py-2 rounded-xl border border-border"
+              value={String(section.data?.[field.key] || "")}
+              onChange={(e) => onChange({ ...section.data, [field.key]: e.target.value })}
+            />
+          </div>
+        ),
+      )}
+    </div>
+  );
+}
+
 export function SectionEditor({
   section,
   onChange,
@@ -676,6 +877,8 @@ export function SectionEditor({
   switch (section.type) {
     case "hero":
       return <HeroSectionEditor section={section} onChange={onChange} />;
+    case "hero-slider":
+      return <HeroSliderEditor section={section} onChange={onChange} />;
     case "stats":
       return <StatsSectionEditor section={section} onChange={onChange} />;
     case "features":
@@ -694,6 +897,16 @@ export function SectionEditor({
       return <CtaBannerEditor section={section} onChange={onChange} />;
     case "newsletter":
       return <NewsletterEditor section={section} onChange={onChange} />;
+    case "banner-grid":
+      return <RepeatImageEditor section={section} onChange={onChange} listKey="items" />;
+    case "icon-boxes":
+      return <RepeatImageEditor section={section} onChange={onChange} listKey="items" />;
+    case "brands":
+      return <RepeatImageEditor section={section} onChange={onChange} listKey="items" titleKey="name" />;
+    case "lookbook-grid":
+      return <RepeatImageEditor section={section} onChange={onChange} listKey="items" />;
+    case "html-block":
+      return <HtmlBlockEditor section={section} onChange={onChange} />;
     default:
       return <p className="text-xs text-neutral-400">No customizable fields for this section.</p>;
   }

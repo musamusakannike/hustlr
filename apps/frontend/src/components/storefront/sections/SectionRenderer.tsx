@@ -12,6 +12,12 @@ import CategoriesSection from "./CategoriesSection";
 import TestimonialsSection from "./TestimonialsSection";
 import CtaBannerSection from "./CtaBannerSection";
 import NewsletterSection from "./NewsletterSection";
+import HeroSliderSection from "./HeroSliderSection";
+import BannerGridSection from "./BannerGridSection";
+import IconBoxesSection from "./IconBoxesSection";
+import BrandsSection from "./BrandsSection";
+import LookbookGridSection from "./LookbookGridSection";
+import HtmlBlockSection from "./HtmlBlockSection";
 import { DEFAULT_STOREFRONT_SECTIONS } from "@/fixtures/storefront-defaults";
 
 interface SectionRendererProps {
@@ -154,6 +160,35 @@ export default function SectionRenderer({
               <NewsletterSection
                 key={section.id}
                 data={section.data}
+              />
+            );
+
+          case "hero-slider":
+            return <HeroSliderSection key={section.id} data={section.data} info={info} />;
+
+          case "banner-grid":
+            return <BannerGridSection key={section.id} data={section.data} info={info} />;
+
+          case "icon-boxes":
+            return <IconBoxesSection key={section.id} data={section.data} />;
+
+          case "brands":
+            return <BrandsSection key={section.id} data={section.data} />;
+
+          case "lookbook-grid":
+            return <LookbookGridSection key={section.id} data={section.data} info={info} />;
+
+          case "html-block":
+            return (
+              <HtmlBlockSection
+                key={section.id}
+                id={section.id}
+                data={section.data}
+                info={info}
+                featuredProducts={featuredProducts}
+                newArrivals={newArrivals}
+                bestSellers={bestSellers}
+                categories={categories}
               />
             );
 

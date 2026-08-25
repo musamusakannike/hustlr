@@ -1240,8 +1240,17 @@ export interface LayoutSection {
   isRequired: boolean;
 }
 
+export interface TemplateColorScheme {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  text: string;
+}
+
 export interface AdminTemplateItem {
   _id: string;
+  id?: string;
   name: string;
   slug: string;
   description: string;
@@ -1251,6 +1260,9 @@ export interface AdminTemplateItem {
   isActive: boolean;
   colorVariables: ColorVariable[];
   layoutSections: LayoutSection[];
+  defaultColorScheme?: TemplateColorScheme;
+  themeSettings?: Record<string, unknown>;
+  defaultSections?: Array<Record<string, unknown>>;
   storesUsing?: number;
   createdAt: string;
   updatedAt: string;
@@ -1266,12 +1278,65 @@ export interface AdminTemplatePayload {
   isActive?: boolean;
   colorVariables?: ColorVariable[];
   layoutSections?: LayoutSection[];
+  defaultColorScheme?: TemplateColorScheme;
+  themeSettings?: Record<string, unknown>;
+  defaultSections?: Array<Record<string, unknown>>;
+}
+
+export interface HtmlFieldSchema {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "image" | "color" | "url" | "number" | "list";
+  defaultValue?: string | number | boolean;
+  options?: string[];
+}
+
+export interface TemplateSectionItem {
+  _id: string;
+  id?: string;
+  key: string;
+  name: string;
+  description?: string;
+  category?: string;
+  kind: "react" | "html";
+  type: string;
+  variant?: string;
+  html?: string;
+  css?: string;
+  fieldSchema?: HtmlFieldSchema[];
+  bindings?: string[];
+  defaultData?: Record<string, unknown>;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TemplateSectionPayload {
+  key?: string;
+  name: string;
+  description?: string;
+  category?: string;
+  kind: "react" | "html";
+  type?: string;
+  variant?: string;
+  html?: string;
+  css?: string;
+  fieldSchema?: HtmlFieldSchema[];
+  bindings?: string[];
+  defaultData?: Record<string, unknown>;
+  isActive?: boolean;
 }
 
 export const adminTemplatesService = {
   async list(params?: Record<string, unknown>): Promise<AdminTemplateItem[]> {
     const res = await api.get<ApiResponse<AdminTemplateItem[]>>("/admin/templates", { params });
     return res.data.data ?? [];
+  },
+  async get(id: string): Promise<AdminTemplateItem> {
+    const list = await this.list();
+    const match = list.find((t) => t._id === id || t.id === id);
+    if (!match) throw new Error("Template not found");
+    return match;
   },
   async create(payload: AdminTemplatePayload): Promise<AdminTemplateItem> {
     const res = await api.post<ApiResponse<AdminTemplateItem>>("/admin/templates", payload);
@@ -1291,6 +1356,36 @@ export const adminTemplatesService = {
   },
   async delete(id: string): Promise<void> {
     await api.delete(`/admin/templates/${id}`);
+  },
+};
+
+export const adminTemplateSectionsService = {
+  async list(params?: Record<string, unknown>): Promise<TemplateSectionItem[]> {
+    const res = await api.get<ApiResponse<TemplateSectionItem[]>>("/admin/template-sections", { params });
+    return res.data.data ?? [];
+  },
+  async create(payload: TemplateSectionPayload): Promise<TemplateSectionItem> {
+    const res = await api.post<ApiResponse<TemplateSectionItem>>("/admin/template-sections", payload);
+    return res.data.data;
+  },
+  async update(id: string, payload: Partial<TemplateSectionPayload>): Promise<TemplateSectionItem> {
+    const res = await api.put<ApiResponse<TemplateSectionItem>>(`/admin/template-sections/${id}`, payload);
+    return res.data.data;
+  },
+  async delete(id: string): Promise<void> {
+    await api.delete(`/admin/template-sections/${id}`);
+  },
+  async preview(payload: {
+    html: string;
+    css?: string;
+    data?: Record<string, unknown>;
+    bindings?: string[];
+  }): Promise<{ html: string; css: string; fieldSchema: HtmlFieldSchema[] }> {
+    const res = await api.post<ApiResponse<{ html: string; css: string; fieldSchema: HtmlFieldSchema[] }>>(
+      "/admin/template-sections/preview",
+      payload,
+    );
+    return res.data.data;
   },
 };
 

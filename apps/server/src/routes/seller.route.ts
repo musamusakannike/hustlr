@@ -36,6 +36,7 @@ router.delete("/store/custom-domain", store.removeDomain);
 router.post("/store/upload", imageUpload.single("file"), store.uploadStoreAsset);
 
 router.get("/templates", store.listTemplates);
+router.get("/template-sections", store.listTemplateSections);
 
 router.get("/kyc", kyc.getMyKyc);
 router.put("/kyc", validate(kycUpdateSchema), kyc.upsertKyc);

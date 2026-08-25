@@ -34,10 +34,18 @@ export function useSlugCheck(slug: string | null) {
 export function useSetTemplate() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (templateId: string) => storeService.setTemplate(templateId),
+    mutationFn: ({ templateId, confirmReplace }: { templateId: string; confirmReplace?: boolean }) =>
+      storeService.setTemplate(templateId, confirmReplace),
     onSuccess: (store) => {
       queryClient.setQueryData(["store"], store);
     },
+  });
+}
+
+export function useTemplateSections() {
+  return useQuery({
+    queryKey: ["template-sections"],
+    queryFn: () => storeService.listTemplateSections(),
   });
 }
 

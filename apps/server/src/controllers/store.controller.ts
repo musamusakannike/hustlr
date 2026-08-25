@@ -24,8 +24,17 @@ export const listTemplates = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const setTemplate = asyncHandler(async (req: Request, res: Response) => {
-  const store = await storeService.setStoreTemplate(String(req.user!._id), req.body.templateId);
+  const store = await storeService.setStoreTemplate(
+    String(req.user!._id),
+    req.body.templateId,
+    undefined,
+    Boolean(req.body.confirmReplace),
+  );
   sendSuccess(res, store, "Template updated");
+});
+
+export const listTemplateSections = asyncHandler(async (_req: Request, res: Response) => {
+  sendSuccess(res, await storeService.listPublicTemplateSections());
 });
 
 export const setDomain = asyncHandler(async (req: Request, res: Response) => {

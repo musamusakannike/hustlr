@@ -1,5 +1,6 @@
 import { Store, type IStore } from "../models/store.model";
-import { WebsiteTemplate } from "../models/website-template.model";
+import { WebsiteTemplate, type IWebsiteTemplate } from "../models/website-template.model";
+import { TemplateSection } from "../models/template-section.model";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/api-error.util";
 import { isValidSlug, slugify, uniqueSlug } from "../utils/slug.util";
@@ -13,6 +14,11 @@ import {
   planAllowsTemplate,
   refreshStoreLiveStatus,
 } from "./store-helper.service";
+import {
+  cloneJson,
+  normalizeColorScheme,
+  normalizeThemeSettings,
+} from "../utils/storefront-theme.util";
 
 export async function setupStore(
   sellerId: string,
@@ -101,10 +107,23 @@ export async function listEligibleTemplates(_sellerId: string, tier?: string) {
   return WebsiteTemplate.find(filter).sort({ createdAt: -1 });
 }
 
+export async function listPublicTemplateSections() {
+  return TemplateSection.find({ isActive: true }).sort({ name: 1 });
+}
+
+export function applyTemplateDefaults(store: IStore, template: IWebsiteTemplate): void {
+  const scheme = normalizeColorScheme(template.defaultColorScheme);
+  store.templateId = template._id;
+  store.colorScheme = scheme;
+  store.themeSettings = normalizeThemeSettings(template.themeSettings as unknown as Record<string, unknown>) as unknown as Record<string, unknown>;
+  store.customSections = cloneJson(template.defaultSections || []);
+}
+
 export async function setStoreTemplate(
   sellerId: string,
   templateId: string,
   existing?: IStore | null,
+  confirmReplace = false,
 ) {
   const store = existing ?? (await getSellerStore(sellerId));
   const template = await WebsiteTemplate.findById(templateId);
@@ -113,7 +132,14 @@ export async function setStoreTemplate(
   if (!planAllowsTemplate(plan?.name ?? "free", template.tier)) {
     throw ApiError.forbidden("Your plan does not include this template");
   }
-  store.templateId = template._id;
+
+  const switching = String(store.templateId || "") !== String(template._id);
+  const hasCustom = Array.isArray(store.customSections) && store.customSections.length > 0;
+  if (switching && hasCustom && !confirmReplace) {
+    throw ApiError.conflict(`Applying "${template.name}" will replace your current homepage, colors, and layout.`);
+  }
+
+  applyTemplateDefaults(store, template);
   if (!existing) await store.save();
   return store;
 }
@@ -161,6 +187,11 @@ export async function removeCustomDomain(sellerId: string) {
 }
 
 export async function publicStoreInfo(store: IStore) {
+  let templateSlug: string | undefined;
+  if (store.templateId) {
+    const tpl = await WebsiteTemplate.findById(store.templateId).select("slug").lean();
+    templateSlug = tpl?.slug;
+  }
   return {
     name: store.name,
     slug: store.slug,
@@ -182,8 +213,9 @@ export async function publicStoreInfo(store: IStore) {
     currency: store.currency,
     currencySymbol: store.currencySymbol,
     templateId: store.templateId,
+    templateSlug,
     customSections: store.customSections || [],
-    themeSettings: store.themeSettings || {},
+    themeSettings: normalizeThemeSettings((store.themeSettings || {}) as Record<string, unknown>),
     url: `https://${store.slug}.${APP_DOMAIN}`,
     customDomain: store.customDomainVerified ? store.customDomain : null,
   };

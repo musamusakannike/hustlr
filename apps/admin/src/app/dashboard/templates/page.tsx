@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Palette,
   Eye,
@@ -197,10 +198,10 @@ export default function TemplatesPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-gray-200">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0E11] tracking-tight">
-            Storefront Templates
+            Storefront Templates Catalogue
           </h1>
           <p className="text-sm text-gray-500 font-medium mt-1">
             Manage merchant website theme designs, tier availability, and layout configurations.
@@ -208,6 +209,24 @@ export default function TemplatesPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold mr-2">
+            <span className="px-3.5 py-2 rounded-xl bg-neutral-900 text-white shadow-xs">
+              Catalogue
+            </span>
+            <Link
+              href="/dashboard/templates/sections"
+              className="px-3.5 py-2 rounded-xl border border-border text-neutral-600 hover:bg-neutral-50 transition-colors"
+            >
+              Section Library
+            </Link>
+            <Link
+              href="/dashboard/templates/guide"
+              className="px-3.5 py-2 rounded-xl border border-border text-neutral-600 hover:bg-neutral-50 transition-colors"
+            >
+              Import Guide
+            </Link>
+          </div>
+
           <button
             onClick={handleRefresh}
             disabled={refreshing || loading}
@@ -472,6 +491,13 @@ export default function TemplatesPage() {
 
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/dashboard/templates/${tpl._id || tpl.id}`}
+                          title="Open in Template Studio"
+                          className="p-2 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+                        >
+                          <Sliders className="w-4 h-4" />
+                        </Link>
                         <button
                           onClick={() => setInspectingTemplate(tpl)}
                           title="Preview & Details"
@@ -704,9 +730,17 @@ function TemplateCard({
 
       {/* Card Footer Actions */}
       <div className="px-5 pb-5 pt-0 flex items-center gap-2">
+        <Link
+          href={`/dashboard/templates/${template._id || template.id}`}
+          className="flex-1 py-2 px-3 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs"
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>Studio</span>
+        </Link>
+
         <button
           onClick={onInspect}
-          className="flex-1 py-2 px-3 rounded-full bg-gray-100 hover:bg-gray-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+          className="py-2 px-3 rounded-full bg-gray-100 hover:bg-gray-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
         >
           <Eye className="w-3.5 h-3.5" />
           <span>Inspect</span>
