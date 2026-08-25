@@ -10,7 +10,7 @@ import {
 } from "@/services/storefront";
 import type { StorefrontFilters } from "@/types/storefront";
 import type { AddCartInput, CheckoutInput } from "@/types/cart";
-import { useBuyerAuth } from "@/context/BuyerAuthContext";
+import { useOptionalBuyerAuth } from "@/context/BuyerAuthContext";
 
 export function useStorefrontInfo(slug: string) {
   return useQuery({
@@ -65,26 +65,31 @@ export function useBestSellers(slug: string) {
 }
 
 export function useCart() {
-  const { slug, isAuthenticated } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
     queryKey: ["cart", slug],
     queryFn: () => cartService.get(slug),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!slug,
   });
 }
 
 export function useCartCount() {
-  const { slug, isAuthenticated } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
     queryKey: ["cart-count", slug],
     queryFn: () => cartService.count(slug),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!slug,
     refetchInterval: 20_000,
   });
 }
 
 export function useAddToCart() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: AddCartInput) => cartService.add(slug, input),
@@ -96,7 +101,8 @@ export function useAddToCart() {
 }
 
 export function useUpdateCart() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ itemId, quantity }: { itemId: string; quantity: number }) =>
@@ -106,7 +112,8 @@ export function useUpdateCart() {
 }
 
 export function useRemoveCartItem() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => cartService.remove(slug, itemId),
@@ -118,21 +125,24 @@ export function useRemoveCartItem() {
 }
 
 export function useCheckout() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   return useMutation({
     mutationFn: (input: CheckoutInput) => checkoutService.initiate(slug, input),
   });
 }
 
 export function useVerifyCheckout() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   return useMutation({
     mutationFn: (reference: string) => checkoutService.verify(slug, reference),
   });
 }
 
 export function useToggleWish() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (productId: string) => wishlistService.toggle(slug, productId),
@@ -144,34 +154,40 @@ export function useToggleWish() {
 }
 
 export function useWishlist() {
-  const { slug, isAuthenticated } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
     queryKey: ["wishlist", slug],
     queryFn: () => wishlistService.list(slug),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!slug,
   });
 }
 
 export function useBuyerOrders() {
-  const { slug, isAuthenticated } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
     queryKey: ["buyer-orders", slug],
     queryFn: () => buyerOrderService.list(slug),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!slug,
   });
 }
 
 export function useBuyerOrder(orderId: string) {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   return useQuery({
     queryKey: ["buyer-order", slug, orderId],
     queryFn: () => buyerOrderService.get(slug, orderId),
-    enabled: Boolean(orderId),
+    enabled: Boolean(orderId) && !!slug,
   });
 }
 
 export function useConfirmReceipt() {
-  const { slug } = useBuyerAuth();
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (orderId: string) => buyerOrderService.confirm(slug, orderId),

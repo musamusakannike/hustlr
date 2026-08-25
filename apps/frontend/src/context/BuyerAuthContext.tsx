@@ -83,3 +83,7 @@ export function useBuyerAuth() {
   if (!ctx) throw new Error("useBuyerAuth must be used within BuyerAuthProvider");
   return ctx;
 }
+
+export function useOptionalBuyerAuth() {
+  return useContext(BuyerAuthContext);
+}

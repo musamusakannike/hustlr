@@ -22,12 +22,14 @@ import {
 } from "react-icons/fa";
 import type { StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
-import { useBuyerAuth } from "@/context/BuyerAuthContext";
+import { useOptionalBuyerAuth } from "@/context/BuyerAuthContext";
 import { useCartCount } from "@/hooks/useStorefront";
 import { resolveTheme } from "@/lib/storefront-theme";
 
 export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
-  const { slug, isAuthenticated } = useBuyerAuth();
+  const buyerAuth = useOptionalBuyerAuth();
+  const slug = buyerAuth?.slug ?? info.slug;
+  const isAuthenticated = buyerAuth?.isAuthenticated ?? false;
   const { data: count } = useCartCount();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -270,7 +272,8 @@ export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
 }
 
 export function StorefrontLeftRail({ info }: { info: StorefrontInfo }) {
-  const { slug } = useBuyerAuth();
+  const buyerAuth = useOptionalBuyerAuth();
+  const slug = buyerAuth?.slug ?? info.slug;
   const href = (path: string) => storeHref(slug, path);
   return (
     <aside
@@ -295,7 +298,8 @@ export function StorefrontLeftRail({ info }: { info: StorefrontInfo }) {
 }
 
 export function StorefrontFooter({ info }: { info: StorefrontInfo }) {
-  const { slug } = useBuyerAuth();
+  const buyerAuth = useOptionalBuyerAuth();
+  const slug = buyerAuth?.slug ?? info.slug;
   const href = (path: string) => storeHref(slug, path);
   const social = info.socialLinks || {};
   const footerVariant = resolveTheme(info.themeSettings).footerVariant;
