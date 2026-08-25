@@ -15,7 +15,7 @@ import type {
   StoreSetupInput,
   UploadResult,
 } from "@/types/store";
-import type { TemplateListFilters, WebsiteTemplate } from "@/types/template";
+import type { TemplateListFilters, TemplateSectionDefinition, WebsiteTemplate } from "@/types/template";
 import type {
   BulkStatusInput,
   Product,
@@ -60,11 +60,13 @@ import type { PaginatedQuery } from "@/types/common";
 
 export class TransportError extends Error {
   status: number;
+  errors?: unknown;
 
-  constructor(message: string, status = 400) {
+  constructor(message: string, status = 400, errors?: unknown) {
     super(message);
     this.name = "TransportError";
     this.status = status;
+    this.errors = errors;
   }
 }
 
@@ -94,7 +96,8 @@ export interface Transport {
   getStore(): Promise<Store>;
   setupStore(input: StoreSetupInput): Promise<Store>;
   checkSlug(slug: string): Promise<SlugCheckResult>;
-  setStoreTemplate(templateId: string): Promise<Store>;
+  setStoreTemplate(templateId: string, confirmReplace?: boolean): Promise<Store>;
+  listTemplateSections(): Promise<TemplateSectionDefinition[]>;
   uploadAsset(ctx: UploadContext): Promise<UploadResult>;
   setCustomDomain(domain: string): Promise<{ store: Store; dns: DomainDns }>;
   verifyCustomDomain(): Promise<{ verified: boolean; store: Store }>;

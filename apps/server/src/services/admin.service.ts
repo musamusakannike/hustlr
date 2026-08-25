@@ -13,6 +13,7 @@ import { AuditLog } from "../models/audit-log.model";
 import { SellerReferral } from "../models/seller-referral.model";
 import { BuyerReferral } from "../models/buyer-referral.model";
 import { WebsiteTemplate } from "../models/website-template.model";
+import { TemplateSection } from "../models/template-section.model";
 import { SubscriptionPlan } from "../models/subscription-plan.model";
 import { GlobalCategory } from "../models/global-category.model";
 import { ApiError } from "../utils/api-error.util";
@@ -21,6 +22,13 @@ import { toCsv } from "../utils/csv.util";
 import { refreshStoreLiveStatus } from "./store-helper.service";
 import { slugify, uniqueSlug } from "../utils/slug.util";
 import { createNotification } from "./notification.service";
+import {
+  colorVariablesFromScheme,
+  layoutSectionsFromDefaults,
+  normalizeColorScheme,
+  normalizeThemeSettings,
+} from "../utils/storefront-theme.util";
+import { compileHtmlSection, inferFieldSchema, sanitizeCss, sanitizeHtml, scopeCss } from "../utils/html-template.util";
 
 export async function listUsers(query: {
   role?: string;
@@ -354,17 +362,120 @@ export async function reverseReferral(id: string) {
   return ref;
 }
 
+function normalizeTemplatePayload(payload: Record<string, unknown>) {
+  const defaultSections = Array.isArray(payload.defaultSections)
+    ? (payload.defaultSections as Array<Record<string, unknown>>)
+    : undefined;
+  const defaultColorScheme = payload.defaultColorScheme
+    ? normalizeColorScheme(payload.defaultColorScheme as Record<string, string>)
+    : undefined;
+  const themeSettings = payload.themeSettings
+    ? normalizeThemeSettings(payload.themeSettings as Record<string, unknown>)
+    : undefined;
+
+  const next: Record<string, unknown> = { ...payload };
+  if (defaultColorScheme) {
+    next.defaultColorScheme = defaultColorScheme;
+    if (!payload.colorVariables) next.colorVariables = colorVariablesFromScheme(defaultColorScheme);
+  }
+  if (themeSettings) next.themeSettings = themeSettings;
+  if (defaultSections) {
+    next.defaultSections = defaultSections;
+    next.layoutSections = layoutSectionsFromDefaults(defaultSections);
+  }
+  return next;
+}
+
 export async function createTemplate(payload: Record<string, unknown>) {
   const name = String(payload.name || "Untitled Template");
   const rawSlug = payload.slug ? String(payload.slug) : name;
   const slug = await uniqueSlug(rawSlug, async (s) => Boolean(await WebsiteTemplate.exists({ slug: s })));
-  return WebsiteTemplate.create({ ...payload, slug });
+  return WebsiteTemplate.create({ ...normalizeTemplatePayload(payload), slug });
 }
 
 export async function updateTemplate(id: string, payload: Record<string, unknown>) {
-  const t = await WebsiteTemplate.findByIdAndUpdate(id, payload, { new: true });
+  const t = await WebsiteTemplate.findByIdAndUpdate(id, normalizeTemplatePayload(payload), { new: true });
   if (!t) throw ApiError.notFound("Template not found");
   return t;
+}
+
+function normalizeSectionPayload(payload: Record<string, unknown>) {
+  const kind = payload.kind === "html" ? "html" : "react";
+  const html = kind === "html" ? sanitizeHtml(String(payload.html || "")) : "";
+  const css = kind === "html" ? sanitizeCss(String(payload.css || "")) : "";
+  const fieldSchema =
+    kind === "html"
+      ? Array.isArray(payload.fieldSchema) && payload.fieldSchema.length
+        ? payload.fieldSchema
+        : inferFieldSchema(html)
+      : [];
+  return {
+    name: String(payload.name || "Untitled section"),
+    description: String(payload.description || ""),
+    category: String(payload.category || "general"),
+    kind,
+    type: String(payload.type || (kind === "html" ? "html-block" : "hero")),
+    variant: String(payload.variant || "default"),
+    html,
+    css,
+    fieldSchema,
+    bindings: Array.isArray(payload.bindings) ? payload.bindings.map(String) : [],
+    defaultData: (payload.defaultData as Record<string, unknown>) || {},
+    isActive: payload.isActive !== false,
+  };
+}
+
+export async function listTemplateSections(query: Record<string, unknown>) {
+  const filter: Record<string, unknown> = {};
+  if (query.kind && query.kind !== "all") filter.kind = query.kind;
+  if (query.isActive === "true") filter.isActive = true;
+  if (query.isActive === "false") filter.isActive = false;
+  if (query.search && typeof query.search === "string" && query.search.trim()) {
+    const regex = new RegExp(escapeRegex(query.search.trim()), "i");
+    filter.$or = [{ name: regex }, { key: regex }, { type: regex }];
+  }
+  return TemplateSection.find(filter).sort({ updatedAt: -1 });
+}
+
+export async function createTemplateSection(payload: Record<string, unknown>) {
+  const name = String(payload.name || "Untitled section");
+  const rawKey = payload.key ? String(payload.key) : name;
+  const key = await uniqueSlug(rawKey, async (s) => Boolean(await TemplateSection.exists({ key: s })));
+  return TemplateSection.create({ ...normalizeSectionPayload(payload), key });
+}
+
+export async function updateTemplateSection(id: string, payload: Record<string, unknown>) {
+  const next = normalizeSectionPayload(payload);
+  const t = await TemplateSection.findByIdAndUpdate(id, next, { new: true });
+  if (!t) throw ApiError.notFound("Section not found");
+  return t;
+}
+
+export async function deleteTemplateSection(id: string) {
+  const t = await TemplateSection.findByIdAndDelete(id);
+  if (!t) throw ApiError.notFound("Section not found");
+  return t;
+}
+
+export async function previewTemplateSection(payload: Record<string, unknown>) {
+  const html = sanitizeHtml(String(payload.html || ""));
+  const css = scopeCss(sanitizeCss(String(payload.css || "")), ".hustlr-html-preview");
+  const compiled = compileHtmlSection(html, {
+    data: (payload.data as Record<string, unknown>) || {},
+    store: { name: "Preview Store", logo: "", url: "#" },
+    products: {
+      featured: [
+        { title: "Sample Product", image: "", price: "₦12,000", url: "#" },
+        { title: "Another Product", image: "", price: "₦8,500", url: "#" },
+      ],
+    },
+    categories: [{ name: "Apparel", url: "#" }],
+  });
+  return {
+    html: compiled,
+    css,
+    fieldSchema: inferFieldSchema(html),
+  };
 }
 
 export async function deactivateTemplate(id: string) {

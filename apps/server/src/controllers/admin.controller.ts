@@ -225,6 +225,23 @@ export const deleteTemplate = asyncHandler(async (req: Request, res: Response) =
   sendSuccess(res, null, "Template deleted successfully");
 });
 
+export const listTemplateSections = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.listTemplateSections(req.query as Record<string, unknown>));
+});
+export const createTemplateSection = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.createTemplateSection(req.body), "Created", 201);
+});
+export const updateTemplateSection = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.updateTemplateSection(req.params.sectionId, req.body));
+});
+export const deleteTemplateSection = asyncHandler(async (req: Request, res: Response) => {
+  await adminService.deleteTemplateSection(req.params.sectionId);
+  sendSuccess(res, null, "Section deleted");
+});
+export const previewTemplateSection = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await adminService.previewTemplateSection(req.body));
+});
+
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, await adminService.createGlobalCategory(req.body), "Created", 201);
 });

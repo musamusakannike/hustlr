@@ -4,7 +4,8 @@ import React from "react";
 import { useParams } from "next/navigation";
 import { BuyerAuthProvider } from "@/context/BuyerAuthContext";
 import { useStorefrontInfo } from "@/hooks/useStorefront";
-import { StorefrontFooter, StorefrontHeader } from "@/components/storefront/StorefrontChrome";
+import { StorefrontFooter, StorefrontHeader, StorefrontLeftRail } from "@/components/storefront/StorefrontChrome";
+import { resolveTheme } from "@/lib/storefront-theme";
 import { Spinner } from "@/components/ui/Spinner";
 import { storefrontService } from "@/services/storefront";
 
@@ -33,20 +34,28 @@ function ThemedShell({ slug, children }: { slug: string; children: React.ReactNo
   }
 
   const scheme = info.colorScheme;
+  const theme = info.themeSettings || {};
   const style = {
     ["--store-primary" as string]: scheme?.primary || "#800A1D",
     ["--store-secondary" as string]: scheme?.secondary || "#0A0E11",
     ["--store-accent" as string]: scheme?.accent || "#800A1D",
     ["--store-bg" as string]: scheme?.background || "#FFFFFF",
     ["--store-text" as string]: scheme?.text || "#0A0E11",
+    ["--store-card-radius" as string]: theme.cardRadius || "16px",
+    ["--store-button-radius" as string]: theme.buttonRadius || "9999px",
     background: "var(--store-bg)",
     color: "var(--store-text)",
   } as React.CSSProperties;
 
+  const headerVariant = resolveTheme(info.themeSettings).headerVariant;
+
   return (
     <div className="min-h-screen flex flex-col font-space-grotesk" style={style}>
       <StorefrontHeader info={info} />
-      <main className="flex-1">{children}</main>
+      <main className={`flex-1 ${headerVariant === "left-nav" ? "flex" : ""}`}>
+        {headerVariant === "left-nav" ? <StorefrontLeftRail info={info} /> : null}
+        <div className="flex-1 min-w-0">{children}</div>
+      </main>
       <StorefrontFooter info={info} />
     </div>
   );

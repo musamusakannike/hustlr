@@ -16,6 +16,7 @@ import {
 import { useBuyerAuth } from "@/context/BuyerAuthContext";
 import { storeHref } from "@/lib/store-path";
 import type { StorefrontFilters } from "@/types/storefront";
+import { resolveTheme } from "@/lib/storefront-theme";
 
 function Catalog() {
   const { slug } = useParams<{ slug: string }>();
@@ -46,6 +47,18 @@ function Catalog() {
   };
 
   const activeCategory = filters.category || "";
+  const theme = resolveTheme(info?.themeSettings);
+  const shopLayout = theme.shopLayout;
+  const showSidebar = shopLayout === "boxed-sidebar";
+  const gridClass =
+    shopLayout === "grid-2"
+      ? "grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
+      : shopLayout === "grid-4"
+        ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"
+        : shopLayout === "list"
+          ? "flex flex-col gap-3"
+          : "grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6";
+  const cardVariant = shopLayout === "list" ? "list" : theme.productCardVariant;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -110,7 +123,7 @@ function Catalog() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Desktop Sidebar Filter */}
-        <aside className="hidden lg:flex lg:w-64 shrink-0 flex-col gap-6">
+        <aside className={`${showSidebar ? "hidden lg:flex" : "hidden"} lg:w-64 shrink-0 flex-col gap-6`}>
           {/* Categories Box */}
           <div
             className="rounded-2xl p-5 border"
@@ -187,12 +200,13 @@ function Catalog() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className={gridClass}>
               {data!.items.map((p) => (
                 <ProductCard
                   key={p.id}
                   slug={slug}
                   product={p}
+                  variant={cardVariant}
                   onWish={(id) => {
                     if (!isAuthenticated) setGuest(true);
                     else wish.mutate(id);

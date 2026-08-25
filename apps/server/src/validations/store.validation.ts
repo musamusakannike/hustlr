@@ -44,6 +44,7 @@ export const storeSetupSchema = Joi.object({
 
 export const templateSelectSchema = Joi.object({
   templateId: Joi.string().hex().length(24).required(),
+  confirmReplace: Joi.boolean(),
 });
 
 export const customDomainSchema = Joi.object({

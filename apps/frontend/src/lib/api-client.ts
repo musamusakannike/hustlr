@@ -9,7 +9,7 @@ import {
 import { fromPaged, withId, type ApiEnvelope, type Paginated } from "@/types/common";
 import type { RegisterPendingResponse, AuthResponse } from "@/types/auth";
 import type { Store, SlugCheckResult, UploadResult, StoreSetupInput } from "@/types/store";
-import type { WebsiteTemplate, TemplateListFilters } from "@/types/template";
+import type { WebsiteTemplate, TemplateListFilters, TemplateSectionDefinition } from "@/types/template";
 import type { Product, ProductFilters, ProductInput, BulkStatusInput } from "@/types/product";
 import type { StoreCategory, CategoryInput } from "@/types/category";
 import type { Kyc, KycInput, Bank } from "@/types/kyc";
@@ -133,7 +133,8 @@ async function request<T>(
   if (!response.ok || !payload?.success) {
     throw new TransportError(
       payload?.message ?? "Something went wrong. Please try again.",
-      response.status
+      response.status,
+      (payload as ApiEnvelope<T> & { errors?: unknown })?.errors
     );
   }
   return payload.data;
@@ -228,8 +229,12 @@ export class ApiTransport implements Transport {
   checkSlug(slug: string) {
     return get<SlugCheckResult>(`/store/slug-check${qs({ slug })}`);
   }
-  async setStoreTemplate(templateId: string) {
-    return mapDoc(await send<Store>("PUT", "/store/template", { templateId }));
+  async setStoreTemplate(templateId: string, confirmReplace = false) {
+    return mapDoc(await send<Store>("PUT", "/store/template", { templateId, confirmReplace }));
+  }
+  async listTemplateSections() {
+    const list = await get<TemplateSectionDefinition[]>("/template-sections");
+    return mapList(Array.isArray(list) ? list : []);
   }
   async uploadAsset(ctx: UploadContext): Promise<UploadResult> {
     const form = new FormData();

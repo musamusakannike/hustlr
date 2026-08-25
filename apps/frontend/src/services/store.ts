@@ -7,6 +7,7 @@ export const storeService = {
   setupStore: transport.setupStore.bind(transport),
   checkSlug: transport.checkSlug.bind(transport),
   setTemplate: transport.setStoreTemplate.bind(transport),
+  listTemplateSections: transport.listTemplateSections.bind(transport),
   uploadAsset: transport.uploadAsset.bind(transport),
 };
 

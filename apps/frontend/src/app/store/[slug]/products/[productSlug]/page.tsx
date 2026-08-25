@@ -30,6 +30,7 @@ import {
 import { useBuyerAuth } from "@/context/BuyerAuthContext";
 import { formatNaira, getErrorMessage } from "@/lib/utils";
 import { storeHref } from "@/lib/store-path";
+import { resolveTheme } from "@/lib/storefront-theme";
 
 export default function ProductDetailPage() {
   const { slug, productSlug } = useParams<{ slug: string; productSlug: string }>();
@@ -80,8 +81,13 @@ export default function ProductDetailPage() {
     fn();
   };
 
+  const productLayout = resolveTheme(info?.themeSettings).productLayout;
+  const isCentered = productLayout === "centered";
+  const isSticky = productLayout === "sticky";
+  const isExtended = productLayout === "extended";
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className={`${isCentered ? "max-w-3xl" : "max-w-7xl"} mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12`}>
       {/* Breadcrumb back link */}
       <div className="mb-6">
         <Link
@@ -94,9 +100,9 @@ export default function ProductDetailPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+      <div className={isCentered || isExtended ? "flex flex-col gap-10" : "grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14"}>
         {/* Images Gallery Column */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
+        <div className={`${isCentered || isExtended ? "" : "lg:col-span-6"} flex flex-col gap-4`}>
           <div
             className="relative aspect-square rounded-3xl overflow-hidden bg-neutral-100 border shadow-xs"
             style={{
@@ -154,7 +160,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Info & Buy Action Column */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
+        <div className={`${isCentered || isExtended ? "" : "lg:col-span-6"} flex flex-col gap-6 ${isSticky ? "lg:sticky lg:top-24 self-start" : ""}`}>
           <div>
             <span
               className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block mb-3"

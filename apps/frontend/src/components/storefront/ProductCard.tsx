@@ -12,10 +12,12 @@ export default function ProductCard({
   slug,
   product,
   onWish,
+  variant = "minimal",
 }: {
   slug: string;
   product: StorefrontProduct;
   onWish?: (productId: string) => void;
+  variant?: "minimal" | "overlay" | "boxed" | "list";
 }) {
   const href = storeHref(slug, `/products/${product.slug}`);
   const cover = product.images[0];
@@ -27,11 +29,47 @@ export default function ProductCard({
         )
       : null;
 
+  if (variant === "list") {
+    return (
+      <article
+        className="group flex gap-4 p-3 border"
+        style={{
+          backgroundColor: "var(--store-bg, #FFFFFF)",
+          borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
+          borderRadius: "var(--store-card-radius, 16px)",
+        }}
+      >
+        <Link href={href} className="relative w-28 sm:w-36 aspect-[4/5] overflow-hidden shrink-0 bg-neutral-100">
+          {cover ? (
+            <Image src={cover} alt={product.title} fill className="object-cover" sizes="144px" />
+          ) : null}
+        </Link>
+        <div className="flex flex-col min-w-0 py-1">
+          <Link href={href}>
+            <h3 className="text-sm sm:text-base font-bold line-clamp-2">{product.title}</h3>
+          </Link>
+          <p className="text-xs opacity-60 mt-1 line-clamp-2">{product.description}</p>
+          <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+            <span className="font-extrabold" style={{ color: "var(--store-primary)" }}>
+              {formatNaira(product.price)}
+            </span>
+            {onWish && (
+              <button type="button" aria-label="Wishlist" onClick={() => onWish(product.id)}>
+                <Heart className={`w-4 h-4 ${product.isWishlisted ? "fill-[var(--store-primary)] text-[var(--store-primary)]" : ""}`} />
+              </button>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <article className="group flex flex-col rounded-2xl bg-white border p-3 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+    <article className={`group flex flex-col bg-white border p-3 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${variant === "boxed" ? "p-4" : ""}`}
       style={{
         backgroundColor: "var(--store-bg, #FFFFFF)",
         borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
+        borderRadius: "var(--store-card-radius, 16px)",
       }}
     >
       {/* Product Image Frame */}
@@ -64,6 +102,20 @@ export default function ProductCard({
         )}
 
         {/* Wishlist Button */}
+        {variant === "overlay" && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
+            <span
+              className="px-4 py-2 text-xs font-bold text-white"
+              style={{
+                backgroundColor: "var(--store-primary)",
+                borderRadius: "var(--store-button-radius, 9999px)",
+              }}
+            >
+              View product
+            </span>
+          </div>
+        )}
+
         {onWish && (
           <button
             type="button"

@@ -7,12 +7,14 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Code2,
+  ExternalLink,
   Eye,
   EyeOff,
-  ExternalLink,
   GripVertical,
   Laptop,
   Layers,
+  Layout,
   Palette,
   Plus,
   RefreshCw,
@@ -25,13 +27,28 @@ import {
 } from "lucide-react";
 import type { Store } from "@/types/store";
 import type { StorefrontSection, StorefrontSectionType } from "@/types/storefront";
-import { useSetupStore } from "@/hooks/useStore";
+import type { TemplateSectionDefinition } from "@/types/template";
+import { useSetupStore, useTemplateSections, useTemplates } from "@/hooks/useStore";
 import { useToast } from "@/components/ui/Toast";
 import { getErrorMessage } from "@/lib/utils";
 import {
   COLOR_PALETTE_PRESETS,
   DEFAULT_STOREFRONT_SECTIONS,
 } from "@/fixtures/storefront-defaults";
+import {
+  CARD_VARIANT_OPTIONS,
+  FOOTER_VARIANT_OPTIONS,
+  HEADER_VARIANT_OPTIONS,
+  PRODUCT_LAYOUT_OPTIONS,
+  resolveTheme,
+  SHOP_LAYOUT_OPTIONS,
+  type FooterVariant,
+  type HeaderVariant,
+  type ProductCardVariant,
+  type ProductLayout,
+  type ShopLayout,
+  type StoreThemeSettings,
+} from "@/lib/storefront-theme";
 import { SectionEditor } from "./SectionEditors";
 import LiveStorefrontPreview from "./LiveStorefrontPreview";
 
@@ -40,39 +57,65 @@ const ALL_SECTION_TEMPLATES: {
   name: string;
   description: string;
 }[] = [
-  { type: "hero", name: "Hero Banner", description: "Large display banner with headline and CTA" },
-  { type: "stats", name: "Trust & Stats Bar", description: "4-metric ribbon showcasing customer ratings and trust metrics" },
-  { type: "features", name: "Value Proposition Cards", description: "3 prominent feature cards with call-to-actions" },
-  { type: "how-it-works", name: "How It Works (3 Steps)", description: "Step-by-step numbered guide explaining ordering and escrow" },
-  { type: "split-story", name: "Editorial Story Showcase", description: "2-column layout with narrative text, bullet guarantees, and portrait image" },
+  { type: "hero", name: "Hero Banner", description: "Large display banner with headline, CTA, and background image" },
+  { type: "hero-slider", name: "Hero Slider", description: "Multi-slide hero banner with responsive slides and CTA buttons" },
+  { type: "banner-grid", name: "Banner Grid", description: "2, 3, or 4 category / campaign promo banners" },
   { type: "featured-products", name: "Featured Products Rail", description: "Product grid highlighting top handpicked items" },
   { type: "new-arrivals", name: "New Arrivals Rail", description: "Fresh inventory and latest drops grid" },
   { type: "best-sellers", name: "Best Sellers Rail", description: "Top-selling customer favorites grid" },
   { type: "categories", name: "Category Pills Rail", description: "Horizontal category filter buttons" },
+  { type: "stats", name: "Trust & Stats Bar", description: "4-metric ribbon showcasing customer ratings and trust metrics" },
+  { type: "features", name: "Value Proposition Cards", description: "3 prominent feature cards with call-to-actions" },
+  { type: "how-it-works", name: "How It Works (3 Steps)", description: "Step-by-step numbered guide explaining ordering and escrow" },
+  { type: "split-story", name: "Editorial Story Showcase", description: "2-column layout with narrative text, bullet guarantees, and portrait image" },
+  { type: "icon-boxes", name: "Icon Service Boxes", description: "Shipping, escrow, authentic quality, and customer support ribbon" },
+  { type: "brands", name: "Brand Logos Strip", description: "Partner & featured merchant brand badges" },
+  { type: "lookbook-grid", name: "Lookbook Mosaic", description: "Editorial visual showcase grid with hotspot links" },
   { type: "testimonials", name: "Customer Reviews", description: "Verified customer quotes and 5-star ratings" },
   { type: "cta-banner", name: "Call to Action Banner", description: "High-contrast full-width action banner" },
   { type: "newsletter", name: "Newsletter Subscription", description: "Email capture box for promo discounts" },
+  { type: "html-block", name: "Custom HTML Section", description: "Imported or customized dynamic HTML section" },
+];
+
+const CARD_RADIUS_OPTIONS = [
+  { label: "Sharp", value: "0px" },
+  { label: "Subtle", value: "8px" },
+  { label: "Rounded", value: "16px" },
+  { label: "Pill", value: "24px" },
+];
+
+const BUTTON_RADIUS_OPTIONS = [
+  { label: "Sharp", value: "0px" },
+  { label: "Rounded", value: "8px" },
+  { label: "Pill", value: "9999px" },
 ];
 
 export default function StoreCustomizer({ store }: { store: Store }) {
   const { toast } = useToast();
   const setup = useSetupStore();
+  const { data: librarySections } = useTemplateSections();
+  const { data: templates } = useTemplates();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<"sections" | "edit-section" | "theme">("sections");
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
-  // Viewport mode
+  // Viewport mode & Preview page
   const [viewport, setViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [previewPage, setPreviewPage] = useState<"home" | "shop" | "product">("home");
 
   // State
   const [colorScheme, setColorScheme] = useState({
-    primary: store.colorScheme?.primary || "#E05315",
-    secondary: store.colorScheme?.secondary || "#1F1610",
-    accent: store.colorScheme?.accent || "#FFEDE6",
-    background: store.colorScheme?.background || "#FFFBF9",
-    text: store.colorScheme?.text || "#1F1610",
+    primary: store.colorScheme?.primary || "#800A1D",
+    secondary: store.colorScheme?.secondary || "#0A0E11",
+    accent: store.colorScheme?.accent || "#FAD4D8",
+    background: store.colorScheme?.background || "#FFFFFF",
+    text: store.colorScheme?.text || "#0A0E11",
   });
+
+  const [themeSettings, setThemeSettings] = useState<StoreThemeSettings>(() =>
+    resolveTheme(store.themeSettings),
+  );
 
   const [sections, setSections] = useState<StorefrontSection[]>(() => {
     const existing = store.customSections as StorefrontSection[] | undefined;
@@ -82,8 +125,9 @@ export default function StoreCustomizer({ store }: { store: Store }) {
     return DEFAULT_STOREFRONT_SECTIONS;
   });
 
-  // Add Section Modal
+  // Add Section Modal state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalTab, setAddModalTab] = useState<"builtin" | "library">("builtin");
 
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -94,7 +138,7 @@ export default function StoreCustomizer({ store }: { store: Store }) {
   const handleToggleVisibility = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSections((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isEnabled: !s.isEnabled } : s))
+      prev.map((s) => (s.id === id ? { ...s, isEnabled: !s.isEnabled } : s)),
     );
   };
 
@@ -153,15 +197,112 @@ export default function StoreCustomizer({ store }: { store: Store }) {
     setDraggedIndex(null);
   };
 
-  const handleAddSection = (template: typeof ALL_SECTION_TEMPLATES[0]) => {
+  const handleAddBuiltinSection = (template: (typeof ALL_SECTION_TEMPLATES)[0]) => {
     const defaultSec = DEFAULT_STOREFRONT_SECTIONS.find((s) => s.type === template.type);
+    let initialData: Record<string, unknown> = { heading: template.name };
+    if (template.type === "hero-slider") {
+      initialData = {
+        slides: [
+          {
+            badge: "NEW ARRIVALS",
+            heading: "Modern Living Collection",
+            subheading: "Discover handcrafted pieces curated for elegance.",
+            ctaText: "Shop Now",
+            ctaLink: "/products",
+            image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&auto=format&fit=crop&q=80",
+          },
+        ],
+      };
+    } else if (template.type === "banner-grid") {
+      initialData = {
+        columns: 3,
+        items: [
+          { title: "Living Room", subtitle: "Comfort & Style", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80", link: "/products" },
+          { title: "Lighting", subtitle: "Warm Ambience", image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80", link: "/products" },
+          { title: "Decor Accents", subtitle: "Handcrafted Details", image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800&auto=format&fit=crop&q=80", link: "/products" },
+        ],
+      };
+    } else if (template.type === "icon-boxes") {
+      initialData = {
+        items: [
+          { icon: "Truck", title: "Tracked Shipping", description: "Fast delivery nationwide" },
+          { icon: "ShieldCheck", title: "100% Escrow Protection", description: "Secure escrow funds guarantee" },
+          { icon: "RefreshCw", title: "7-Day Return Policy", description: "Easy returns on all items" },
+          { icon: "Headphones", title: "Merchant Support", description: "24/7 dedicated service" },
+        ],
+      };
+    } else if (template.type === "brands") {
+      initialData = {
+        heading: "Featured Brand Partners",
+        items: [
+          { name: "Nordic Atelier" },
+          { name: "Urban Crafts" },
+          { name: "Kinetics" },
+          { name: "Aura Essentials" },
+        ],
+      };
+    } else if (template.type === "lookbook-grid") {
+      initialData = {
+        badge: "SEASON LOOKBOOK",
+        heading: "Curated Showcase",
+        items: [
+          { title: "Minimal Dining", image: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&auto=format&fit=crop&q=80", link: "/products" },
+          { title: "Lounge Seating", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format&fit=crop&q=80", link: "/products" },
+          { title: "Sculptural Ceramics", image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800&auto=format&fit=crop&q=80", link: "/products" },
+        ],
+      };
+    } else if (template.type === "html-block") {
+      initialData = {
+        html: `<section class="py-12 px-6 text-center bg-neutral-900 text-white rounded-3xl my-6">\n  <h2 class="text-2xl font-bold mb-2">{{heading}}</h2>\n  <p class="text-sm opacity-80 mb-6 max-w-lg mx-auto">{{subheading}}</p>\n  <a href="{{ctaLink}}" class="inline-block px-6 py-3 rounded-full font-bold text-xs" style="background-color: var(--store-primary); color: white;">{{ctaText}}</a>\n</section>`,
+        css: ``,
+        heading: "Seasonal Flash Offer",
+        subheading: "Enjoy 20% off all catalog items with Paystack escrow protection.",
+        ctaText: "Shop the Sale",
+        ctaLink: "/products",
+        fieldSchema: [
+          { key: "heading", label: "Headline", type: "text" },
+          { key: "subheading", label: "Subheading", type: "textarea" },
+          { key: "ctaText", label: "CTA Button Text", type: "text" },
+          { key: "ctaLink", label: "CTA Button Link", type: "url" },
+        ],
+      };
+    } else if (defaultSec) {
+      initialData = { ...defaultSec.data };
+    }
+
     const newSection: StorefrontSection = {
       id: `sec_${template.type}_${Date.now()}`,
       type: template.type,
       name: template.name,
       isEnabled: true,
       order: sections.length,
-      data: defaultSec ? { ...defaultSec.data } : { heading: template.name },
+      data: initialData,
+    };
+    setSections((prev) => [...prev, newSection]);
+    setShowAddModal(false);
+    setSelectedSectionId(newSection.id);
+    setActiveTab("edit-section");
+  };
+
+  const handleAddLibrarySection = (libSec: TemplateSectionDefinition) => {
+    let initialData = { ...(libSec.defaultData || {}) };
+    if (libSec.kind === "html") {
+      initialData = {
+        ...initialData,
+        html: libSec.html,
+        css: libSec.css,
+        fieldSchema: libSec.fieldSchema || [],
+        libraryKey: libSec.key,
+      };
+    }
+    const newSection: StorefrontSection = {
+      id: `sec_${libSec.type || "html-block"}_${Date.now()}`,
+      type: (libSec.kind === "html" ? "html-block" : (libSec.type as StorefrontSectionType)) || "html-block",
+      name: libSec.name,
+      variant: libSec.variant || undefined,
+      isEnabled: true,
+      order: sections.length,
+      data: initialData,
     };
     setSections((prev) => [...prev, newSection]);
     setShowAddModal(false);
@@ -170,22 +311,47 @@ export default function StoreCustomizer({ store }: { store: Store }) {
   };
 
   const handleResetDefaults = () => {
-    if (confirm("Reset all sections and layouts to the default template? Any custom text will be restored to defaults.")) {
-      setSections(DEFAULT_STOREFRONT_SECTIONS);
-      toast("Sections reset to defaults.", "info");
+    const currentTemplateId = (
+      typeof store.templateId === "object" && store.templateId !== null
+        ? (store.templateId as any)._id || (store.templateId as any).id
+        : store.templateId
+    )?.toString();
+
+    const activeTpl = (templates || []).find(
+      (t) => (t.id || t._id || "").toString() === currentTemplateId,
+    );
+
+    if (
+      confirm(
+        `Reset all sections, theme layouts, and colors to ${
+          activeTpl ? `"${activeTpl.name}"` : "default"
+        } template settings?`,
+      )
+    ) {
+      if (activeTpl && activeTpl.defaultSections && activeTpl.defaultSections.length > 0) {
+        setSections(activeTpl.defaultSections as StorefrontSection[]);
+        if (activeTpl.defaultColorScheme) {
+          setColorScheme(activeTpl.defaultColorScheme as any);
+        }
+        if (activeTpl.themeSettings) {
+          setThemeSettings(resolveTheme(activeTpl.themeSettings));
+        }
+      } else {
+        setSections(DEFAULT_STOREFRONT_SECTIONS);
+        setThemeSettings(resolveTheme());
+      }
+      toast("Sections and layouts reset to template defaults.", "info");
     }
   };
 
   const handleUpdateSectionData = (updatedData: any) => {
     if (!selectedSectionId) return;
     setSections((prev) =>
-      prev.map((s) =>
-        s.id === selectedSectionId ? { ...s, data: updatedData } : s
-      )
+      prev.map((s) => (s.id === selectedSectionId ? { ...s, data: updatedData } : s)),
     );
   };
 
-  const handleApplyPalette = (palette: typeof COLOR_PALETTE_PRESETS[0]) => {
+  const handleApplyPalette = (palette: (typeof COLOR_PALETTE_PRESETS)[0]) => {
     setColorScheme(palette.scheme);
     toast(`Applied "${palette.name}" palette!`, "success");
   };
@@ -195,13 +361,14 @@ export default function StoreCustomizer({ store }: { store: Store }) {
       {
         colorScheme,
         customSections: sections as any,
+        themeSettings: themeSettings as any,
       },
       {
         onSuccess: () => {
           toast("Storefront template customized and published!", "success");
         },
         onError: (err) => toast(getErrorMessage(err), "error"),
-      }
+      },
     );
   };
 
@@ -226,44 +393,71 @@ export default function StoreCustomizer({ store }: { store: Store }) {
           </div>
         </div>
 
-        {/* Viewport Switcher */}
-        <div className="hidden sm:flex items-center gap-1 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
-          <button
-            type="button"
-            className={`p-1.5 rounded-lg transition-colors ${
-              viewport === "desktop"
-                ? "bg-neutral-800 text-white shadow-xs"
-                : "text-neutral-400 hover:text-white"
-            }`}
-            onClick={() => setViewport("desktop")}
-            title="Desktop View"
-          >
-            <Laptop className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            className={`p-1.5 rounded-lg transition-colors ${
-              viewport === "tablet"
-                ? "bg-neutral-800 text-white shadow-xs"
-                : "text-neutral-400 hover:text-white"
-            }`}
-            onClick={() => setViewport("tablet")}
-            title="Tablet View (768px)"
-          >
-            <Tablet className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            className={`p-1.5 rounded-lg transition-colors ${
-              viewport === "mobile"
-                ? "bg-neutral-800 text-white shadow-xs"
-                : "text-neutral-400 hover:text-white"
-            }`}
-            onClick={() => setViewport("mobile")}
-            title="Mobile View (390px)"
-          >
-            <Smartphone className="w-4 h-4" />
-          </button>
+        {/* Center: Page Switcher & Viewport Switcher */}
+        <div className="flex items-center gap-3">
+          {/* Page Preview Switcher */}
+          <div className="hidden md:flex items-center gap-1 bg-neutral-900 border border-neutral-800 p-1 rounded-xl text-xs font-semibold">
+            {(
+              [
+                { id: "home", label: "Home" },
+                { id: "shop", label: "Shop Catalog" },
+                { id: "product", label: "Product Detail" },
+              ] as const
+            ).map((page) => (
+              <button
+                key={page.id}
+                type="button"
+                className={`px-3 py-1 rounded-lg transition-colors ${
+                  previewPage === page.id
+                    ? "bg-neutral-800 text-white font-bold shadow-xs"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                onClick={() => setPreviewPage(page.id)}
+              >
+                {page.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Viewport Switcher */}
+          <div className="hidden sm:flex items-center gap-1 bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
+            <button
+              type="button"
+              className={`p-1.5 rounded-lg transition-colors ${
+                viewport === "desktop"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+              onClick={() => setViewport("desktop")}
+              title="Desktop View"
+            >
+              <Laptop className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              className={`p-1.5 rounded-lg transition-colors ${
+                viewport === "tablet"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+              onClick={() => setViewport("tablet")}
+              title="Tablet View (768px)"
+            >
+              <Tablet className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              className={`p-1.5 rounded-lg transition-colors ${
+                viewport === "mobile"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+              onClick={() => setViewport("mobile")}
+              title="Mobile View (390px)"
+            >
+              <Smartphone className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -328,7 +522,7 @@ export default function StoreCustomizer({ store }: { store: Store }) {
               onClick={() => setActiveTab("theme")}
             >
               <Palette className="w-3.5 h-3.5" />
-              Theme & Colors
+              Theme & Layouts
             </button>
           </div>
 
@@ -490,11 +684,231 @@ export default function StoreCustomizer({ store }: { store: Store }) {
               </div>
             )}
 
-            {/* TAB 3: THEME & COLOR PALETTES */}
+            {/* TAB 3: THEME & LAYOUT SETTINGS */}
             {activeTab === "theme" && (
               <div className="flex flex-col gap-6 text-xs">
+                {/* Header Layout */}
                 <div>
-                  <h3 className="font-bold text-sm text-neutral-900">Color Presets</h3>
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Header Style</h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Choose how the logo, search, and navigation render across the storefront.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {HEADER_VARIANT_OPTIONS.map((opt) => {
+                      const isActive = themeSettings.headerVariant === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setThemeSettings((prev) => ({ ...prev, headerVariant: opt.id as HeaderVariant }))}
+                          className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            isActive
+                              ? "border-primary bg-primary-light/10 shadow-xs"
+                              : "border-border bg-white hover:border-neutral-400"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold text-xs text-neutral-900 flex items-center gap-1.5">
+                              {opt.name}
+                              {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Footer Layout */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Footer Style</h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Select a compact or multi-column footer for policy links and store info.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {FOOTER_VARIANT_OPTIONS.map((opt) => {
+                      const isActive = themeSettings.footerVariant === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setThemeSettings((prev) => ({ ...prev, footerVariant: opt.id as FooterVariant }))}
+                          className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            isActive
+                              ? "border-primary bg-primary-light/10 shadow-xs"
+                              : "border-border bg-white hover:border-neutral-400"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold text-xs text-neutral-900 flex items-center gap-1.5">
+                              {opt.name}
+                              {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Shop Catalog Layout */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Shop Catalog Grid</h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Choose column density and category filtering layout on the `/products` page.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {SHOP_LAYOUT_OPTIONS.map((opt) => {
+                      const isActive = themeSettings.shopLayout === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setThemeSettings((prev) => ({ ...prev, shopLayout: opt.id as ShopLayout }));
+                            setPreviewPage("shop");
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            isActive
+                              ? "border-primary bg-primary-light/10 shadow-xs"
+                              : "border-border bg-white hover:border-neutral-400"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold text-xs text-neutral-900 flex items-center gap-1.5">
+                              {opt.name}
+                              {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Product Detail Layout */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Product Detail Layout</h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Gallery, centered, or sticky buy box layout for individual product pages.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {PRODUCT_LAYOUT_OPTIONS.map((opt) => {
+                      const isActive = themeSettings.productLayout === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setThemeSettings((prev) => ({ ...prev, productLayout: opt.id as ProductLayout }));
+                            setPreviewPage("product");
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            isActive
+                              ? "border-primary bg-primary-light/10 shadow-xs"
+                              : "border-border bg-white hover:border-neutral-400"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold text-xs text-neutral-900 flex items-center gap-1.5">
+                              {opt.name}
+                              {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Product Card Style */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Product Card Tile Style</h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Style of product tiles rendered in catalog and featured rails.
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {CARD_VARIANT_OPTIONS.map((opt) => {
+                      const isActive = themeSettings.productCardVariant === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setThemeSettings((prev) => ({ ...prev, productCardVariant: opt.id as ProductCardVariant }))}
+                          className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                            isActive
+                              ? "border-primary bg-primary-light/10 shadow-xs"
+                              : "border-border bg-white hover:border-neutral-400"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold text-xs text-neutral-900 flex items-center gap-1.5">
+                              {opt.name}
+                              {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
+                            </p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Corner Roundness */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-3">Corner Roundness</h3>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <p className="font-semibold text-neutral-700 mb-1.5">Card Radius</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {CARD_RADIUS_OPTIONS.map((r) => {
+                          const isActive = (themeSettings.cardRadius || "16px") === r.value;
+                          return (
+                            <button
+                              key={r.value}
+                              type="button"
+                              onClick={() => setThemeSettings((prev) => ({ ...prev, cardRadius: r.value }))}
+                              className={`py-2 text-center rounded-xl border text-xs font-semibold ${
+                                isActive ? "border-primary bg-primary-light/20 text-primary" : "border-border bg-white"
+                              }`}
+                            >
+                              {r.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-neutral-700 mb-1.5">Button Radius</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {BUTTON_RADIUS_OPTIONS.map((r) => {
+                          const isActive = (themeSettings.buttonRadius || "9999px") === r.value;
+                          return (
+                            <button
+                              key={r.value}
+                              type="button"
+                              onClick={() => setThemeSettings((prev) => ({ ...prev, buttonRadius: r.value }))}
+                              className={`py-2 text-center rounded-xl border text-xs font-semibold ${
+                                isActive ? "border-primary bg-primary-light/20 text-primary" : "border-border bg-white"
+                              }`}
+                            >
+                              {r.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Color Palettes */}
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-bold text-sm text-neutral-900 mb-1">Color Presets</h3>
                   <p className="text-xs text-neutral-500 mb-3">
                     Select a designer-crafted color palette for your storefront.
                   </p>
@@ -546,6 +960,7 @@ export default function StoreCustomizer({ store }: { store: Store }) {
                   </div>
                 </div>
 
+                {/* Custom Colors */}
                 <div className="border-t border-border pt-4">
                   <h3 className="font-bold text-sm text-neutral-900 mb-3">Custom Theme Colors</h3>
                   <div className="grid grid-cols-1 gap-3">
@@ -603,7 +1018,9 @@ export default function StoreCustomizer({ store }: { store: Store }) {
             store={store}
             colorScheme={colorScheme}
             sections={sections}
+            themeSettings={themeSettings}
             viewport={viewport}
+            previewPage={previewPage}
           />
         </div>
       </div>
@@ -615,7 +1032,7 @@ export default function StoreCustomizer({ store }: { store: Store }) {
           onClick={() => setShowAddModal(false)}
         >
           <div
-            className="w-full max-w-lg rounded-3xl bg-white text-neutral-900 p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
+            className="w-full max-w-xl rounded-3xl bg-white text-neutral-900 p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -634,25 +1051,88 @@ export default function StoreCustomizer({ store }: { store: Store }) {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-2.5">
-              {ALL_SECTION_TEMPLATES.map((tmpl) => (
-                <button
-                  key={tmpl.type}
-                  type="button"
-                  onClick={() => handleAddSection(tmpl)}
-                  className="p-3.5 rounded-2xl border border-border text-left hover:border-primary hover:bg-primary-light/10 transition-all flex items-center justify-between group"
-                >
-                  <div>
-                    <p className="font-bold text-xs text-neutral-900 group-hover:text-primary">
-                      {tmpl.name}
-                    </p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5">
-                      {tmpl.description}
-                    </p>
-                  </div>
-                  <Plus className="w-4 h-4 text-neutral-400 group-hover:text-primary shrink-0" />
-                </button>
-              ))}
+            {/* Modal Tabs: Builtin vs Library */}
+            <div className="flex border-b border-border gap-4 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setAddModalTab("builtin")}
+                className={`pb-2.5 border-b-2 transition-colors ${
+                  addModalTab === "builtin" ? "border-primary text-primary" : "border-transparent text-neutral-500"
+                }`}
+              >
+                Built-in Blocks ({ALL_SECTION_TEMPLATES.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddModalTab("library")}
+                className={`pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 ${
+                  addModalTab === "library" ? "border-primary text-primary" : "border-transparent text-neutral-500"
+                }`}
+              >
+                <Code2 className="w-3.5 h-3.5" />
+                Admin Library ({librarySections?.length || 0})
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1">
+              {addModalTab === "builtin" && (
+                <div className="grid grid-cols-1 gap-2.5">
+                  {ALL_SECTION_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.type}
+                      type="button"
+                      onClick={() => handleAddBuiltinSection(tmpl)}
+                      className="p-3.5 rounded-2xl border border-border text-left hover:border-primary hover:bg-primary-light/10 transition-all flex items-center justify-between group"
+                    >
+                      <div>
+                        <p className="font-bold text-xs text-neutral-900 group-hover:text-primary">
+                          {tmpl.name}
+                        </p>
+                        <p className="text-[11px] text-neutral-500 mt-0.5">
+                          {tmpl.description}
+                        </p>
+                      </div>
+                      <Plus className="w-4 h-4 text-neutral-400 group-hover:text-primary shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {addModalTab === "library" && (
+                <div className="flex flex-col gap-2.5">
+                  {!librarySections || librarySections.length === 0 ? (
+                    <div className="p-8 text-center border border-dashed rounded-2xl">
+                      <p className="text-xs text-neutral-500">
+                        No custom sections published in the admin library yet.
+                      </p>
+                    </div>
+                  ) : (
+                    librarySections.map((libSec) => (
+                      <button
+                        key={libSec.key || libSec.id || libSec._id}
+                        type="button"
+                        onClick={() => handleAddLibrarySection(libSec)}
+                        className="p-3.5 rounded-2xl border border-border text-left hover:border-primary hover:bg-primary-light/10 transition-all flex items-center justify-between group"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-xs text-neutral-900 group-hover:text-primary">
+                              {libSec.name}
+                            </p>
+                            <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-600">
+                              {libSec.kind}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-500 mt-0.5">
+                            {libSec.description || "Reusable custom section from admin library."}
+                          </p>
+                        </div>
+                        <Plus className="w-4 h-4 text-neutral-400 group-hover:text-primary shrink-0" />
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

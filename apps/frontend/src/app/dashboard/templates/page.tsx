@@ -96,7 +96,7 @@ function TemplateCard({
         <div>
           <h3 className="font-bold text-lg tracking-tight">{template.name}</h3>
           <p className="text-xs text-muted mt-0.5 capitalize">
-            {template.category} • {template.layoutSections.length} sections
+            {template.category} • {template.defaultSections?.length ?? template.layoutSections?.length ?? 5} sections
           </p>
         </div>
         <p className="text-sm text-muted leading-relaxed flex-1">
@@ -145,15 +145,46 @@ export default function TemplatesPage() {
     (t) => category === "all" || t.category === category
   );
 
-  const handleSelect = (template: WebsiteTemplate) => {
+  const applyTemplate = (template: WebsiteTemplate, confirmReplace: boolean) => {
     const templateId = (template.id || template._id || "").toString();
     if (!templateId) return;
-    setTemplate.mutate(templateId, {
-      onSuccess: () => {
-        toast(`"${template.name}" is now your storefront template!`, "success");
+    setTemplate.mutate(
+      { templateId, confirmReplace },
+      {
+        onSuccess: () => {
+          toast(`"${template.name}" is now your storefront template.`, "success");
+        },
+        onError: (err) => {
+          if (err instanceof Error && "status" in err && (err as { status: number }).status === 409) {
+            const ok = window.confirm(
+              `Apply "${template.name}"? This replaces your current homepage sections, colors, and layout settings.`,
+            );
+            if (ok) applyTemplate(template, true);
+            return;
+          }
+          toast(getErrorMessage(err), "error");
+        },
       },
-      onError: (err) => toast(getErrorMessage(err), "error"),
-    });
+    );
+  };
+
+  const handleSelect = (template: WebsiteTemplate) => {
+    const hasCustom = Array.isArray(store?.customSections) && store!.customSections!.length > 0;
+    const currentId = (
+      typeof store?.templateId === "object" && store?.templateId !== null
+        ? (store.templateId as { _id?: string; id?: string })._id || (store.templateId as { id?: string }).id
+        : store?.templateId
+    )?.toString();
+    const templateId = (template.id || template._id || "").toString();
+    if (hasCustom && currentId && currentId !== templateId) {
+      const ok = window.confirm(
+        `Apply "${template.name}"? This replaces your current homepage sections, colors, and layout settings.`,
+      );
+      if (!ok) return;
+      applyTemplate(template, true);
+      return;
+    }
+    applyTemplate(template, false);
   };
 
   if (isLoading) {

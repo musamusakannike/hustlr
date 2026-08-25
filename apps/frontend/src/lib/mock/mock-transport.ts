@@ -351,7 +351,7 @@ export class MockTransport implements Transport {
     });
   }
 
-  async setStoreTemplate(templateId: string): Promise<Store> {
+  async setStoreTemplate(templateId: string, confirmReplace = false): Promise<Store> {
     requireSession();
     const template = DEMO_TEMPLATES.find((t) => t.id === templateId);
     if (!template) fail("Template not found.", 404);
@@ -361,9 +361,22 @@ export class MockTransport implements Transport {
         403
       );
     }
+    const switching = mockDb.store.templateId !== (template.id || template._id);
+    const hasCustom = Array.isArray(mockDb.store.customSections) && mockDb.store.customSections.length > 0;
+    if (switching && hasCustom && !confirmReplace) {
+      fail(`Applying "${template.name}" will replace your current homepage, colors, and layout.`, 409);
+    }
     mockDb.store.templateId = template.id || template._id || null;
+    mockDb.store.colorScheme = template.defaultColorScheme || mockDb.store.colorScheme;
+    mockDb.store.themeSettings = (template.themeSettings || {}) as Store["themeSettings"];
+    mockDb.store.customSections = (template.defaultSections || []) as Store["customSections"];
     mockDb.store.updatedAt = nowIso();
     return delay(copy(mockDb.store));
+  }
+
+  async listTemplateSections() {
+    requireSession();
+    return delay([]);
   }
 
   async uploadAsset(ctx: UploadContext): Promise<{ url: string }> {
