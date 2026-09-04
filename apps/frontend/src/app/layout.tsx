@@ -104,7 +104,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${rajdhani.className} ${archivoBlack.variable} ${spaceGrotesk.variable} bg-[#FFFFFF]`}
+      className={`${spaceGrotesk.className} ${archivoBlack.variable} bg-[#FFFFFF]`}
     >
       <body>
         <script
