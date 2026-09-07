@@ -168,7 +168,7 @@ export default function Hero() {
             href="/auth/register"
             className="inline-flex items-center justify-center px-6 sm:px-7 py-3 sm:py-3.5 text-sm sm:text-base font-medium rounded-md text-light bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
           >
-            Start Selling
+            Start Selling Free
           </Link>
 
           <button
