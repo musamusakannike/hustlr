@@ -123,8 +123,9 @@ export default function Content2() {
                     <span className="text-2xl sm:text-3xl font-bold text-dark tracking-tight">
                       520
                     </span>
-                    <span className="inline-flex items-center text-xs font-semibold text-success">
-                      +12%
+                    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-success">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      <span>+12%</span>
                     </span>
                   </div>
                 </div>
