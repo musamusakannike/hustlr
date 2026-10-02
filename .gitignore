@@ -11,3 +11,4 @@ uploads/
 .DS_Store
 .env*
 secrets/
+.pnpm-store
