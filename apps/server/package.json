@@ -11,6 +11,7 @@
     "seed:plans": "tsx src/scripts/seedPlans.script.ts",
     "seed:categories": "tsx src/scripts/seedCategories.script.ts",
     "seed:templates": "tsx src/scripts/seedTemplates.script.ts",
+    "seed:store-fashion": "tsx src/scripts/seedStoreFashionProducts.script.ts",
     "seed:all": "tsx src/scripts/seedAll.script.ts"
   },
   "engines": {
