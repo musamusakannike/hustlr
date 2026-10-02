@@ -12,40 +12,71 @@ export default function BannerGridSection({
   data: BannerGridSectionData;
   info: StorefrontInfo;
 }) {
-  const items = data.items || [];
-  if (!items.length) return null;
-  const cols = data.columns === 2 ? "sm:grid-cols-2" : data.columns === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3";
+  const items = data.items && data.items.length > 0
+    ? data.items
+    : [
+        {
+          title: "Casual",
+          image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80",
+          link: "/products?category=Casual",
+        },
+        {
+          title: "Formal",
+          image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80",
+          link: "/products?category=Formal",
+        },
+        {
+          title: "Party",
+          image: "https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?w=800&auto=format&fit=crop&q=80",
+          link: "/products?category=Party",
+        },
+        {
+          title: "Gym",
+          image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+          link: "/products?category=Gym",
+        },
+      ];
+
+  // Asymmetric ShopCo column spans: Item 0 (4 cols), Item 1 (8 cols), Item 2 (8 cols), Item 3 (4 cols)
+  const getColSpan = (index: number) => {
+    if (index % 4 === 0) return "md:col-span-5";
+    if (index % 4 === 1) return "md:col-span-7";
+    if (index % 4 === 2) return "md:col-span-7";
+    return "md:col-span-5";
+  };
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 py-10 max-w-7xl mx-auto">
-      <div className={`grid grid-cols-1 ${cols} gap-4`}>
-        {items.map((item, i) => {
-          const href = storeHref(info.slug, item.link || "/products");
-          return (
-            <Link
-              key={item.id || i}
-              href={href}
-              className="relative min-h-[220px] overflow-hidden group"
-              style={{ borderRadius: "var(--store-card-radius, 16px)" }}
-            >
-              {item.image ? (
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${item.image})` }}
-                />
-              ) : (
-                <div className="absolute inset-0" style={{ backgroundColor: "var(--store-accent)" }} />
-              )}
-              <div className="absolute inset-0 bg-black/35 group-hover:bg-black/45 transition-colors" />
-              <div className="relative h-full min-h-[220px] p-6 flex flex-col justify-end text-white">
-                {item.subtitle && (
-                  <p className="text-[11px] uppercase tracking-widest font-bold opacity-90">{item.subtitle}</p>
-                )}
-                <h3 className="text-xl font-extrabold">{item.title}</h3>
-              </div>
-            </Link>
-          );
-        })}
+    <section className="py-12 sm:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-[#F0EEED] rounded-[32px] sm:rounded-[40px] px-6 sm:px-12 py-10 sm:py-16">
+          <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center uppercase tracking-tight text-black mb-8 sm:mb-12">
+            {"BROWSE BY DRESS STYLE"}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+            {items.map((item, i) => {
+              const href = storeHref(info.slug, item.link || "/products");
+              return (
+                <Link
+                  key={item.id || i}
+                  href={href}
+                  className={`${getColSpan(i)} bg-white rounded-3xl overflow-hidden relative h-[220px] sm:h-[280px] p-6 sm:p-8 flex flex-col justify-between group cursor-pointer shadow-xs hover:shadow-md transition-shadow`}
+                >
+                  <span className="text-2xl sm:text-3xl font-bold text-black z-10">
+                    {item.title}
+                  </span>
+                  {item.image && (
+                    <img
+                      alt={item.title}
+                      className="absolute right-0 bottom-0 top-0 h-full w-2/3 object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                      src={item.image}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );

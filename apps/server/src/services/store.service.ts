@@ -39,6 +39,11 @@ export async function setupStore(
       slug,
       contactEmail: email,
     });
+    // Apply ShopCo as the default website template for newly created stores
+    const defaultTemplate = await WebsiteTemplate.findOne({ slug: "shopco", isActive: true });
+    if (defaultTemplate) {
+      applyTemplateDefaults(store, defaultTemplate);
+    }
   }
 
   const allowed = [

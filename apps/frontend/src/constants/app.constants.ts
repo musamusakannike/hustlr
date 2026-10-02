@@ -90,35 +90,35 @@ export const PLATFORM_CAPABILITIES = [
 export const STORE_TEMPLATES = [
   {
     id: "free-template",
-    name: "Modern Minimalist",
+    name: "ShopCo Streetwear",
     tier: "Free Tier",
-    slug: "modern-minimalist",
+    slug: "shopco",
     description:
-      "Clean, high-performance storefront layout designed for boutique fashion, beauty, and craft brands.",
+      "Bold contemporary streetwear and fashion template modeled after ShopCo with high-contrast typography, dress styles, and customer reviews.",
     image: "/template-free.png",
-    accentColor: "#800A1D",
-    isFeatured: false,
-  },
-  {
-    id: "pro-template",
-    name: "Bold Electronics & Gadgets",
-    tier: "Pro Plan",
-    slug: "bold-gadgets",
-    description:
-      "Dark-themed immersive layout optimized for electronics, phones, accessories, and multi-category catalogs.",
-    image: "/template-pro.png",
-    accentColor: "#800A1D",
+    accentColor: "#000000",
     isFeatured: true,
   },
   {
-    id: "proplus-template",
-    name: "Aurelia Pro+ Luxury",
-    tier: "Pro+ VIP Plan",
-    slug: "luxury-aurelia",
+    id: "pro-template",
+    name: "Circuit Electronics",
+    tier: "Pro Plan",
+    slug: "circuit-electronics",
     description:
-      "Premium high-end storefront featuring custom video hero sections, gold accents, and express Paystack checkout.",
+      "Search-first electronics store with category navigation bar, dark blue tones, and dense marketplace rails.",
+    image: "/template-pro.png",
+    accentColor: "#0284C7",
+    isFeatured: false,
+  },
+  {
+    id: "proplus-template",
+    name: "Apex Sport",
+    tier: "Pro+ VIP Plan",
+    slug: "apex-sport",
+    description:
+      "High-energy athletic storefront featuring bold crimson banners, dynamic category cards, and fast performance grids.",
     image: "/template-proplus.png",
-    accentColor: "#800A1D",
+    accentColor: "#DC2626",
     isFeatured: false,
   },
 ];

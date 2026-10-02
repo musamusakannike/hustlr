@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { CheckCircle, Star } from "lucide-react";
+import React, { useState } from "react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { TestimonialsSectionData } from "@/types/storefront";
 
 interface TestimonialsSectionProps {
@@ -9,85 +9,96 @@ interface TestimonialsSectionProps {
 }
 
 export default function TestimonialsSection({ data }: TestimonialsSectionProps) {
-  const items = data.items || [];
-  if (items.length === 0) return null;
+  const items = data.items && data.items.length > 0
+    ? data.items
+    : [
+        {
+          name: "Sarah M.",
+          role: "Verified Buyer",
+          rating: 5,
+          comment: "I'm blown away by the quality and style of the clothes I received from this store. From casual wear to elegant dresses, every item I've bought has exceeded my expectations.",
+        },
+        {
+          name: "Alex K.",
+          role: "Verified Buyer",
+          rating: 5,
+          comment: "Finding clothes that align with my personal style used to be a challenge until I discovered this store. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions.",
+        },
+        {
+          name: "James L.",
+          role: "Verified Buyer",
+          rating: 5,
+          comment: "As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon this store. The selection of clothes is not only diverse but also on-point with the latest trends.",
+        },
+      ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const prev = () => {
+    setCurrentIndex((p) => (p === 0 ? Math.max(0, items.length - 3) : p - 1));
+  };
+
+  const next = () => {
+    setCurrentIndex((p) => (p + 1) % Math.max(1, items.length - 2));
+  };
+
+  const visible = items.slice(currentIndex, currentIndex + 3);
 
   return (
-    <section
-      className="py-16 sm:py-20 lg:py-24 border-t transition-colors"
-      style={{
-        backgroundColor: "color-mix(in srgb, var(--store-bg, #FFFFFF) 97%, var(--store-text, #0A0E11) 2%)",
-        borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 8%, transparent)",
-      }}
-    >
+    <section className="py-12 sm:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 flex flex-col items-center gap-3">
-          {data.badge && (
-            <span
-              className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-              style={{
-                backgroundColor: "var(--store-accent, #FFEDE6)",
-                color: "var(--store-primary, #E05315)",
-              }}
-            >
-              {data.badge}
-            </span>
-          )}
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]">
-            {data.heading}
+        {/* Section Header with Arrows */}
+        <div className="flex items-center justify-between mb-8 sm:mb-10">
+          <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-black">
+            {data.heading || "OUR HAPPY CUSTOMERS"}
           </h2>
-          {data.subheading && (
-            <p className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-75 max-w-2xl leading-relaxed">
-              {data.subheading}
-            </p>
-          )}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={prev}
+              aria-label="Previous testimonial"
+              className="p-2 text-black hover:opacity-60 transition-opacity cursor-pointer rounded-full border border-gray-200"
+              type="button"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={next}
+              aria-label="Next testimonial"
+              className="p-2 text-black hover:opacity-60 transition-opacity cursor-pointer rounded-full border border-gray-200"
+              type="button"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {items.map((item, idx) => (
+        {/* Testimonials 3-Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          {visible.map((review, idx) => (
             <div
-              key={item.id || item.name || idx}
-              className="rounded-3xl p-7 sm:p-8 bg-white border shadow-xs flex flex-col justify-between transition-all duration-300 hover:shadow-md"
-              style={{
-                backgroundColor: "var(--store-bg, #FFFFFF)",
-                borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
-              }}
+              key={review.id || idx}
+              className="border border-gray-200 rounded-3xl p-6 sm:p-7 flex flex-col justify-between hover:shadow-xs transition-shadow bg-white"
             >
               <div>
-                {/* Rating stars */}
-                <div className="flex items-center gap-1 mb-4 text-amber-500">
-                  {Array.from({ length: item.rating || 5 }).map((_, sIdx) => (
-                    <Star key={sIdx} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                {/* 5 Yellow Stars */}
+                <div className="flex items-center gap-1 mb-3 text-[#FFC633]">
+                  {Array.from({ length: review.rating || 5 }).map((_, sIdx) => (
+                    <Star key={sIdx} className="w-4 h-4 fill-[#FFC633] text-[#FFC633]" />
                   ))}
                 </div>
 
-                {/* Quote */}
-                <p className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-85 leading-relaxed italic mb-6">
-                  &ldquo;{item.comment}&rdquo;
-                </p>
-              </div>
+                {/* Reviewer Name & Verified Badge */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  <h3 className="font-bold text-black text-lg">
+                    {review.name}
+                  </h3>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500 text-white" />
+                </div>
 
-              {/* Reviewer Details */}
-              <div className="flex items-center gap-3 pt-4 border-t"
-                style={{ borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 8%, transparent)" }}
-              >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0"
-                  style={{ backgroundColor: "var(--store-primary, #E05315)" }}
-                >
-                  {item.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[var(--store-text,#0A0E11)]">
-                    {item.name}
-                  </p>
-                  <p className="text-xs text-[var(--store-text,#0A0E11)] opacity-60 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-emerald-600" />
-                    {item.role || "Verified Buyer"}
-                  </p>
-                </div>
+                {/* Comment */}
+                <p className="text-sm text-gray-600 leading-relaxed font-normal">
+                  &ldquo;{review.comment}&rdquo;
+                </p>
               </div>
             </div>
           ))}

@@ -269,7 +269,7 @@ export default function TemplatesPage() {
                 template={template}
                 isCurrent={Boolean(
                   (templateId && currentTemplateId === templateId) ||
-                    (!currentTemplateId && template.slug === "modern-minimalist")
+                    (!currentTemplateId && template.slug === "shopco")
                 )}
                 locked={!tierAccessible(template.tier, entitlements)}
                 selecting={setTemplate.isPending}

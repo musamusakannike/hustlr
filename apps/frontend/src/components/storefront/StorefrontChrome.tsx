@@ -7,10 +7,10 @@ import {
   Heart,
   Menu,
   Search,
-  ShieldCheck,
   ShoppingBag,
   User,
   X,
+  ChevronDown,
 } from "lucide-react";
 import {
   FaFacebookF,
@@ -19,6 +19,7 @@ import {
   FaTwitter,
   FaWhatsapp,
   FaYoutube,
+  FaGithub,
 } from "react-icons/fa";
 import type { StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
@@ -26,248 +27,417 @@ import { useOptionalBuyerAuth } from "@/context/BuyerAuthContext";
 import { useCartCount } from "@/hooks/useStorefront";
 import { resolveTheme } from "@/lib/storefront-theme";
 
+export function StorefrontAnnouncementBar({ info }: { info: StorefrontInfo }) {
+  const [visible, setVisible] = useState(true);
+  const buyerAuth = useOptionalBuyerAuth();
+  const slug = buyerAuth?.slug ?? info.slug;
+
+  if (!visible) return null;
+
+  return (
+    <aside
+      className="text-white text-xs sm:text-sm py-2 sm:py-2.5 px-4 relative flex items-center justify-center z-50 transition-colors"
+      style={{ backgroundColor: "var(--store-primary, #000000)" }}
+      aria-label="Announcement"
+    >
+      <p className="text-center font-normal">
+        Sign up and get 20% off to your first order.{" "}
+        <Link
+          href={storeHref(slug, "/products")}
+          className="underline font-medium hover:opacity-80 ml-1 transition-opacity"
+        >
+          Sign Up Now
+        </Link>
+      </p>
+      <button
+        onClick={() => setVisible(false)}
+        aria-label="Close announcement"
+        className="absolute right-4 sm:right-8 text-white hover:opacity-75 transition-opacity focus:outline-none p-1"
+        type="button"
+      >
+        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      </button>
+    </aside>
+  );
+}
+
 export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
   const buyerAuth = useOptionalBuyerAuth();
   const slug = buyerAuth?.slug ?? info.slug;
   const isAuthenticated = buyerAuth?.isAuthenticated ?? false;
   const { data: count } = useCartCount();
   const [q, setQ] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const href = (path: string) => storeHref(slug, path);
-  const wa = info.socialLinks?.whatsappNumber;
+
   const headerVariant = resolveTheme(info.themeSettings).headerVariant;
   const showTopbar = headerVariant === "topbar" || headerVariant === "market";
-  const isCentered = headerVariant === "centered";
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (q.trim()) {
+      window.location.href = href(`/products?q=${encodeURIComponent(q.trim())}`);
+    }
+  };
 
   return (
-    <header
-      className="sticky top-0 z-40 backdrop-blur-md border-b transition-colors"
-      style={{
-        backgroundColor: "color-mix(in srgb, var(--store-bg, #FFFFFF) 92%, transparent)",
-        color: "var(--store-text, #0A0E11)",
-        borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
-      }}
-    >
-      {showTopbar && (
-        <div
-          className="hidden sm:flex items-center justify-between text-[11px] font-semibold px-4 sm:px-6 lg:px-8 py-2"
-          style={{
-            backgroundColor: headerVariant === "market" ? "var(--store-secondary)" : "var(--store-accent)",
-            color: headerVariant === "market" ? "var(--store-bg)" : "var(--store-text)",
-          }}
-        >
-          <span>{info.contactPhone || "Welcome to our store"}</span>
-          <span className="opacity-80">{info.contactEmail}</span>
-        </div>
-      )}
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCentered ? "py-4 flex flex-col items-center gap-3" : "h-18 sm:h-20 flex items-center justify-between gap-4"}`}>
-        {/* Mobile Menu Toggle & Brand */}
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            className="lg:hidden p-2 -ml-2 rounded-xl text-[var(--store-text,#0A0E11)] hover:bg-black/5"
-            aria-label="Menu"
-            onClick={() => setOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <Link href={href("/")} className="flex items-center gap-3 min-w-0 group">
-            {info.logo ? (
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-xs border shrink-0"
-                style={{ borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 12%, transparent)" }}
-              >
-                <Image
-                  src={info.logo}
-                  alt={info.name}
-                  fill
-                  className="object-cover"
-                  sizes="40px"
-                />
-              </div>
-            ) : null}
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight truncate font-space-grotesk group-hover:opacity-85">
-              {info.name}
-            </span>
-          </Link>
-        </div>
-
-        {/* Center Nav Links (Desktop) */}
-        <nav className={`hidden lg:flex items-center gap-8 text-sm font-semibold ${isCentered ? "order-last" : ""}`}>
-          <Link
-            href={href("/")}
-            className="transition-colors hover:text-[var(--store-primary,#E05315)]"
-          >
-            Home
-          </Link>
-          <Link
-            href={href("/products")}
-            className="transition-colors hover:text-[var(--store-primary,#E05315)]"
-          >
-            Collections
-          </Link>
-          <Link
-            href={href("/#how-it-works")}
-            className="transition-colors hover:text-[var(--store-primary,#E05315)]"
-          >
-            How It Works
-          </Link>
-          <Link
-            href={href("/shipping")}
-            className="transition-colors hover:text-[var(--store-primary,#E05315)] opacity-80"
-          >
-            Shipping & FAQ
-          </Link>
-        </nav>
-
-        {/* Search Bar (Tablet/Desktop) */}
-        <form
-          className="hidden md:flex flex-1 max-w-xs relative"
-          onSubmit={(e) => {
-            e.preventDefault();
-            window.location.href = href(`/products?q=${encodeURIComponent(q)}`);
-          }}
-        >
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 rounded-full text-xs sm:text-sm border bg-white/50 focus:bg-white focus:outline-none transition-all shadow-2xs"
+    <>
+      <StorefrontAnnouncementBar info={info} />
+      <header
+        className="border-b sticky top-0 z-40 bg-white transition-colors"
+        style={{
+          borderColor: "color-mix(in srgb, var(--store-text, #000000) 10%, transparent)",
+        }}
+      >
+        {showTopbar && (
+          <div
+            className="hidden sm:flex items-center justify-between text-[11px] font-semibold px-4 sm:px-6 lg:px-8 py-2"
             style={{
-              borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 15%, transparent)",
-              color: "var(--store-text, #0A0E11)",
+              backgroundColor: "var(--store-primary, #000000)",
+              color: "#FFFFFF",
             }}
-          />
-        </form>
+          >
+            <span>{info.contactPhone || "Welcome to our store"}</span>
+            <span className="opacity-80">{info.contactEmail}</span>
+          </div>
+        )}
 
-        {/* Actions (Wishlist, Cart, Account, WhatsApp) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {wa && (
-            <a
-              href={`https://wa.me/${wa.replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full text-white shadow-xs transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#25D366" }}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4 sm:gap-8">
+          {/* Logo & Mobile Menu Toggle */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <button
+              onClick={() => setOpen(true)}
+              aria-label="Open menu"
+              className="lg:hidden text-black focus:outline-none p-1 hover:opacity-75 transition-opacity"
+              type="button"
             >
-              <FaWhatsapp className="w-3.5 h-3.5" />
-              Chat
-            </a>
-          )}
+              <Menu className="w-6 h-6" />
+            </button>
+            <Link
+              href={href("/")}
+              className="flex items-center gap-2.5 font-extrabold uppercase tracking-tighter text-xl sm:text-2xl md:text-3xl font-integral text-black"
+            >
+              {info.logo ? (
+                <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                  <Image
+                    src={info.logo}
+                    alt={info.name}
+                    fill
+                    className="object-cover"
+                    sizes="32px"
+                  />
+                </div>
+              ) : null}
+              <span className="truncate max-w-[200px] sm:max-w-xs">{info.name}</span>
+            </Link>
+          </div>
 
-          <Link
-            href={href(isAuthenticated ? "/account/wishlist" : "/auth/login")}
-            className="p-2.5 rounded-full hover:bg-black/5 transition-colors relative"
-            aria-label="Wishlist"
-          >
-            <Heart className="w-5 h-5 text-[var(--store-text,#0A0E11)]" />
-          </Link>
-
-          <Link
-            href={href(isAuthenticated ? "/cart" : "/auth/login")}
-            className="p-2.5 rounded-full hover:bg-black/5 transition-colors relative"
-            aria-label="Cart"
-          >
-            <ShoppingBag className="w-5 h-5 text-[var(--store-text,#0A0E11)]" />
-            {(count?.count ?? 0) > 0 && (
-              <span
-                className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center shadow-xs animate-in zoom-in"
-                style={{ backgroundColor: "var(--store-primary, #E05315)" }}
-              >
-                {count?.count}
-              </span>
-            )}
-          </Link>
-
-          <Link
-            href={href(isAuthenticated ? "/account" : "/auth/login")}
-            className="hidden sm:inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full border transition-all hover:bg-black/5"
-            style={{
-              borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 20%, transparent)",
-              color: "var(--store-text, #0A0E11)",
-            }}
-          >
-            <User className="w-3.5 h-3.5" />
-            {isAuthenticated ? "My Account" : "Sign in"}
-          </Link>
-        </div>
-      </div>
-
-      {/* Mobile Drawer */}
-      {open && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs"
-          onClick={() => setOpen(false)}
-        >
-          <aside
-            className="absolute left-0 top-0 h-full w-80 max-w-[85vw] p-6 flex flex-col gap-6 shadow-2xl overflow-y-auto"
-            style={{
-              backgroundColor: "var(--store-bg, #FFFFFF)",
-              color: "var(--store-text, #0A0E11)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-4 border-b">
-              <span className="font-extrabold text-lg truncate font-space-grotesk">
-                {info.name}
-              </span>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center space-x-6 text-sm lg:text-base font-normal">
+            {/* Shop with Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setShopDropdownOpen(true)}
+              onMouseLeave={() => setShopDropdownOpen(false)}
+            >
               <button
-                className="p-2 rounded-lg hover:bg-black/5"
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
+                onClick={() => setShopDropdownOpen(!shopDropdownOpen)}
+                className="flex items-center gap-1 hover:opacity-70 transition-opacity py-2 font-medium"
+                type="button"
               >
-                <X className="w-5 h-5" />
+                <span>Shop</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    shopDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
+
+              {/* Dropdown Menu */}
+              {shopDropdownOpen && (
+                <div className="absolute top-full left-0 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <Link
+                    href={href("/products")}
+                    className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 font-medium"
+                    onClick={() => setShopDropdownOpen(false)}
+                  >
+                    All Products
+                  </Link>
+                  <div className="border-t border-gray-100 my-1"></div>
+                  <span className="block px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Styles
+                  </span>
+                  <Link
+                    href={href("/products?category=Casual")}
+                    className="block px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black"
+                    onClick={() => setShopDropdownOpen(false)}
+                  >
+                    Casual
+                  </Link>
+                  <Link
+                    href={href("/products?category=Formal")}
+                    className="block px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black"
+                    onClick={() => setShopDropdownOpen(false)}
+                  >
+                    Formal
+                  </Link>
+                  <Link
+                    href={href("/products?category=Party")}
+                    className="block px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black"
+                    onClick={() => setShopDropdownOpen(false)}
+                  >
+                    Party
+                  </Link>
+                  <Link
+                    href={href("/products?category=Gym")}
+                    className="block px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-black"
+                    onClick={() => setShopDropdownOpen(false)}
+                  >
+                    Gym
+                  </Link>
+                </div>
+              )}
             </div>
 
-            <nav className="flex flex-col gap-3 font-semibold text-base">
-              <Link
-                href={href("/")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                Home
-              </Link>
-              <Link
-                href={href("/products")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                All Collections
-              </Link>
-              <Link
-                href={href("/#how-it-works")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                How It Works
-              </Link>
-              <Link
-                href={href("/shipping")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                Shipping Policy
-              </Link>
-              <Link
-                href={href("/returns")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                Returns & Refunds
-              </Link>
-              <Link
-                href={href(isAuthenticated ? "/account" : "/auth/login")}
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5 flex items-center justify-between"
-              >
-                <span>{isAuthenticated ? "My Account" : "Sign In / Register"}</span>
-                <User className="w-4 h-4 opacity-60" />
-              </Link>
-            </nav>
-          </aside>
+            <Link
+              href={href("/products?sale=true")}
+              className="hover:opacity-70 transition-opacity font-medium"
+            >
+              On Sale
+            </Link>
+            <Link
+              href={href("/#new-arrivals")}
+              className="hover:opacity-70 transition-opacity font-medium"
+            >
+              New Arrivals
+            </Link>
+            <Link
+              href={href("/#brands")}
+              className="hover:opacity-70 transition-opacity font-medium"
+            >
+              Brands
+            </Link>
+          </nav>
+
+          {/* Desktop Search Bar */}
+          <div className="flex-1 max-w-xl hidden sm:block">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                <Search className="w-5 h-5" />
+              </span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="w-full bg-[#F0F0F0] rounded-full py-2.5 pl-12 pr-4 text-sm text-gray-800 placeholder-gray-400 border-none outline-none transition-all focus:ring-2"
+                style={{
+                  color: "#000000",
+                }}
+                placeholder="Search for products..."
+                type="search"
+              />
+            </form>
+          </div>
+
+          {/* User, Wishlist & Cart Icons */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Mobile Search Toggle Button */}
+            <button
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              aria-label="Search"
+              className="sm:hidden text-black hover:opacity-70 p-1"
+              type="button"
+            >
+              <Search className="w-6 h-6" />
+            </button>
+
+            {/* Wishlist Link */}
+            <Link
+              href={href(isAuthenticated ? "/account/wishlist" : "/auth/login")}
+              className="p-1 text-black hover:opacity-70 transition-opacity relative"
+              aria-label="Wishlist"
+            >
+              <Heart className="w-6 h-6 text-black" />
+            </Link>
+
+            {/* Cart Icon with Dynamic Badge */}
+            <Link
+              href={href(isAuthenticated ? "/cart" : "/auth/login")}
+              aria-label="Shopping Cart"
+              className="text-black hover:opacity-70 transition-opacity relative p-1"
+            >
+              <ShoppingBag className="w-6 h-6" />
+              {(count?.count ?? 0) > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-in zoom-in duration-200"
+                  style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                >
+                  {count?.count}
+                </span>
+              )}
+            </Link>
+
+            {/* Profile / Account Icon */}
+            <Link
+              href={href(isAuthenticated ? "/account" : "/auth/login")}
+              aria-label="Account profile"
+              className="text-black hover:opacity-70 transition-opacity p-1"
+            >
+              <User className="w-6 h-6" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Mobile Search Input Expanded */}
+        {mobileSearchOpen && (
+          <div className="sm:hidden px-4 pb-3 border-t border-gray-100 pt-2 animate-in fade-in duration-150">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
+                <Search className="w-4 h-4" />
+              </span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="w-full bg-[#F0F0F0] rounded-full py-2 pl-10 pr-4 text-xs text-gray-800 placeholder-gray-400 border-none outline-none"
+                placeholder="Search products..."
+                type="search"
+                autoFocus
+              />
+            </form>
+          </div>
+        )}
+      </header>
+
+      {/* Mobile Menu Drawer */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* Slide-over Panel */}
+          <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl z-10 flex flex-col justify-between p-6 overflow-y-auto animate-in slide-in-from-left duration-250">
+            <div>
+              <div className="flex items-center justify-between pb-6 border-b border-gray-100">
+                <Link
+                  href={href("/")}
+                  onClick={() => setOpen(false)}
+                  className="font-extrabold text-2xl tracking-tighter uppercase font-integral text-black"
+                >
+                  {info.name}
+                </Link>
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close menu"
+                  className="p-1 text-gray-500 hover:text-black"
+                  type="button"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <nav className="mt-6 flex flex-col space-y-4">
+                <Link
+                  href={href("/")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1"
+                >
+                  Home
+                </Link>
+                <Link
+                  href={href("/products")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1"
+                >
+                  Shop All Products
+                </Link>
+                <div className="pl-4 border-l-2 border-gray-100 space-y-2">
+                  <Link
+                    href={href("/products?category=Casual")}
+                    onClick={() => setOpen(false)}
+                    className="block text-sm text-gray-600 hover:text-black"
+                  >
+                    Casual Style
+                  </Link>
+                  <Link
+                    href={href("/products?category=Formal")}
+                    onClick={() => setOpen(false)}
+                    className="block text-sm text-gray-600 hover:text-black"
+                  >
+                    Formal Style
+                  </Link>
+                  <Link
+                    href={href("/products?category=Party")}
+                    onClick={() => setOpen(false)}
+                    className="block text-sm text-gray-600 hover:text-black"
+                  >
+                    Party Style
+                  </Link>
+                  <Link
+                    href={href("/products?category=Gym")}
+                    onClick={() => setOpen(false)}
+                    className="block text-sm text-gray-600 hover:text-black"
+                  >
+                    Gym Style
+                  </Link>
+                </div>
+                <Link
+                  href={href("/products?sale=true")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1"
+                >
+                  On Sale
+                </Link>
+                <Link
+                  href={href("/#new-arrivals")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1"
+                >
+                  New Arrivals
+                </Link>
+                <Link
+                  href={href("/#brands")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1"
+                >
+                  Brands
+                </Link>
+                <Link
+                  href={href(isAuthenticated ? "/cart" : "/auth/login")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1 flex items-center justify-between"
+                >
+                  <span>My Cart</span>
+                  {(count?.count ?? 0) > 0 && (
+                    <span
+                      className="text-white text-xs px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                    >
+                      {count?.count}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href={href(isAuthenticated ? "/account" : "/auth/login")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1 flex items-center justify-between"
+                >
+                  <span>{isAuthenticated ? "My Account" : "Sign In / Register"}</span>
+                  <User className="w-5 h-5 opacity-60" />
+                </Link>
+              </nav>
+            </div>
+
+            <div className="pt-6 border-t border-gray-100 text-xs text-gray-400">
+              <p>{info.name} © {new Date().getFullYear()}. All rights reserved.</p>
+            </div>
+          </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
 
@@ -277,20 +447,20 @@ export function StorefrontLeftRail({ info }: { info: StorefrontInfo }) {
   const href = (path: string) => storeHref(slug, path);
   return (
     <aside
-      className="hidden lg:flex w-56 shrink-0 flex-col gap-3 border-r px-5 py-8 sticky top-20 h-[calc(100vh-5rem)]"
-      style={{ borderColor: "color-mix(in srgb, var(--store-text) 10%, transparent)" }}
+      className="hidden lg:flex w-56 shrink-0 flex-col gap-3 border-r px-5 py-8 sticky top-20 h-[calc(100vh-5rem)] bg-white"
+      style={{ borderColor: "color-mix(in srgb, var(--store-text, #000000) 10%, transparent)" }}
     >
       <p className="text-[11px] font-bold uppercase tracking-widest opacity-50">Shop</p>
-      <Link href={href("/")} className="text-sm font-semibold hover:text-[var(--store-primary)]">
+      <Link href={href("/")} className="text-sm font-semibold hover:opacity-70">
         Home
       </Link>
-      <Link href={href("/products")} className="text-sm font-semibold hover:text-[var(--store-primary)]">
+      <Link href={href("/products")} className="text-sm font-semibold hover:opacity-70">
         Collections
       </Link>
-      <Link href={href("/shipping")} className="text-sm font-semibold hover:text-[var(--store-primary)]">
+      <Link href={href("/shipping")} className="text-sm font-semibold hover:opacity-70">
         Shipping
       </Link>
-      <Link href={href("/returns")} className="text-sm font-semibold hover:text-[var(--store-primary)]">
+      <Link href={href("/returns")} className="text-sm font-semibold hover:opacity-70">
         Returns
       </Link>
     </aside>
@@ -300,214 +470,312 @@ export function StorefrontLeftRail({ info }: { info: StorefrontInfo }) {
 export function StorefrontFooter({ info }: { info: StorefrontInfo }) {
   const buyerAuth = useOptionalBuyerAuth();
   const slug = buyerAuth?.slug ?? info.slug;
+  const isAuthenticated = buyerAuth?.isAuthenticated ?? false;
   const href = (path: string) => storeHref(slug, path);
   const social = info.socialLinks || {};
-  const footerVariant = resolveTheme(info.themeSettings).footerVariant;
-  const isDark = footerVariant === "dark";
-  const isSimple = footerVariant === "simple";
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 5000);
+    }
+  };
 
   return (
-    <footer
-      className="mt-auto border-t transition-colors"
-      style={{
-        backgroundColor: isDark
-          ? "var(--store-secondary)"
-          : "color-mix(in srgb, var(--store-bg, #FFFFFF) 94%, var(--store-text, #0A0E11) 3%)",
-        color: isDark ? "var(--store-bg)" : "var(--store-text, #0A0E11)",
-        borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className={`grid grid-cols-1 ${isSimple ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-5"} gap-10 lg:gap-12`}>
-          {/* Brand Bio & Socials */}
-          <div className="lg:col-span-2 flex flex-col items-start gap-4">
-            <div className="flex items-center gap-3">
-              {info.logo && (
-                <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                  <Image src={info.logo} alt="" fill className="object-cover" />
-                </div>
-              )}
-              <span className="font-extrabold text-xl tracking-tight font-space-grotesk">
-                {info.name}
-              </span>
-            </div>
-
-            <p className="text-sm text-[var(--store-text,#0A0E11)] opacity-70 leading-relaxed max-w-sm">
-              {info.description ||
-                "Your trusted destination for curated goods, verified merchants, and guaranteed escrow protection."}
-            </p>
-
-            {/* Escrow badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200 mt-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              100% Escrow Protected Store
-            </div>
-
-            {/* Social icons */}
-            <div className="flex items-center gap-3 mt-3 text-[var(--store-text,#0A0E11)] opacity-80">
-              {social.instagram && (
-                <a
-                  href={social.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-[var(--store-primary,#E05315)] hover:text-white transition-colors"
-                  aria-label="Instagram"
-                >
-                  <FaInstagram className="w-4 h-4" />
-                </a>
-              )}
-              {social.facebook && (
-                <a
-                  href={social.facebook}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-[var(--store-primary,#E05315)] hover:text-white transition-colors"
-                  aria-label="Facebook"
-                >
-                  <FaFacebookF className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {social.twitter && (
-                <a
-                  href={social.twitter}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-[var(--store-primary,#E05315)] hover:text-white transition-colors"
-                  aria-label="Twitter"
-                >
-                  <FaTwitter className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {social.tiktok && (
-                <a
-                  href={social.tiktok}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-[var(--store-primary,#E05315)] hover:text-white transition-colors"
-                  aria-label="TikTok"
-                >
-                  <FaTiktok className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {social.youtube && (
-                <a
-                  href={social.youtube}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-[var(--store-primary,#E05315)] hover:text-white transition-colors"
-                  aria-label="YouTube"
-                >
-                  <FaYoutube className="w-4 h-4" />
-                </a>
-              )}
-              {social.whatsappNumber && (
-                <a
-                  href={`https://wa.me/${social.whatsappNumber.replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors"
-                  aria-label="WhatsApp"
-                >
-                  <FaWhatsapp className="w-4 h-4" />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div className="flex flex-col gap-3 text-sm">
-            <p className="font-bold text-xs uppercase tracking-widest text-[var(--store-text,#0A0E11)] opacity-50 mb-1">
-              Shop & Explore
-            </p>
-            <Link
-              href={href("/products")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              All Collections
-            </Link>
-            <Link
-              href={href("/#how-it-works")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              How It Works
-            </Link>
-            <Link
-              href={href("/cart")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Shopping Cart
-            </Link>
-            <Link
-              href={href("/account/wishlist")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Wishlist
-            </Link>
-          </div>
-
-          {/* Policies & Care */}
-          <div className="flex flex-col gap-3 text-sm">
-            <p className="font-bold text-xs uppercase tracking-widest text-[var(--store-text,#0A0E11)] opacity-50 mb-1">
-              Customer Care
-            </p>
-            <Link
-              href={href("/shipping")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Shipping Policy
-            </Link>
-            <Link
-              href={href("/returns")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Returns & Refunds
-            </Link>
-            <Link
-              href={href("/terms")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href={href("/privacy")}
-              className="text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:text-[var(--store-primary,#E05315)]"
-            >
-              Privacy Policy
-            </Link>
-          </div>
-
-          {/* Contact Details */}
-          <div className="flex flex-col gap-3 text-sm">
-            <p className="font-bold text-xs uppercase tracking-widest text-[var(--store-text,#0A0E11)] opacity-50 mb-1">
-              Contact & Store
-            </p>
-            {info.contactEmail && (
-              <p className="text-xs text-[var(--store-text,#0A0E11)] opacity-75 break-all">
-                {info.contactEmail}
-              </p>
-            )}
-            {info.contactPhone && (
-              <p className="text-xs text-[var(--store-text,#0A0E11)] opacity-75">
-                {info.contactPhone}
-              </p>
-            )}
-            {info.address && (
-              <p className="text-xs text-[var(--store-text,#0A0E11)] opacity-60 leading-relaxed">
-                {info.address}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
+    <div className="relative mt-24 sm:mt-32">
+      {/* Floating ShopCo Newsletter Card */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mb-20 sm:-mb-24">
         <div
-          className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--store-text,#0A0E11)] opacity-60"
-          style={{ borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 8%, transparent)" }}
+          className="rounded-[24px] sm:rounded-[32px] px-6 py-8 sm:px-12 sm:py-10 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-2xl transition-colors"
+          style={{ backgroundColor: "var(--store-primary, #000000)" }}
         >
-          <p>© {new Date().getFullYear()} {info.name}. All rights reserved.</p>
-          <p>Powered by Hustlr • Secure Escrow Commerce</p>
+          <h2 className="font-integral text-2xl sm:text-3xl lg:text-[40px] text-white font-extrabold uppercase max-w-lg leading-tight text-center lg:text-left tracking-tight">
+            STAY UPTO DATE ABOUT OUR LATEST OFFERS
+          </h2>
+
+          <div className="w-full lg:w-88 flex flex-col gap-3">
+            {subscribed ? (
+              <div className="bg-emerald-500/20 border border-emerald-500 text-emerald-200 text-sm px-5 py-3 rounded-full text-center">
+                ✓ Thank you for subscribing to our newsletter!
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+                <div className="relative w-full">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </span>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-white rounded-full py-3 pl-12 pr-4 text-sm text-black placeholder-gray-400 outline-none border-none focus:ring-2 focus:ring-gray-300"
+                    placeholder="Enter your email address"
+                    type="email"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 px-6 rounded-full text-sm transition-colors shadow-sm cursor-pointer"
+                >
+                  Subscribe to Newsletter
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-    </footer>
+
+      {/* Main ShopCo Footer */}
+      <footer className="bg-[#F0F0F0] pt-32 sm:pt-36 pb-12 relative z-10 text-gray-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-8 pb-12 border-b border-gray-200">
+            {/* Col 1: ShopCo Branding & Socials */}
+            <div className="col-span-2 md:col-span-4 pr-0 md:pr-8">
+              <Link
+                href={href("/")}
+                className="text-3xl font-integral tracking-tighter font-extrabold text-black uppercase"
+              >
+                {info.name}
+              </Link>
+              <p className="mt-4 text-sm text-gray-500 leading-relaxed font-normal">
+                {info.description ||
+                  "We have clothes that suits your style and which you're proud to wear. From women to men."}
+              </p>
+
+              {/* Social links */}
+              <div className="mt-6 flex items-center space-x-3">
+                {social.twitter ? (
+                  <a
+                    href={social.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Twitter"
+                    className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:opacity-80 transition-opacity"
+                  >
+                    <FaTwitter className="w-3.5 h-3.5 fill-current" />
+                  </a>
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black">
+                    <FaTwitter className="w-3.5 h-3.5 fill-current" />
+                  </span>
+                )}
+
+                {social.facebook ? (
+                  <a
+                    href={social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook"
+                    className="w-8 h-8 rounded-full text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                    style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                  >
+                    <FaFacebookF className="w-3.5 h-3.5 fill-current" />
+                  </a>
+                ) : (
+                  <span
+                    className="w-8 h-8 rounded-full text-white flex items-center justify-center"
+                    style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                  >
+                    <FaFacebookF className="w-3.5 h-3.5 fill-current" />
+                  </span>
+                )}
+
+                {social.instagram ? (
+                  <a
+                    href={social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:opacity-80 transition-opacity"
+                  >
+                    <FaInstagram className="w-3.5 h-3.5 fill-current" />
+                  </a>
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black">
+                    <FaInstagram className="w-3.5 h-3.5 fill-current" />
+                  </span>
+                )}
+
+                {social.whatsappNumber ? (
+                  <a
+                    href={`https://wa.me/${social.whatsappNumber.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="WhatsApp"
+                    className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                  >
+                    <FaWhatsapp className="w-3.5 h-3.5 fill-current" />
+                  </a>
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black">
+                    <FaGithub className="w-3.5 h-3.5 fill-current" />
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Col 2: Company */}
+            <div className="col-span-1 md:col-span-2">
+              <h4 className="text-sm font-bold tracking-widest text-black uppercase mb-4">
+                COMPANY
+              </h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 font-normal">
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Works
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Career
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: Help */}
+            <div className="col-span-1 md:col-span-2">
+              <h4 className="text-sm font-bold tracking-widest text-black uppercase mb-4">
+                HELP
+              </h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 font-normal">
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/shipping")}>
+                    Customer Support
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/shipping")}>
+                    Delivery Details
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/terms")}>
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/privacy")}>
+                    Privacy Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4: FAQ */}
+            <div className="col-span-1 md:col-span-2">
+              <h4 className="text-sm font-bold tracking-widest text-black uppercase mb-4">
+                FAQ
+              </h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 font-normal">
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href(isAuthenticated ? "/account" : "/auth/login")}>
+                    Account
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/shipping")}>
+                    Manage Deliveries
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href(isAuthenticated ? "/cart" : "/auth/login")}>
+                    Orders
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href(isAuthenticated ? "/cart" : "/auth/login")}>
+                    Payments
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 5: Resources */}
+            <div className="col-span-1 md:col-span-2">
+              <h4 className="text-sm font-bold tracking-widest text-black uppercase mb-4">
+                RESOURCES
+              </h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 font-normal">
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Free eBooks
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Development Tutorial
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    How to - Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-black transition-colors" href={href("/products")}>
+                    Youtube Playlist
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Footer Subbar */}
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+            <p>{info.name} © 2000-{new Date().getFullYear()}, All Rights Reserved</p>
+            <div className="flex items-center space-x-2">
+              {/* Visa */}
+              <span className="bg-white px-2.5 py-1 rounded shadow-xs border border-gray-200 text-blue-800 font-bold italic tracking-tighter text-xs">
+                VISA
+              </span>
+              {/* Mastercard */}
+              <span className="bg-white px-2 py-1 rounded shadow-xs border border-gray-200 flex items-center justify-center">
+                <span className="w-3.5 h-3.5 rounded-full bg-red-500 inline-block -mr-1.5 opacity-90"></span>
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500 inline-block opacity-90"></span>
+              </span>
+              {/* PayPal */}
+              <span className="bg-white px-2.5 py-1 rounded shadow-xs border border-gray-200 text-blue-600 font-bold italic text-xs">
+                PayPal
+              </span>
+              {/* Apple Pay */}
+              <span className="bg-white px-2 py-1 rounded shadow-xs border border-gray-200 text-black font-semibold text-xs flex items-center gap-0.5">
+                <span></span>Pay
+              </span>
+              {/* Google Pay */}
+              <span className="bg-white px-2 py-1 rounded shadow-xs border border-gray-200 text-gray-700 font-medium text-xs">
+                G Pay
+              </span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

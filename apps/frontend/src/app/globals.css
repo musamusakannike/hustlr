@@ -32,6 +32,16 @@
 
   --font-archivo: var(--font-archivo-black);
   --font-space-grotesk: var(--font-space-grotesk);
+  --font-integral: "Integral CF", var(--font-montserrat), Impact, "Arial Black", sans-serif;
+  --font-satoshi: "Satoshi", var(--font-plus-jakarta), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer utilities {
+  .font-integral {
+    font-family: "Integral CF", var(--font-montserrat), Impact, "Arial Black", sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
 }
 
 html {

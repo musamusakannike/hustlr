@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Rajdhani, Archivo_Black, Space_Grotesk } from "next/font/google";
+import { Rajdhani, Archivo_Black, Space_Grotesk, Plus_Jakarta_Sans, Montserrat } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 import { APP_NAME, APP_SLOGAN, APP_TAGLINE, APP_URL } from "@/constants/app.constants";
@@ -19,6 +19,18 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-space-grotesk",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+});
+
+const montserrat = Montserrat({
+  weight: ["700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
@@ -104,7 +116,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.className} ${archivoBlack.variable} bg-[#FFFFFF]`}
+      className={`${spaceGrotesk.className} ${archivoBlack.variable} ${plusJakartaSans.variable} ${montserrat.variable} bg-[#FFFFFF]`}
     >
       <body>
         <script

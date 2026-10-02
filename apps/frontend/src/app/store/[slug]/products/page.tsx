@@ -1,12 +1,12 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useMemo } from "react";
+import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpDown, Filter, Search, SlidersHorizontal, X } from "lucide-react";
+import { Check, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import ProductCard from "@/components/storefront/ProductCard";
 import GuestModal from "@/components/storefront/GuestModal";
 import { Spinner } from "@/components/ui/Spinner";
-import EmptyState from "@/components/ui/EmptyState";
 import {
   useStorefrontCategories,
   useStorefrontInfo,
@@ -16,7 +16,33 @@ import {
 import { useBuyerAuth } from "@/context/BuyerAuthContext";
 import { storeHref } from "@/lib/store-path";
 import type { StorefrontFilters } from "@/types/storefront";
-import { resolveTheme } from "@/lib/storefront-theme";
+import { formatNaira } from "@/lib/utils";
+
+const COLOR_SWATCHES = [
+  { name: "Green", hex: "#00C12B" },
+  { name: "Red", hex: "#F50606" },
+  { name: "Yellow", hex: "#F5DD06" },
+  { name: "Orange", hex: "#F57906" },
+  { name: "Cyan", hex: "#06CAF5" },
+  { name: "Blue", hex: "#063AF5" },
+  { name: "Purple", hex: "#7D06F5" },
+  { name: "Pink", hex: "#F506A4" },
+  { name: "White", hex: "#FFFFFF", isLight: true },
+  { name: "Black", hex: "#000000" },
+];
+
+const SIZES = [
+  "XX-Small",
+  "X-Small",
+  "Small",
+  "Medium",
+  "Large",
+  "X-Large",
+  "XX-Large",
+  "3X-Large",
+];
+
+const DRESS_STYLES = ["Casual", "Formal", "Party", "Gym"];
 
 function Catalog() {
   const { slug } = useParams<{ slug: string }>();
@@ -27,6 +53,10 @@ function Catalog() {
   const wish = useToggleWish();
   const [guest, setGuest] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [maxPrice, setMaxPrice] = useState<number>(200000);
 
   const filters: StorefrontFilters = {
     category: searchParams.get("category") ?? undefined,
@@ -47,253 +77,368 @@ function Catalog() {
   };
 
   const activeCategory = filters.category || "";
-  const theme = resolveTheme(info?.themeSettings);
-  const shopLayout = theme.shopLayout;
-  const showSidebar = shopLayout === "boxed-sidebar";
-  const gridClass =
-    shopLayout === "grid-2"
-      ? "grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
-      : shopLayout === "grid-4"
-        ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"
-        : shopLayout === "list"
-          ? "flex flex-col gap-3"
-          : "grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6";
-  const cardVariant = shopLayout === "list" ? "list" : theme.productCardVariant;
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Header Banner */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b"
-        style={{ borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)" }}
-      >
-        <div>
-          <span
-            className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block mb-2"
-            style={{
-              backgroundColor: "var(--store-accent, #FFEDE6)",
-              color: "var(--store-primary, #E05315)",
-            }}
-          >
-            CATALOG & STORE
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]">
-            {filters.category ? filters.category : "All Collections"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[var(--store-text,#0A0E11)] opacity-70 mt-1">
-            Showing {data?.items.length ?? 0} {data?.items.length === 1 ? "item" : "items"} available
-          </p>
-        </div>
+  const onWish = (productId: string) => {
+    if (!isAuthenticated) {
+      setGuest(true);
+      return;
+    }
+    wish.mutate(productId);
+  };
 
-        {/* Filter Controls (Search + Sort + Mobile Toggle) */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setMobileFilterOpen(true)}
-            className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-xs font-bold shadow-2xs"
-            style={{
-              borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 15%, transparent)",
-              color: "var(--store-text, #0A0E11)",
-            }}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            Filter
-          </button>
+  const allItems = data?.items ?? [];
+  const filteredProducts = useMemo(() => {
+    return allItems.filter((p) => {
+      if (p.price > maxPrice) return false;
+      return true;
+    });
+  }, [allItems, maxPrice]);
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider opacity-60 hidden sm:inline">
-              Sort:
-            </span>
-            <select
-              className="border rounded-full px-4 py-2 text-xs sm:text-sm bg-white font-medium focus:outline-none shadow-2xs"
-              style={{
-                borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 15%, transparent)",
-                color: "var(--store-text, #0A0E11)",
+  const itemsPerPage = 9;
+  const currentPage = filters.page || 1;
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const displayedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const pageTitle = activeCategory || (filters.search ? `Search: "${filters.search}"` : "Casual");
+
+  const sidebarContent = (
+    <div className="border border-gray-200 rounded-[20px] p-5 sm:p-6 bg-white space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-black tracking-tight">Filters</h2>
+        <div className="flex items-center gap-2">
+          {(activeCategory || selectedColor || selectedSize || maxPrice < 200000) && (
+            <button
+              onClick={() => {
+                set("category", "");
+                setSelectedColor("");
+                setSelectedSize("");
+                setMaxPrice(200000);
               }}
-              value={filters.sort}
-              onChange={(e) => set("sort", e.target.value)}
+              className="text-xs text-red-500 hover:underline font-medium"
+              type="button"
             >
-              <option value="newest">Newest Arrivals</option>
-              <option value="popular">Most Popular</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Desktop Sidebar Filter */}
-        <aside className={`${showSidebar ? "hidden lg:flex" : "hidden"} lg:w-64 shrink-0 flex-col gap-6`}>
-          {/* Categories Box */}
-          <div
-            className="rounded-2xl p-5 border"
-            style={{
-              backgroundColor: "var(--store-bg, #FFFFFF)",
-              borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
-            }}
-          >
-            <p className="text-xs font-bold uppercase tracking-widest text-[var(--store-text,#0A0E11)] opacity-50 mb-3">
-              Categories
-            </p>
-            <div className="flex flex-col gap-1">
-              <button
-                type="button"
-                className={`text-left text-sm py-2 px-3 rounded-xl transition-all font-medium flex items-center justify-between ${
-                  !activeCategory
-                    ? "font-bold text-white shadow-xs"
-                    : "text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:bg-black/5"
-                }`}
-                style={
-                  !activeCategory
-                    ? { backgroundColor: "var(--store-primary, #E05315)" }
-                    : undefined
-                }
-                onClick={() => set("category", "")}
-              >
-                <span>All Collections</span>
-              </button>
-              {(cats ?? []).map((c) => {
-                const isActive = activeCategory === c.name;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`text-left text-sm py-2 px-3 rounded-xl transition-all font-medium flex items-center justify-between ${
-                      isActive
-                        ? "font-bold text-white shadow-xs"
-                        : "text-[var(--store-text,#0A0E11)] opacity-75 hover:opacity-100 hover:bg-black/5"
-                    }`}
-                    style={
-                      isActive
-                        ? { backgroundColor: "var(--store-primary, #E05315)" }
-                        : undefined
-                    }
-                    onClick={() => set("category", c.name)}
-                  >
-                    <span>{c.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </aside>
-
-        {/* Product Grid */}
-        <div className="flex-1 min-w-0">
-          {isLoading ? (
-            <div className="min-h-[40vh] flex items-center justify-center">
-              <Spinner label="Loading items..." />
-            </div>
-          ) : (data?.items.length ?? 0) === 0 ? (
-            <div className="rounded-3xl border p-12 text-center"
-              style={{
-                borderColor: "color-mix(in srgb, var(--store-text, #0A0E11) 10%, transparent)",
-              }}
+              Clear All
+            </button>
+          )}
+          {mobileFilterOpen && (
+            <button
+              onClick={() => setMobileFilterOpen(false)}
+              aria-label="Close filters"
+              className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-black rounded-full hover:bg-gray-100 transition-colors"
+              type="button"
             >
-              <EmptyState
-                title="No products found"
-                description={
-                  filters.category || filters.search
-                    ? "Try adjusting your filters or search terms."
-                    : "This store has not published any products yet."
-                }
-              />
-            </div>
-          ) : (
-            <div className={gridClass}>
-              {data!.items.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  slug={slug}
-                  product={p}
-                  variant={cardVariant}
-                  onWish={(id) => {
-                    if (!isAuthenticated) setGuest(true);
-                    else wish.mutate(id);
-                  }}
-                />
-              ))}
-            </div>
+              <X className="w-5 h-5" />
+            </button>
           )}
         </div>
       </div>
 
-      {/* Mobile Filters Drawer */}
-      {mobileFilterOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end"
-          onClick={() => setMobileFilterOpen(false)}
+      {/* Category List */}
+      <div className="py-2 border-b border-gray-200 space-y-2">
+        <button
+          onClick={() => set("category", "")}
+          className={`w-full flex justify-between items-center text-sm py-1 transition-colors ${
+            !activeCategory
+              ? "font-bold text-black"
+              : "text-gray-600 hover:text-black font-normal"
+          }`}
+          type="button"
         >
-          <div
-            className="w-80 max-w-[85vw] h-full p-6 flex flex-col gap-6 shadow-2xl overflow-y-auto"
-            style={{
-              backgroundColor: "var(--store-bg, #FFFFFF)",
-              color: "var(--store-text, #0A0E11)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-4 border-b">
-              <span className="font-bold text-lg">Filter Products</span>
-              <button
-                type="button"
-                onClick={() => setMobileFilterOpen(false)}
-                className="p-2 rounded-lg hover:bg-black/5"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+          <span>All Products</span>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </button>
 
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest opacity-50 mb-3">
-                Categories
-              </p>
-              <div className="flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  className={`text-left text-sm py-2.5 px-3.5 rounded-xl font-medium ${
-                    !activeCategory
-                      ? "font-bold text-white shadow-xs"
-                      : "opacity-75 hover:bg-black/5"
-                  }`}
-                  style={
-                    !activeCategory
-                      ? { backgroundColor: "var(--store-primary, #E05315)" }
-                      : undefined
-                  }
-                  onClick={() => {
-                    set("category", "");
-                    setMobileFilterOpen(false);
-                  }}
-                >
-                  All Collections
-                </button>
-                {(cats ?? []).map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`text-left text-sm py-2.5 px-3.5 rounded-xl font-medium ${
-                      activeCategory === c.name
-                        ? "font-bold text-white shadow-xs"
-                        : "opacity-75 hover:bg-black/5"
-                    }`}
-                    style={
-                      activeCategory === c.name
-                        ? { backgroundColor: "var(--store-primary, #E05315)" }
-                        : undefined
-                    }
-                    onClick={() => {
-                      set("category", c.name);
-                      setMobileFilterOpen(false);
-                    }}
-                  >
-                    {c.name}
-                  </button>
-                ))}
+        {(cats ?? []).map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => set("category", activeCategory === cat.name ? "" : cat.name)}
+            className={`w-full flex justify-between items-center text-sm py-1 transition-colors ${
+              activeCategory === cat.name
+                ? "font-bold text-black"
+                : "text-gray-600 hover:text-black font-normal"
+            }`}
+            type="button"
+          >
+            <span>{cat.name}</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+        ))}
+      </div>
+
+      {/* Price Slider */}
+      <div className="py-2 border-b border-gray-200">
+        <h3 className="text-base font-bold text-black mb-3">Price Range</h3>
+        <input
+          type="range"
+          min="5000"
+          max="200000"
+          step="5000"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          className="w-full accent-black cursor-pointer"
+        />
+        <div className="flex justify-between items-center text-xs font-semibold text-gray-700 mt-2">
+          <span>{formatNaira(5000)}</span>
+          <span className="font-bold text-black">{formatNaira(maxPrice)}</span>
+        </div>
+      </div>
+
+      {/* Colors Swatches */}
+      <div className="py-2 border-b border-gray-200">
+        <h3 className="text-base font-bold text-black mb-3">Colors</h3>
+        <div className="flex flex-wrap gap-2.5">
+          {COLOR_SWATCHES.map((color) => {
+            const isSelected = selectedColor === color.hex;
+            return (
+              <button
+                key={color.name}
+                onClick={() => setSelectedColor(isSelected ? "" : color.hex)}
+                aria-label={color.name}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform cursor-pointer shadow-xs ${
+                  color.isLight ? "border border-gray-300" : ""
+                } ${isSelected ? "ring-2 ring-offset-2 ring-black scale-105" : "hover:scale-105"}`}
+                style={{ backgroundColor: color.hex }}
+                type="button"
+              >
+                {isSelected && (
+                  <Check className={`w-3.5 h-3.5 ${color.isLight ? "text-black" : "text-white"}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Size Buttons */}
+      <div className="py-2 border-b border-gray-200">
+        <h3 className="text-base font-bold text-black mb-3">Size</h3>
+        <div className="flex flex-wrap gap-2">
+          {SIZES.map((sz) => {
+            const isSelected = selectedSize === sz;
+            return (
+              <button
+                key={sz}
+                onClick={() => setSelectedSize(isSelected ? "" : sz)}
+                className={`px-4 py-2 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                  isSelected
+                    ? "text-white font-semibold"
+                    : "bg-[#F0F0F0] text-gray-700 hover:bg-gray-200"
+                }`}
+                style={
+                  isSelected
+                    ? { backgroundColor: "var(--store-primary, #000000)" }
+                    : undefined
+                }
+                type="button"
+              >
+                {sz}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dress Style Quick Links */}
+      <div className="py-2">
+        <h3 className="text-base font-bold text-black mb-3">Dress Style</h3>
+        <div className="space-y-2">
+          {DRESS_STYLES.map((style) => (
+            <button
+              key={style}
+              onClick={() => set("category", style)}
+              className={`w-full flex justify-between items-center text-sm py-1 transition-colors ${
+                activeCategory === style
+                  ? "font-bold text-black"
+                  : "text-gray-600 hover:text-black font-normal"
+              }`}
+              type="button"
+            >
+              <span>{style}</span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Apply Filter Button */}
+      <button
+        onClick={() => setMobileFilterOpen(false)}
+        className="w-full text-white font-medium py-3 rounded-full text-sm transition-opacity hover:opacity-90"
+        style={{ backgroundColor: "var(--store-primary, #000000)" }}
+        type="button"
+      >
+        Apply Filter
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="bg-white min-h-screen text-black">
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-6 w-full">
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center text-sm text-gray-500 font-normal"
+        >
+          <Link href={storeHref(slug, "/")} className="hover:text-black transition-colors">
+            Home
+          </Link>
+          <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+          <span className="text-black font-medium">{pageTitle}</span>
+        </nav>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1 w-full">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Desktop Filter Sidebar */}
+          <div className="hidden lg:block w-72 shrink-0">
+            {sidebarContent}
+          </div>
+
+          {/* Mobile Filter Modal */}
+          {mobileFilterOpen && (
+            <div className="fixed inset-0 z-50 flex">
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+                onClick={() => setMobileFilterOpen(false)}
+              />
+              <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl z-10 p-5 overflow-y-auto ml-auto">
+                {sidebarContent}
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Products Listing Section */}
+          <section className="flex-1 w-full" aria-label="Product Catalog">
+            {/* Catalog Info & Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-3 border-b border-gray-100 mb-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-black tracking-tight font-sans capitalize">
+                  {pageTitle}
+                </h1>
+                {/* Mobile Filter Toggle Button */}
+                <button
+                  onClick={() => setMobileFilterOpen(true)}
+                  aria-label="Open Filter"
+                  className="lg:hidden w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors ml-3"
+                  type="button"
+                >
+                  <SlidersHorizontal className="w-4 h-4 text-black" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-500 justify-between sm:justify-end">
+                <span>
+                  Showing{" "}
+                  {displayedProducts.length > 0
+                    ? `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(
+                        currentPage * itemsPerPage,
+                        filteredProducts.length
+                      )}`
+                    : "0"}{" "}
+                  of {filteredProducts.length} Products
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden sm:inline">Sort by:</span>
+                  <select
+                    value={filters.sort || "newest"}
+                    onChange={(e) => set("sort", e.target.value)}
+                    className="font-semibold text-black bg-transparent border-none py-1 pl-2 pr-4 text-xs sm:text-sm focus:outline-none cursor-pointer"
+                  >
+                    <option value="newest">Most Popular</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Grid */}
+            {isLoading ? (
+              <div className="py-20 flex justify-center">
+                <Spinner label="Loading products..." />
+              </div>
+            ) : displayedProducts.length === 0 ? (
+              <div className="text-center py-16 bg-[#F0EEED]/50 rounded-3xl p-8 border border-gray-200">
+                <p className="text-lg font-bold text-gray-700 mb-2">No products found</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Try adjusting or resetting your active filters to see more clothing items.
+                </p>
+                <button
+                  onClick={() => {
+                    set("category", "");
+                    setSelectedColor("");
+                    setSelectedSize("");
+                    setMaxPrice(200000);
+                  }}
+                  className="text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition"
+                  style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                  type="button"
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+                {displayedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    slug={slug}
+                    product={product}
+                    onWish={onWish}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* ShopCo Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-gray-200 mt-10 pt-5">
+                <button
+                  onClick={() => set("page", String(Math.max(1, currentPage - 1)))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 border border-gray-200 px-3.5 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  type="button"
+                >
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => set("page", String(page))}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                        currentPage === page
+                          ? "bg-[#F0EEED] text-black font-bold"
+                          : "text-gray-500 hover:bg-gray-100 hover:text-black"
+                      }`}
+                      type="button"
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => set("page", String(Math.min(totalPages, currentPage + 1)))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 border border-gray-200 px-3.5 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  type="button"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                </button>
+              </div>
+            )}
+          </section>
         </div>
-      )}
+      </div>
 
       <GuestModal slug={slug} open={guest} onClose={() => setGuest(false)} />
     </div>
@@ -304,8 +449,8 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[50vh] flex items-center justify-center">
-          <Spinner />
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Spinner label="Loading catalog..." />
         </div>
       }
     >
