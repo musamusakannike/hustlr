@@ -104,6 +104,12 @@ const storeSchema = new Schema<IStore>(
   { timestamps: true },
 );
 
-storeSchema.index({ customDomain: 1 }, { unique: true, sparse: true });
+storeSchema.index(
+  { customDomain: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { customDomain: { $type: "string", $gt: "" } },
+  },
+);
 
 export const Store = mongoose.model<IStore>("Store", storeSchema);
