@@ -47,7 +47,36 @@ export async function upsertKyc(sellerId: string, payload: Record<string, unknow
   if (kyc.status === "info_requested") {
     kyc.status = "draft";
   }
-  await kyc.save();
+  try {
+    await kyc.save();
+  } catch (err) {
+    if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code === 11000) {
+      const dup = err as { keyPattern?: Record<string, unknown>; keyValue?: Record<string, unknown> };
+      const fields = dup.keyPattern
+        ? Object.keys(dup.keyPattern)
+        : dup.keyValue
+          ? Object.keys(dup.keyValue)
+          : [];
+      if (fields.includes("sellerId")) {
+        // Race: another request created the KYC just now — reload and retry once
+        const existing = await Kyc.findOne({ sellerId });
+        if (existing) {
+          if (existing.status === "pending") {
+            throw ApiError.badRequest("KYC is under review and cannot be edited");
+          }
+          for (const key of allowed) {
+            if (payload[key] !== undefined) {
+              (existing as unknown as Record<string, unknown>)[key] = payload[key];
+            }
+          }
+          if (existing.status === "info_requested") existing.status = "draft";
+          await existing.save();
+          return existing;
+        }
+      }
+    }
+    throw err;
+  }
   return kyc;
 }
 

@@ -20,6 +20,19 @@ import {
   normalizeThemeSettings,
 } from "../utils/storefront-theme.util";
 
+function isDuplicateKeyError(err: unknown): { fields: string[] } | null {
+  if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code === 11000) {
+    const dup = err as { keyPattern?: Record<string, unknown>; keyValue?: Record<string, unknown> };
+    const fields = dup.keyPattern
+      ? Object.keys(dup.keyPattern)
+      : dup.keyValue
+        ? Object.keys(dup.keyValue)
+        : [];
+    return { fields };
+  }
+  return null;
+}
+
 export async function setupStore(
   sellerId: string,
   email: string,
@@ -32,17 +45,58 @@ export async function setupStore(
     if (payload.slug && !isValidSlug(String(payload.slug))) {
       throw ApiError.badRequest("Slug may only contain lowercase letters, numbers, and hyphens");
     }
-    const slug = await uniqueSlug(requested, async (s) => Boolean(await Store.exists({ slug: s })));
-    store = await Store.create({
-      sellerId,
-      name,
-      slug,
-      contactEmail: email,
-    });
-    // Apply ShopCo as the default website template for newly created stores
-    const defaultTemplate = await WebsiteTemplate.findOne({ slug: "shopco", isActive: true });
-    if (defaultTemplate) {
-      applyTemplateDefaults(store, defaultTemplate);
+    const initialSlug = await uniqueSlug(requested, async (s) => Boolean(await Store.exists({ slug: s })));
+    try {
+      store = await Store.create({
+        sellerId,
+        name,
+        slug: initialSlug,
+        contactEmail: email,
+      });
+    } catch (err) {
+      const dup = isDuplicateKeyError(err);
+      if (dup) {
+        if (dup.fields.includes("sellerId")) {
+          const existing = await Store.findOne({ sellerId });
+          if (existing) {
+            store = existing;
+          } else {
+            throw ApiError.conflict("Store already exists for this seller");
+          }
+        } else if (dup.fields.includes("slug")) {
+          // Slug race — retry once with a fresh unique slug
+          const retrySlug = await uniqueSlug(`${requested}-${Date.now().toString(36).slice(-4)}`, async (s) =>
+            Boolean(await Store.exists({ slug: s })),
+          );
+          try {
+            store = await Store.create({
+              sellerId,
+              name,
+              slug: retrySlug,
+              contactEmail: email,
+            });
+          } catch (retryErr) {
+            const retryDup = isDuplicateKeyError(retryErr);
+            if (retryDup?.fields.includes("sellerId")) {
+              const existing = await Store.findOne({ sellerId });
+              if (existing) store = existing;
+              else throw ApiError.conflict("Store already exists for this seller");
+            } else {
+              throw retryErr;
+            }
+          }
+        } else {
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    }
+    if (store) {
+      const defaultTemplate = await WebsiteTemplate.findOne({ slug: "shopco", isActive: true });
+      if (defaultTemplate) {
+        applyTemplateDefaults(store, defaultTemplate);
+      }
     }
   }
 
@@ -98,7 +152,32 @@ export async function setupStore(
     await setStoreTemplate(sellerId, String(payload.templateId), store);
   }
 
-  await store.save();
+  try {
+    await store.save();
+  } catch (err) {
+    const dup = isDuplicateKeyError(err);
+    if (dup?.fields.includes("slug")) {
+      // Slug collision on save (race on auto-generated slug) — retry with fresh slug
+      const base = store.slug || slugify(String(payload.name || "store"));
+      const fresh = await uniqueSlug(`${base}-${Date.now().toString(36).slice(-4)}`, async (s) =>
+        Boolean(await Store.exists({ slug: s, _id: { $ne: store._id } })),
+      );
+      store.slug = fresh;
+      try {
+        await store.save();
+      } catch (retryErr) {
+        const retryDup = isDuplicateKeyError(retryErr);
+        if (retryDup?.fields.includes("slug")) {
+          throw ApiError.conflict("This slug is already taken");
+        }
+        throw retryErr;
+      }
+    } else if (dup?.fields.includes("sellerId")) {
+      throw ApiError.conflict("Store already exists for this seller");
+    } else {
+      throw err;
+    }
+  }
   return store;
 }
 

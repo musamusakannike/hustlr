@@ -31,7 +31,27 @@ export function errorHandler(
     message = "Invalid ID";
   } else if (typeof err === "object" && err && "code" in err && (err as { code: number }).code === 11000) {
     statusCode = 409;
-    message = "Duplicate value";
+    const dup = err as { keyPattern?: Record<string, unknown>; keyValue?: Record<string, unknown> };
+    const fields = dup.keyPattern
+      ? Object.keys(dup.keyPattern)
+      : dup.keyValue
+        ? Object.keys(dup.keyValue)
+        : [];
+    if (fields.includes("slug")) {
+      message = "This store slug is already taken";
+    } else if (fields.includes("sellerId")) {
+      message = "Store already exists for this seller";
+    } else if (fields.includes("email")) {
+      message = "Email already in use";
+    } else if (fields.includes("referralCode")) {
+      message = "Referral code already in use";
+    } else if (fields.includes("customDomain")) {
+      message = "This domain is already in use";
+    } else if (fields.length) {
+      message = `Duplicate value for ${fields.join(", ")}`;
+    } else {
+      message = "Duplicate value";
+    }
   } else if (err instanceof Error) {
     message = env.isProd ? "Internal server error" : err.message;
   }
