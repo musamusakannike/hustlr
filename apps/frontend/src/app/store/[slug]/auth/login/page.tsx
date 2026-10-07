@@ -32,7 +32,7 @@ export default function BuyerLoginPage() {
     setError("");
     try {
       const res = await buyerAuthService.login(slug, { email: email.trim(), password });
-      setBuyer(res.user);
+      setBuyer(res.user ?? (res as unknown as { buyer?: typeof res.user }).buyer ?? null);
       go("/");
     } catch (err) {
       setError(getErrorMessage(err));
@@ -47,7 +47,7 @@ export default function BuyerLoginPage() {
     try {
       const token = await getGoogleIdToken();
       const res = await buyerAuthService.google(slug, { idToken: token });
-      setBuyer(res.user);
+      setBuyer(res.user ?? (res as unknown as { buyer?: typeof res.user }).buyer ?? null);
       go("/");
     } catch (err) {
       setError(getErrorMessage(err));

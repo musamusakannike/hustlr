@@ -9,6 +9,8 @@ import {
   setSellerSessionCookie,
 } from "../utils/cookie.util";
 import { ApiError } from "../utils/api-error.util";
+import { BUYER_SESSION_COOKIE } from "../config/constants.config";
+import { signToken } from "../utils/jwt.util";
 
 export const registerSeller = asyncHandler(async (req: Request, res: Response) => {
   const data = await authService.registerSeller(req.body);
@@ -116,12 +118,29 @@ export const logoutBuyer = asyncHandler(async (_req: Request, res: Response) => 
 
 export const meBuyer = asyncHandler(async (req: Request, res: Response) => {
   if (!req.buyer) throw ApiError.unauthorized();
-  sendSuccess(res, {
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : (req.cookies?.[BUYER_SESSION_COOKIE] as string | undefined);
+  const token =
+    bearer ||
+    signToken({
+      buyerProfileId: String(req.buyer._id),
+      storeId: String(req.buyer.storeId),
+      email: req.buyer.email,
+      name: req.buyer.name,
+      type: "buyer",
+    });
+  const data = {
     id: req.buyer._id,
     storeId: req.buyer.storeId,
     name: req.buyer.name,
     email: req.buyer.email,
     referralCode: req.buyer.referralCode,
     shippingAddresses: req.buyer.shippingAddresses,
+  };
+  sendSuccess(res, {
+    token,
+    user: data,
+    buyer: data,
   });
 });

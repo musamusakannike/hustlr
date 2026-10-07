@@ -320,7 +320,7 @@ export async function verifyBuyerOtp(storeId: string, email: string, otp: string
     name: buyer.name,
     type: "buyer",
   });
-  return { token, buyer: publicBuyer(buyer) };
+  return { token, buyer: publicBuyer(buyer), user: publicBuyer(buyer) };
 }
 
 export async function resendBuyerOtp(storeId: string, email: string) {
@@ -357,7 +357,7 @@ export async function loginBuyer(storeId: string, email: string, password: strin
     name: buyer.name,
     type: "buyer",
   });
-  return { token, buyer: publicBuyer(buyer) };
+  return { token, buyer: publicBuyer(buyer), user: publicBuyer(buyer) };
 }
 
 export async function googleBuyer(storeId: string, idToken: string, referralCode?: string) {
@@ -410,7 +410,7 @@ export async function googleBuyer(storeId: string, idToken: string, referralCode
     name: buyer.name,
     type: "buyer",
   });
-  return { token, buyer: publicBuyer(buyer) };
+  return { token, buyer: publicBuyer(buyer), user: publicBuyer(buyer) };
 }
 
 export async function forgotBuyerPassword(storeId: string, email: string) {

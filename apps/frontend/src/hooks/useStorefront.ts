@@ -87,9 +87,9 @@ export function useCartCount() {
   });
 }
 
-export function useAddToCart() {
+export function useAddToCart(overrideSlug?: string) {
   const ctx = useOptionalBuyerAuth();
-  const slug = ctx?.slug ?? "";
+  const slug = overrideSlug || ctx?.slug || "";
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: AddCartInput) => cartService.add(slug, input),

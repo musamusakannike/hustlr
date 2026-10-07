@@ -30,12 +30,14 @@ export function BuyerAuthProvider({
   const handleSet = useCallback((next: Buyer | null) => {
     setBuyer(next);
     if (typeof window === "undefined") return;
-    if (next) localStorage.setItem("hustlr_buyer_user", JSON.stringify(next));
-    else {
+    if (next) {
+      if (slug) localStorage.setItem(`hustlr_buyer_user_${slug}`, JSON.stringify(next));
+      localStorage.setItem("hustlr_buyer_user", JSON.stringify(next));
+    } else {
+      if (slug) localStorage.removeItem(`hustlr_buyer_user_${slug}`);
       localStorage.removeItem("hustlr_buyer_user");
-      localStorage.removeItem("hustlr_buyer_token");
     }
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
     storefrontService.setSlug(slug);
@@ -58,6 +60,14 @@ export function BuyerAuthProvider({
 
   const logout = useCallback(async () => {
     await buyerAuthService.logout(slug).catch(() => undefined);
+    if (typeof window !== "undefined") {
+      if (slug) {
+        localStorage.removeItem(`hustlr_buyer_token_${slug}`);
+        localStorage.removeItem(`hustlr_buyer_user_${slug}`);
+      }
+      localStorage.removeItem("hustlr_buyer_token");
+      localStorage.removeItem("hustlr_buyer_user");
+    }
     handleSet(null);
     queryClient.removeQueries({ queryKey: ["cart", slug] });
   }, [slug, handleSet, queryClient]);

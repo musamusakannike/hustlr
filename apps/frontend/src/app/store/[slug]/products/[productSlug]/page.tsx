@@ -59,7 +59,7 @@ export default function ProductDetailPage() {
   const { data: product, isLoading } = useStorefrontProduct(slug, productSlug);
   const { data: reviews } = useProductReviews(slug, productSlug);
   const { data: catalog } = useStorefrontProducts(slug, { limit: 8 });
-  const add = useAddToCart();
+  const add = useAddToCart(slug);
   const wish = useToggleWish();
   const { toast } = useToast();
 

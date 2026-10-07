@@ -40,7 +40,7 @@ import type {
   AiTextResult,
 } from "@/types/storefront";
 import type { AddCartInput, Cart, CheckoutInput, CheckoutResult } from "@/types/cart";
-import type { BuyerAuthResponse, BuyerRegisterInput } from "@/types/buyer";
+import type { Buyer, BuyerAuthResponse, BuyerRegisterInput } from "@/types/buyer";
 import type { ForgotPasswordInput, ResetPasswordInput, SellerLoginInput, VerifyOtpInput, GoogleAuthInput } from "@/types/auth";
 import type { PaginatedQuery } from "@/types/common";
 import type { AiChatMessage, AiThread, AiThreadDetail } from "@/types/ai-partner";
@@ -83,16 +83,19 @@ function persistSeller(res: AuthResponse & { token?: string; user?: AuthResponse
   return res;
 }
 
-function persistBuyer(res: BuyerAuthResponse) {
-  if (typeof window === "undefined") return res;
+function persistBuyer(res: (BuyerAuthResponse & { buyer?: Buyer }) | null | undefined, slug?: string) {
+  if (typeof window === "undefined" || !res) return res as BuyerAuthResponse;
+  const user = res.user || res.buyer;
   if (res.token) {
+    if (slug) localStorage.setItem(`hustlr_buyer_token_${slug}`, res.token);
     localStorage.setItem("hustlr_buyer_token", res.token);
     setBuyerAuthCookie(res.token);
   }
-  if (res.user) {
-    localStorage.setItem("hustlr_buyer_user", JSON.stringify(mapDoc(res.user)));
+  if (user) {
+    if (slug) localStorage.setItem(`hustlr_buyer_user_${slug}`, JSON.stringify(mapDoc(user)));
+    localStorage.setItem("hustlr_buyer_user", JSON.stringify(mapDoc(user)));
   }
-  return { ...res, user: mapDoc(res.user) };
+  return { ...res, user: user ? mapDoc(user) : res.user, buyer: user ? mapDoc(user) : res.buyer };
 }
 
 async function request<T>(
@@ -102,10 +105,12 @@ async function request<T>(
 ): Promise<T> {
   const audience = opts.audience ?? "seller";
   const slug = opts.storeSlug ?? activeStoreSlug;
-  const tokenKey = audience === "buyer" ? "hustlr_buyer_token" : "hustlr_token";
   const token =
     typeof window !== "undefined"
-      ? localStorage.getItem(tokenKey) || (audience === "seller" ? localStorage.getItem("token") : null)
+      ? (audience === "buyer"
+          ? (slug ? localStorage.getItem(`hustlr_buyer_token_${slug}`) : null) ||
+            localStorage.getItem("hustlr_buyer_token")
+          : localStorage.getItem("hustlr_token") || localStorage.getItem("token"))
       : null;
 
   const extra: Record<string, string> = {};
@@ -663,16 +668,16 @@ export class ApiTransport implements Transport {
     return send<RegisterPendingResponse>("POST", "/auth/buyer/register", input, sf(slug));
   }
   async verifyBuyerOtp(slug: string, input: VerifyOtpInput) {
-    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/verify-otp", input, sf(slug)));
+    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/verify-otp", input, sf(slug)), slug);
   }
   resendBuyerOtp(slug: string, email: string) {
     return send<RegisterPendingResponse>("POST", "/auth/buyer/resend-otp", { email }, sf(slug));
   }
   async loginBuyer(slug: string, input: SellerLoginInput) {
-    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/login", input, sf(slug)));
+    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/login", input, sf(slug)), slug);
   }
   async googleBuyer(slug: string, input: GoogleAuthInput) {
-    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/google", input, sf(slug)));
+    return persistBuyer(await send<BuyerAuthResponse>("POST", "/auth/buyer/google", input, sf(slug)), slug);
   }
   forgotBuyerPassword(slug: string, input: ForgotPasswordInput) {
     return send<{ message: string }>("POST", "/auth/buyer/forgot-password", input, sf(slug));
@@ -690,6 +695,10 @@ export class ApiTransport implements Transport {
       return await send<{ message: string }>("POST", "/auth/buyer/logout", {}, sf(slug));
     } finally {
       if (typeof window !== "undefined") {
+        if (slug) {
+          localStorage.removeItem(`hustlr_buyer_token_${slug}`);
+          localStorage.removeItem(`hustlr_buyer_user_${slug}`);
+        }
         localStorage.removeItem("hustlr_buyer_token");
         localStorage.removeItem("hustlr_buyer_user");
         clearBuyerAuthCookie();
@@ -697,12 +706,35 @@ export class ApiTransport implements Transport {
     }
   }
   async getBuyerMe(slug: string) {
-    const res = await get<BuyerAuthResponse["user"] | BuyerAuthResponse>("/auth/buyer/me", sf(slug));
-    const user =
-      res && typeof res === "object" && "user" in res
-        ? (res as BuyerAuthResponse).user
-        : (res as BuyerAuthResponse["user"]);
-    return { user: mapDoc(user) };
+    const res = await get<
+      | BuyerAuthResponse["user"]
+      | BuyerAuthResponse
+      | { user?: Buyer; buyer?: Buyer; token?: string }
+    >("/auth/buyer/me", sf(slug));
+    let user: Buyer | undefined;
+    let token: string | undefined;
+    if (res && typeof res === "object") {
+      if ("token" in res && typeof res.token === "string" && res.token) {
+        token = res.token;
+      }
+      if ("user" in res && res.user) {
+        user = res.user as Buyer;
+      } else if ("buyer" in res && res.buyer) {
+        user = res.buyer as Buyer;
+      } else if ("id" in res || "_id" in res) {
+        user = res as unknown as Buyer;
+      }
+    }
+    if (token && typeof window !== "undefined") {
+      if (slug) localStorage.setItem(`hustlr_buyer_token_${slug}`, token);
+      localStorage.setItem("hustlr_buyer_token", token);
+      setBuyerAuthCookie(token);
+    }
+    if (user && typeof window !== "undefined") {
+      if (slug) localStorage.setItem(`hustlr_buyer_user_${slug}`, JSON.stringify(mapDoc(user)));
+      localStorage.setItem("hustlr_buyer_user", JSON.stringify(mapDoc(user)));
+    }
+    return { user: user ? mapDoc(user) : (user as unknown as Buyer) };
   }
 
   async getCart(slug: string) {
