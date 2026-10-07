@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Sparkles, Star, Upload, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Sparkles, Star, Upload, X } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
@@ -13,6 +13,11 @@ import { useCategories, useCreateProduct, useUpdateProduct, useUploadAsset, useP
 import { aiService } from "@/services/commerce";
 import Modal from "@/components/ui/Modal";
 import { getErrorMessage, cn } from "@/lib/utils";
+import {
+  validateProductInput,
+  extractValidationErrors,
+  type ProductValidationErrors,
+} from "@/lib/product-validation";
 import type { ProductInput } from "@/types/product";
 import VariantBuilder from "./VariantBuilder";
 
@@ -51,6 +56,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<ProductInput>(emptyProduct);
+  const [errors, setErrors] = useState<ProductValidationErrors>({});
   const [hydratedFor, setHydratedFor] = useState<string | null>(
     isEdit ? null : "new"
   );
@@ -84,15 +90,19 @@ export default function ProductForm({ productId }: { productId?: string }) {
     setHydratedFor(existing.id);
   }
 
-  const patch = (p: Partial<ProductInput>) =>
+  const patch = (p: Partial<ProductInput>) => {
     setForm((prev) => ({ ...prev, ...p }));
+    const changedKeys = Object.keys(p);
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const k of changedKeys) {
+        delete (next as Record<string, unknown>)[k];
+      }
+      return next;
+    });
+  };
 
   const saving = createProduct.isPending || updateProduct.isPending;
-  const canSubmit =
-    form.title.trim().length >= 2 &&
-    form.price > 0 &&
-    (form.hasVariants ? form.variantCombinations.length > 0 : form.stock >= 0) &&
-    (!form.hasVariants || form.category.trim().length > 0 || true);
 
   const handleUploadImages = async (files: FileList) => {
     const room = MAX_IMAGES - form.images.length;
@@ -111,10 +121,6 @@ export default function ProductForm({ productId }: { productId?: string }) {
   };
 
   const handleSubmit = (published: boolean) => {
-    if (!canSubmit) {
-      toast("Please fill in a title and a price above zero.", "error");
-      return;
-    }
     const payload: ProductInput = {
       ...form,
       title: form.title.trim(),
@@ -125,10 +131,30 @@ export default function ProductForm({ productId }: { productId?: string }) {
         .filter(Boolean),
       compareAtPrice: form.compareAtPrice || null,
       weightKg: form.weightKg || null,
-      sku: form.sku ?? "",
+      sku: form.sku?.trim() ?? "",
       estimatedDeliveryDays:
-        form.estimatedDeliveryDays || "3-5 business days",
+        form.estimatedDeliveryDays?.trim() || "3-5 business days",
     };
+
+    // Client-side validation before making network call
+    const clientErrors = validateProductInput(payload);
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors);
+      const firstErrorMessage =
+        clientErrors.title ||
+        clientErrors.price ||
+        clientErrors.stock ||
+        clientErrors.compareAtPrice ||
+        clientErrors.variants ||
+        clientErrors.category ||
+        clientErrors.shippingFee ||
+        clientErrors.weightKg ||
+        clientErrors.general ||
+        "Please fix the validation errors before submitting.";
+      toast(firstErrorMessage, "error");
+      return;
+    }
+
     if (isEdit && productId) {
       updateProduct.mutate(
         { productId, input: payload },
@@ -137,7 +163,13 @@ export default function ProductForm({ productId }: { productId?: string }) {
             toast(published ? "Product updated & published." : "Draft saved.", "success");
             router.push("/dashboard/products");
           },
-          onError: (err) => toast(getErrorMessage(err), "error"),
+          onError: (err) => {
+            const { message: friendlyMessage, fieldErrors } = extractValidationErrors(err);
+            if (Object.keys(fieldErrors).length > 0) {
+              setErrors(fieldErrors);
+            }
+            toast(friendlyMessage, "error");
+          },
         }
       );
     } else {
@@ -146,25 +178,32 @@ export default function ProductForm({ productId }: { productId?: string }) {
           toast(published ? "Product published!" : "Draft saved.", "success");
           router.push("/dashboard/products");
         },
-        onError: (err) => toast(getErrorMessage(err), "error"),
+        onError: (err) => {
+          const { message: friendlyMessage, fieldErrors } = extractValidationErrors(err);
+          if (Object.keys(fieldErrors).length > 0) {
+            setErrors(fieldErrors);
+          }
+          toast(friendlyMessage, "error");
+        },
       });
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
           <Link href="/dashboard/products">
-            <Button variant="ghost" size="sm" aria-label="Back to products">
+            <Button variant="ghost" size="sm" aria-label="Back to products" className="shrink-0">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight truncate">
               {isEdit ? "Edit product" : "Add new product"}
             </h2>
-            <p className="text-sm text-muted mt-0.5">
+            <p className="text-xs sm:text-sm text-muted mt-0.5 truncate">
               {isEdit
                 ? "Changes are saved to your live catalog."
                 : "Start with the basics — you can refine anytime."}
@@ -174,16 +213,17 @@ export default function ProductForm({ productId }: { productId?: string }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Main Column */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Basics */}
           <Card>
             <h3 className="font-bold text-lg mb-4">Basics</h3>
             <div className="flex flex-col gap-4">
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    Product Title
-                  </span>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                  <label htmlFor="product-title-input" className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                    Product Title *
+                  </label>
                   <button
                     type="button"
                     disabled={!form.title.trim() || aiBusy !== null}
@@ -203,24 +243,27 @@ export default function ProductForm({ productId }: { productId?: string }) {
                         setAiBusy(null);
                       }
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     {aiBusy === "title" ? "Writing…" : "Improve with AI"}
                   </button>
                 </div>
                 <Input
+                  id="product-title-input"
                   required
                   placeholder="e.g. Handmade Ankara Wrap Dress"
                   value={form.title}
+                  error={errors.title}
                   onChange={(e) => patch({ title: e.target.value })}
                 />
               </div>
+
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                  <label htmlFor="product-description-input" className="text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     Description
-                  </span>
+                  </label>
                   <button
                     type="button"
                     disabled={!form.description.trim() || aiBusy !== null}
@@ -243,24 +286,28 @@ export default function ProductForm({ productId }: { productId?: string }) {
                         setAiBusy(null);
                       }
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-primary disabled:opacity-50 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     {aiBusy === "description" ? "Writing…" : "Rewrite with AI"}
                   </button>
                 </div>
                 <Textarea
+                  id="product-description-input"
                   rows={5}
                   placeholder="Describe the material, fit, care instructions…"
                   value={form.description}
+                  error={errors.description}
                   onChange={(e) => patch({ description: e.target.value })}
                 />
               </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                   label="Category"
                   placeholder="Select a category"
                   value={form.category}
+                  error={errors.category}
                   onChange={(e) => patch({ category: e.target.value })}
                   options={(categories ?? []).map((c) => ({
                     value: c.name,
@@ -272,9 +319,11 @@ export default function ProductForm({ productId }: { productId?: string }) {
                   label="SKU (optional)"
                   placeholder="ANK-DRESS-001"
                   value={form.sku ?? ""}
+                  error={errors.sku}
                   onChange={(e) => patch({ sku: e.target.value })}
                 />
               </div>
+
               <Input
                 label="Tags (comma separated)"
                 placeholder="ankara, dress, handmade"
@@ -285,16 +334,17 @@ export default function ProductForm({ productId }: { productId?: string }) {
             </div>
           </Card>
 
-          {/* Pricing */}
+          {/* Pricing & Stock */}
           <Card>
             <h3 className="font-bold text-lg mb-4">Pricing & Stock</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Input
-                label="Price (₦)"
+                label="Price (₦) *"
                 type="number"
                 min={0}
                 required
                 value={form.price || ""}
+                error={errors.price}
                 onChange={(e) => patch({ price: Number(e.target.value) || 0 })}
               />
               <Input
@@ -303,6 +353,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 min={0}
                 placeholder="optional"
                 value={form.compareAtPrice ?? ""}
+                error={errors.compareAtPrice}
                 onChange={(e) =>
                   patch({
                     compareAtPrice: e.target.value
@@ -313,25 +364,26 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 hint="Shown crossed out as a discount."
               />
               <Input
-                label={form.hasVariants ? "Stock (per combo below)" : "Stock"}
+                label={form.hasVariants ? "Stock (per combo below)" : "Stock *"}
                 type="number"
                 min={0}
                 required={!form.hasVariants}
                 disabled={form.hasVariants}
                 value={form.hasVariants ? "" : form.stock}
+                error={errors.stock}
                 onChange={(e) => patch({ stock: Number(e.target.value) || 0 })}
               />
             </div>
-            {form.compareAtPrice && form.compareAtPrice <= form.price && (
+            {form.compareAtPrice && form.compareAtPrice <= form.price && !errors.compareAtPrice && (
               <p className="text-xs text-warning font-medium mt-2">
-                Compare-at price should be higher than the selling price.
+                Compare-at price should be higher than the regular price.
               </p>
             )}
           </Card>
 
           {/* Variants */}
           <Card>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="font-bold text-lg">Variants</h3>
                 <p className="text-xs text-muted mt-0.5">
@@ -351,6 +403,14 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 <span className="w-11 h-6 rounded-full bg-neutral-200 peer-checked:bg-primary relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5" />
               </label>
             </div>
+
+            {errors.variants && (
+              <div className="mb-4 rounded-xl border border-danger/30 bg-danger-light/30 p-3 text-xs text-danger font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errors.variants}</span>
+              </div>
+            )}
+
             {form.hasVariants && (
               <VariantBuilder
                 variants={form.variants}
@@ -364,7 +424,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar Column */}
         <div className="flex flex-col gap-6">
           <Card>
             <h3 className="font-bold text-lg mb-4">Publishing</h3>
@@ -385,7 +445,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                   type="checkbox"
                   checked={form.isFeatured}
                   onChange={(e) => patch({ isFeatured: e.target.checked })}
-                  className="w-4 h-4 accent-[#800A1D]"
+                  className="w-4 h-4 accent-primary rounded cursor-pointer"
                 />
                 <span className="text-sm font-semibold flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-primary" />
@@ -400,7 +460,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
             <p className="text-xs text-muted mb-4">
               Up to {MAX_IMAGES} images. First image is the cover.
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-3">
               {form.images.map((url, i) => (
                 <div
                   key={i}
@@ -411,7 +471,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                     alt={`Product photo ${i + 1}`}
                     fill
                     className="object-cover"
-                    sizes="150px"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 150px"
                   />
                   <button
                     type="button"
@@ -419,7 +479,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                       patch({ images: form.images.filter((_, j) => j !== i) })
                     }
                     aria-label={`Remove photo ${i + 1}`}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -444,6 +504,9 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 </button>
               )}
             </div>
+            {errors.images && (
+              <p className="text-xs text-danger font-medium mt-2">{errors.images}</p>
+            )}
             <input
               ref={fileRef}
               type="file"
@@ -465,6 +528,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 type="number"
                 min={0}
                 value={form.shippingFee || ""}
+                error={errors.shippingFee}
                 onChange={(e) =>
                   patch({ shippingFee: Number(e.target.value) || 0 })
                 }
@@ -482,6 +546,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                 min={0}
                 step="0.1"
                 value={form.weightKg ?? ""}
+                error={errors.weightKg}
                 onChange={(e) =>
                   patch({
                     weightKg: e.target.value ? Number(e.target.value) : null,
@@ -493,12 +558,14 @@ export default function ProductForm({ productId }: { productId?: string }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-3 pb-4">
+      {/* Action Buttons */}
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pb-6 w-full">
         <Button
           variant="outline"
           onClick={() => handleSubmit(false)}
           loading={saving}
           disabled={hydratedFor === null}
+          className="w-full sm:w-auto"
         >
           Save as Draft
         </Button>
@@ -506,7 +573,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
           onClick={() => handleSubmit(true)}
           loading={saving}
           disabled={hydratedFor === null}
-          className={cn(!canSubmit && "opacity-60")}
+          className="w-full sm:w-auto"
         >
           {isEdit ? "Save & Publish" : "Publish Product"}
         </Button>
@@ -527,7 +594,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
                   patch({ title: suggestion });
                   setTitleSuggestions([]);
                 }}
-                className="w-full text-left rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:border-primary hover:bg-primary-light/30"
+                className="w-full text-left rounded-xl border border-border px-4 py-3 text-sm font-semibold hover:border-primary hover:bg-primary-light/30 break-words"
               >
                 {suggestion}
               </button>
@@ -542,7 +609,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
         title="Rewritten description"
         description="Replace your current copy with this version?"
       >
-        <p className="text-sm text-muted whitespace-pre-wrap mb-4">{descPreview}</p>
+        <p className="text-sm text-muted whitespace-pre-wrap mb-4 max-h-[60vh] overflow-y-auto">{descPreview}</p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setDescPreview(null)}>
             Keep original

@@ -130,12 +130,15 @@ async function request<T>(
     );
   }
 
-  const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
+  const payload = (await response.json().catch(() => null)) as
+    | (ApiEnvelope<T> & { errors?: unknown; details?: unknown })
+    | null;
   if (!response.ok || !payload?.success) {
     throw new TransportError(
       payload?.message ?? "Something went wrong. Please try again.",
       response.status,
-      (payload as ApiEnvelope<T> & { errors?: unknown })?.errors
+      payload?.errors,
+      payload?.details
     );
   }
   return payload.data;

@@ -4,6 +4,7 @@ import type {
   UploadContext,
 } from "@/lib/transport";
 import { TransportError } from "@/lib/transport";
+import { validateProductInput } from "@/lib/product-validation";
 import type {
   AuthResponse,
   ForgotPasswordInput,
@@ -625,6 +626,15 @@ export class MockTransport implements Transport {
 
   async createProduct(input: ProductInput): Promise<Product> {
     requireSession();
+
+    const errors = validateProductInput(input);
+    const errorKeys = Object.keys(errors) as (keyof typeof errors)[];
+    if (errorKeys.length > 0) {
+      const firstMsg = errors[errorKeys[0]]!;
+      const details = errorKeys.map((k) => ({ field: k, message: errors[k]! }));
+      throw new TransportError(firstMsg, 400, Object.values(errors), details);
+    }
+
     const ent = currentEntitlements();
     if (
       ent.maxProducts !== null &&

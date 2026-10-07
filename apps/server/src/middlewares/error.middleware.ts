@@ -17,11 +17,13 @@ export function errorHandler(
   let statusCode = 500;
   let message = "Internal server error";
   let errors: unknown;
+  let details: unknown;
 
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
     errors = err.errors;
+    details = err.details;
   } else if (err instanceof mongoose.Error.ValidationError) {
     statusCode = 400;
     message = "Validation failed";
@@ -64,5 +66,6 @@ export function errorHandler(
     success: false,
     message,
     errors,
+    ...(details ? { details } : {}),
   });
 }
