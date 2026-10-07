@@ -35,6 +35,7 @@ function NavLinks({
         const items = group.items.filter((item) => {
           if (item.entitlement === "allowBlog") return entitlements.allowBlog;
           if (item.entitlement === "allowCustomDomain") return entitlements.allowCustomDomain;
+          if (item.entitlement === "allowAiPartner") return entitlements.allowAiPartner;
           return true;
         });
         if (items.length === 0) return null;

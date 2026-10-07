@@ -155,6 +155,18 @@ export const ticketSchema = Joi.object({
   attachments: Joi.array().items(Joi.string()),
 });
 
+export const aiThreadSchema = Joi.object({
+  title: Joi.string().max(80).allow(""),
+});
+
+export const aiRenameSchema = Joi.object({
+  title: Joi.string().min(1).max(80).required(),
+});
+
+export const aiMessageSchema = Joi.object({
+  content: Joi.string().min(1).max(8000).required(),
+});
+
 export const resolveDisputeSchema = Joi.object({
   resolution: Joi.string().valid("refund", "replacement", "rejected").required(),
   refundAmount: Joi.number().min(0),

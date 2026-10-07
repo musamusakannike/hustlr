@@ -16,6 +16,14 @@ export const apiLimiter = rateLimit({
   message: { success: false, message: "Too many requests. Try again shortly." },
 });
 
+export const aiPartnerLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many AI requests. Try again shortly." },
+});
+
 export const uploadLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,

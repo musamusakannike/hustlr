@@ -61,6 +61,17 @@ export const aiService = {
   generateSeo: t.generateSeo.bind(t),
 };
 
+export const aiPartnerService = {
+  listThreads: t.listAiThreads.bind(t),
+  createThread: t.createAiThread.bind(t),
+  renameThread: t.renameAiThread.bind(t),
+  deleteThread: t.deleteAiThread.bind(t),
+  listMessages: t.listAiMessages.bind(t),
+  streamMessage: t.streamAiMessage.bind(t),
+  applyAction: t.applyAiAction.bind(t),
+  dismissAction: t.dismissAiAction.bind(t),
+};
+
 export const referralService = {
   get: t.getReferrals.bind(t),
 };

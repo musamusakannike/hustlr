@@ -14,6 +14,7 @@ import {
   TicketPercent,
   BarChart3,
   Newspaper,
+  Bot,
   Gift,
   Bell,
   LifeBuoy,
@@ -25,7 +26,7 @@ export interface DashboardNavItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  entitlement?: "allowBlog" | "allowCustomDomain";
+  entitlement?: "allowBlog" | "allowCustomDomain" | "allowAiPartner";
 }
 
 export interface DashboardNavGroup {
@@ -69,6 +70,7 @@ export const DASHBOARD_NAV_GROUPS: DashboardNavGroup[] = [
     label: "Growth",
     items: [
       { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/dashboard/ai", label: "AI Partner", icon: Bot, entitlement: "allowAiPartner" },
       { href: "/dashboard/blog", label: "Blog", icon: Newspaper, entitlement: "allowBlog" },
       { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
     ],

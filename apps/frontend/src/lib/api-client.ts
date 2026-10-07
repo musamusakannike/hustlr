@@ -43,6 +43,7 @@ import type { AddCartInput, Cart, CheckoutInput, CheckoutResult } from "@/types/
 import type { BuyerAuthResponse, BuyerRegisterInput } from "@/types/buyer";
 import type { ForgotPasswordInput, ResetPasswordInput, SellerLoginInput, VerifyOtpInput, GoogleAuthInput } from "@/types/auth";
 import type { PaginatedQuery } from "@/types/common";
+import type { AiChatMessage, AiThread, AiThreadDetail } from "@/types/ai-partner";
 import type { OpenDisputeInput } from "@/types/dispute";
 import type { CreateReviewInput } from "@/types/review";
 
@@ -491,6 +492,86 @@ export class ApiTransport implements Transport {
   }
   generateSeo(input: { title: string; description?: string }) {
     return send<AiTextResult>("POST", "/seller/ai/generate-seo", input);
+  }
+
+  listAiThreads() {
+    return get<AiThread[]>("/seller/ai/threads");
+  }
+  createAiThread(title?: string) {
+    return send<AiThread>("POST", "/seller/ai/threads", { title: title ?? "" });
+  }
+  renameAiThread(threadId: string, title: string) {
+    return send<AiThread>("PATCH", `/seller/ai/threads/${threadId}`, { title });
+  }
+  deleteAiThread(threadId: string) {
+    return del<{ deleted?: boolean }>(`/seller/ai/threads/${threadId}`);
+  }
+  listAiMessages(threadId: string) {
+    return get<AiThreadDetail>(`/seller/ai/threads/${threadId}/messages`);
+  }
+  async streamAiMessage(threadId: string, content: string, onDelta: (delta: string) => void) {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("hustlr_token") || localStorage.getItem("token")
+        : null;
+    const extra: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) extra.Authorization = `Bearer ${token}`;
+    const response = await fetch(`${BASE_URL}/seller/ai/threads/${threadId}/messages`, {
+      method: "POST",
+      credentials: "include",
+      headers: extra,
+      body: JSON.stringify({ content }),
+    });
+    if (!response.ok || !response.body) {
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new TransportError(payload?.message ?? "AI request failed", response.status);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let doneMessage: AiChatMessage | null = null;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop() ?? "";
+      for (const part of parts) {
+        const line = part
+          .split("\n")
+          .filter((l) => l.startsWith("data:"))
+          .map((l) => l.slice(5).trim())
+          .join("");
+        if (!line) continue;
+        try {
+          const event = JSON.parse(line) as {
+            type: string;
+            delta?: string;
+            message?: AiChatMessage | string;
+          };
+          if (event.type === "text" && event.delta) onDelta(event.delta);
+          if (event.type === "done" && event.message && typeof event.message === "object") {
+            doneMessage = event.message;
+          }
+          if (event.type === "error") {
+            throw new TransportError(
+              typeof event.message === "string" ? event.message : "AI request failed",
+              500,
+            );
+          }
+        } catch (err) {
+          if (err instanceof TransportError) throw err;
+        }
+      }
+    }
+    if (!doneMessage) throw new TransportError("The assistant did not finish a reply.", 500);
+    return mapDoc(doneMessage);
+  }
+  applyAiAction(actionId: string) {
+    return send<AiChatMessage>("POST", `/seller/ai/actions/${actionId}/apply`);
+  }
+  dismissAiAction(actionId: string) {
+    return send<AiChatMessage>("POST", `/seller/ai/actions/${actionId}/dismiss`);
   }
 
   getReferrals() {

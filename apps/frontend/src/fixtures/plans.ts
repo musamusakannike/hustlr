@@ -59,6 +59,7 @@ export const DEMO_PLANS: SubscriptionPlan[] = [
       "Lowest Platform Commission (5%)",
       "Advanced Inventory & Analytics",
       "Multi-Currency Support Ready",
+      "Dedicated Seller AI Partner",
       "Dedicated Account Manager",
     ],
     maxProducts: null,

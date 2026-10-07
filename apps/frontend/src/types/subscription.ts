@@ -64,5 +64,6 @@ export interface PlanEntitlements {
   allowProTemplates: boolean;
   allowProPlusTemplates: boolean;
   allowBlog: boolean;
+  allowAiPartner: boolean;
   commissionPercent: number;
 }

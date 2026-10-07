@@ -26,3 +26,5 @@ export { SupportTicket } from "./support-ticket.model";
 export { Settings } from "./settings.model";
 export { AuditLog } from "./audit-log.model";
 export { PlatformTransaction } from "./platform-transaction.model";
+export { AiThread } from "./ai-thread.model";
+export { AiMessage } from "./ai-message.model";

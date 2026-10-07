@@ -5,7 +5,9 @@ import * as kyc from "../controllers/kyc.controller";
 import * as subscription from "../controllers/subscription.controller";
 import * as order from "../controllers/order.controller";
 import * as misc from "../controllers/misc.controller";
+import * as aiPartner from "../controllers/ai-partner.controller";
 import { protectSeller } from "../middlewares/auth.middleware";
+import { aiPartnerLimiter } from "../middlewares/rate-limiter.middleware";
 import { imageUpload, productImageUpload } from "../middlewares/upload.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import { customDomainSchema, storeSetupSchema, templateSelectSchema } from "../validations/store.validation";
@@ -22,6 +24,9 @@ import {
   statusSchema,
   subscribeSchema,
   withdrawSchema,
+  aiThreadSchema,
+  aiRenameSchema,
+  aiMessageSchema,
 } from "../validations/commerce.validation";
 
 const router = Router();
@@ -111,6 +116,20 @@ router.get("/analytics/product-performance", misc.analyticsProducts);
 router.post("/ai/improve-title", misc.aiTitle);
 router.post("/ai/rewrite-description", misc.aiDescription);
 router.post("/ai/generate-seo", misc.aiSeo);
+
+router.get("/ai/threads", aiPartner.listThreads);
+router.post("/ai/threads", validate(aiThreadSchema), aiPartner.createThread);
+router.patch("/ai/threads/:threadId", validate(aiRenameSchema), aiPartner.renameThread);
+router.delete("/ai/threads/:threadId", aiPartner.deleteThread);
+router.get("/ai/threads/:threadId/messages", aiPartner.listMessages);
+router.post(
+  "/ai/threads/:threadId/messages",
+  aiPartnerLimiter,
+  validate(aiMessageSchema),
+  aiPartner.postMessage,
+);
+router.post("/ai/actions/:actionId/apply", aiPartner.applyAction);
+router.post("/ai/actions/:actionId/dismiss", aiPartner.dismissAction);
 
 router.get("/referrals", misc.myReferrals);
 

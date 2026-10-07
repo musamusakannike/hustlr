@@ -78,3 +78,7 @@ export function planAllowsBlog(planName: string): boolean {
 export function planAllowsCustomDomain(planName: string): boolean {
   return planName === "pro+";
 }
+
+export function planAllowsAiPartner(planName: string): boolean {
+  return planName === "pro+";
+}

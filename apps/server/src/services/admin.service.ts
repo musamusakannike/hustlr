@@ -591,6 +591,7 @@ export async function listPlansAdmin() {
           "Custom Domain Mapping (yourname.com)",
           "Access to All Templates (including Pro+)",
           "Lowest Platform Commission (5%)",
+          "Dedicated Seller AI Partner",
           "Dedicated Account Manager",
         ],
         maxProducts: null,

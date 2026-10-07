@@ -83,6 +83,7 @@ function currentEntitlements(): PlanEntitlements {
     allowProTemplates: plan.allowProTemplates,
     allowProPlusTemplates: plan.allowProPlusTemplates,
     allowBlog: plan.allowBlog,
+    allowAiPartner: planName === "pro+",
     commissionPercent: plan.commissionPercent,
   };
 }

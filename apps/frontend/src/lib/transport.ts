@@ -57,6 +57,7 @@ import type {
   BuyerRegisterInput,
 } from "@/types/buyer";
 import type { PaginatedQuery } from "@/types/common";
+import type { AiChatMessage, AiThread, AiThreadDetail } from "@/types/ai-partner";
 
 export class TransportError extends Error {
   status: number;
@@ -175,6 +176,19 @@ export interface Transport {
   improveTitle(input: { title: string }): Promise<AiTextResult>;
   rewriteDescription(input: { title?: string; description: string }): Promise<AiTextResult>;
   generateSeo(input: { title: string; description?: string }): Promise<AiTextResult>;
+
+  listAiThreads(): Promise<AiThread[]>;
+  createAiThread(title?: string): Promise<AiThread>;
+  renameAiThread(threadId: string, title: string): Promise<AiThread>;
+  deleteAiThread(threadId: string): Promise<{ deleted?: boolean }>;
+  listAiMessages(threadId: string): Promise<AiThreadDetail>;
+  streamAiMessage(
+    threadId: string,
+    content: string,
+    onDelta: (delta: string) => void,
+  ): Promise<AiChatMessage>;
+  applyAiAction(actionId: string): Promise<AiChatMessage>;
+  dismissAiAction(actionId: string): Promise<AiChatMessage>;
 
   getReferrals(): Promise<ReferralSummary>;
   listNotifications(query?: PaginatedQuery): Promise<Paginated<AppNotification>>;

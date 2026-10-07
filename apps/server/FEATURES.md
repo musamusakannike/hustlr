@@ -94,7 +94,17 @@ Users (ban/unban/promote), buyers, stores (live override), KYC queue, templates,
 
 `POST /api/seller/ai/improve-title|rewrite-description|generate-seo`
 
-Provider order: SpaceXAI (`XAI_API_KEY`) → DeepSeek → local fallback so the endpoints always return JSON.
+Provider order: DeepSeek (`DEEPSEEK_API_KEY`) → SpaceXAI (`XAI_API_KEY`) → local fallback so catalog endpoints always return JSON.
+
+### AI Partner (Pro+)
+
+Dedicated seller chat at `/dashboard/ai`. Store-scoped tools (wallet, escrow, revenue, orders, inventory, disputes, catalog drafts). Writes only after the seller applies an action card.
+
+- `GET/POST /api/seller/ai/threads`
+- `PATCH/DELETE /api/seller/ai/threads/:threadId`
+- `GET /api/seller/ai/threads/:threadId/messages`
+- `POST /api/seller/ai/threads/:threadId/messages` (SSE)
+- `POST /api/seller/ai/actions/:actionId/apply|dismiss`
 
 ## Uploads and security
 

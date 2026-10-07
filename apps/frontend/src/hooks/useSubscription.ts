@@ -40,6 +40,7 @@ export function usePlanEntitlements(): {
       allowProTemplates: plan?.allowProTemplates ?? false,
       allowProPlusTemplates: plan?.allowProPlusTemplates ?? false,
       allowBlog: plan?.allowBlog ?? false,
+      allowAiPartner: planName === "pro+",
       commissionPercent: plan?.commissionPercent ?? 10,
     },
     isLoading: !plans,

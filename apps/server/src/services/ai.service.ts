@@ -1,18 +1,19 @@
 import OpenAI from "openai";
+import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
 import { env } from "../config/env.config";
 import { APP_NAME } from "../config/constants.config";
 
 function client(): { sdk: OpenAI; model: string } | null {
-  if (env.xaiApiKey) {
-    return {
-      sdk: new OpenAI({ apiKey: env.xaiApiKey, baseURL: env.xaiBaseUrl }),
-      model: env.xaiModel,
-    };
-  }
   if (env.deepseekApiKey) {
     return {
       sdk: new OpenAI({ apiKey: env.deepseekApiKey, baseURL: `${env.deepseekBaseUrl.replace(/\/$/, "")}/v1` }),
       model: env.deepseekModel,
+    };
+  }
+  if (env.xaiApiKey) {
+    return {
+      sdk: new OpenAI({ apiKey: env.xaiApiKey, baseURL: env.xaiBaseUrl }),
+      model: env.xaiModel,
     };
   }
   return null;
@@ -78,6 +79,75 @@ export async function rewriteDescription(input: {
     JSON.stringify(input),
   );
   return parseJson(text, fallback);
+}
+
+export type ToolHandler = (name: string, args: Record<string, unknown>) => Promise<unknown>;
+
+export async function completeWithTools(params: {
+  system: string;
+  messages: ChatCompletionMessageParam[];
+  tools: ChatCompletionTool[];
+  runTool: ToolHandler;
+  onDelta?: (text: string) => void;
+}): Promise<{ text: string; toolNames: string[] }> {
+  const c = client();
+  if (!c) return { text: "", toolNames: [] };
+
+  const history: ChatCompletionMessageParam[] = [
+    { role: "system", content: params.system },
+    ...params.messages,
+  ];
+  const toolNames: string[] = [];
+
+  for (let step = 0; step < 6; step++) {
+    const res = await c.sdk.chat.completions.create({
+      model: c.model,
+      messages: history,
+      tools: params.tools,
+      temperature: 0.3,
+    });
+    const msg = res.choices[0]?.message;
+    if (!msg) break;
+
+    const calls = msg.tool_calls ?? [];
+    if (calls.length === 0) {
+      const text = typeof msg.content === "string" ? msg.content : "";
+      if (params.onDelta && text) params.onDelta(text);
+      return { text, toolNames };
+    }
+
+    history.push(msg);
+    for (const call of calls) {
+      const fn = call.function;
+      toolNames.push(fn.name);
+      let args: Record<string, unknown> = {};
+      try {
+        args = fn.arguments ? (JSON.parse(fn.arguments) as Record<string, unknown>) : {};
+      } catch {
+        args = {};
+      }
+      let result: unknown;
+      try {
+        result = await params.runTool(fn.name, args);
+      } catch (error) {
+        result = { error: error instanceof Error ? error.message : "Tool failed" };
+      }
+      history.push({
+        role: "tool",
+        tool_call_id: call.id,
+        content: JSON.stringify(result),
+      });
+    }
+  }
+
+  const fallback = await c.sdk.chat.completions.create({
+    model: c.model,
+    messages: history,
+    temperature: 0.3,
+  });
+  const text = fallback.choices[0]?.message?.content ?? "";
+  if (params.onDelta && text) params.onDelta(text);
+  return { text, toolNames };
 }
 
 export async function generateSeo(input: { name: string; description?: string; category?: string }) {
