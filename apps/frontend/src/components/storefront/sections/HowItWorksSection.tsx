@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import type { HowItWorksSectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 interface HowItWorksSectionProps {
   data: HowItWorksSectionData;
@@ -12,6 +14,7 @@ interface HowItWorksSectionProps {
 }
 
 export default function HowItWorksSection({ data, info }: HowItWorksSectionProps) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const steps = data.steps || [];
 
   return (
@@ -28,31 +31,42 @@ export default function HowItWorksSection({ data, info }: HowItWorksSectionProps
           {/* Left Column: Heading & CTA */}
           <div className="lg:col-span-5 flex flex-col items-start gap-6 lg:sticky lg:top-28">
             {data.badge && (
-              <span
+              <EditableText
+                as="span"
+                path="badge"
+                value={data.badge}
                 className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
                 style={{
                   backgroundColor: "var(--store-accent, #FFEDE6)",
                   color: "var(--store-primary, #E05315)",
                 }}
-              >
-                {data.badge}
-              </span>
+              />
             )}
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)] leading-tight">
-              {data.heading}
-            </h2>
+            <EditableText
+              as="h2"
+              path="heading"
+              value={data.heading}
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)] leading-tight"
+            />
             {data.subheading && (
-              <p className="text-base text-[var(--store-text,#0A0E11)] opacity-75 leading-relaxed">
-                {data.subheading}
-              </p>
+              <EditableText
+                as="p"
+                path="subheading"
+                multiline
+                value={data.subheading}
+                className="text-base text-[var(--store-text,#0A0E11)] opacity-75 leading-relaxed"
+              />
             )}
             {data.ctaText && (
               <Link
                 href={storeHref(info.slug, data.ctaLink || "/products")}
+                onClick={(e) => {
+                  if (editing) e.preventDefault();
+                }}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm text-white shadow-md transition-all hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] mt-2"
                 style={{ backgroundColor: "var(--store-primary, #E05315)" }}
               >
-                {data.ctaText}
+                <EditableText as="span" path="ctaText" value={data.ctaText} />
                 <ArrowRight className="w-4 h-4" />
               </Link>
             )}
@@ -60,7 +74,7 @@ export default function HowItWorksSection({ data, info }: HowItWorksSectionProps
 
           {/* Right Column: 3 Numbered Step Cards */}
           <div className="lg:col-span-7 flex flex-col gap-5">
-            {steps.map((step) => (
+            {steps.map((step, sIdx) => (
               <div
                 key={step.id || step.stepNumber}
                 className="rounded-3xl p-6 sm:p-8 bg-white border shadow-xs transition-all duration-300 hover:shadow-md"
@@ -80,9 +94,12 @@ export default function HowItWorksSection({ data, info }: HowItWorksSectionProps
 
                   {/* Step Content */}
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <h3 className="text-lg sm:text-xl font-bold text-[var(--store-text,#0A0E11)] mb-3">
-                      {step.title}
-                    </h3>
+                    <EditableText
+                      as="h3"
+                      path={`steps.${sIdx}.title`}
+                      value={step.title}
+                      className="text-lg sm:text-xl font-bold text-[var(--store-text,#0A0E11)] mb-3"
+                    />
                     <ul className="flex flex-col gap-2">
                       {step.bullets.map((bullet, bIdx) => (
                         <li key={bIdx} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--store-text,#0A0E11)] opacity-80 leading-relaxed">
@@ -95,7 +112,7 @@ export default function HowItWorksSection({ data, info }: HowItWorksSectionProps
                           >
                             <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </span>
-                          <span>{bullet}</span>
+                          <EditableText as="span" path={`steps.${sIdx}.bullets.${bIdx}`} value={bullet} />
                         </li>
                       ))}
                     </ul>

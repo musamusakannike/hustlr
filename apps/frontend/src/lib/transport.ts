@@ -47,6 +47,7 @@ import type {
   StorefrontFilters,
   StorefrontInfo,
   StorefrontProduct,
+  StorefrontSection,
   TopProductRow,
   AiTextResult,
 } from "@/types/storefront";
@@ -176,6 +177,17 @@ export interface Transport {
   improveTitle(input: { title: string }): Promise<AiTextResult>;
   rewriteDescription(input: { title?: string; description: string }): Promise<AiTextResult>;
   generateSeo(input: { title: string; description?: string }): Promise<AiTextResult>;
+  storefrontQuestions(input: {
+    storeName: string;
+    description: string;
+    sectionSummary?: string;
+  }): Promise<{ questions: { id: string; prompt: string }[] }>;
+  storefrontCopy(input: {
+    storeName: string;
+    description: string;
+    answers: Record<string, string>;
+    sections: unknown[];
+  }): Promise<{ sections: StorefrontSection[] }>;
 
   listAiThreads(): Promise<AiThread[]>;
   createAiThread(title?: string): Promise<AiThread>;

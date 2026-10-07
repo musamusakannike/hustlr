@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, ShieldCheck, ShoppingBag, Sparkles, Tag, Users, Zap } from "lucide-react";
 import type { FeaturesSectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   ShoppingBag,
@@ -22,6 +24,7 @@ interface FeaturesSectionProps {
 }
 
 export default function FeaturesSection({ data, info }: FeaturesSectionProps) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const cards = data.cards || [];
 
   return (
@@ -29,23 +32,31 @@ export default function FeaturesSection({ data, info }: FeaturesSectionProps) {
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 flex flex-col items-center gap-3">
         {data.badge && (
-          <span
+          <EditableText
+            as="span"
+            path="badge"
+            value={data.badge}
             className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
             style={{
               backgroundColor: "var(--store-accent, #FFEDE6)",
               color: "var(--store-primary, #E05315)",
             }}
-          >
-            {data.badge}
-          </span>
+          />
         )}
-        <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]">
-          {data.heading}
-        </h2>
+        <EditableText
+          as="h2"
+          path="heading"
+          value={data.heading}
+          className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]"
+        />
         {data.subheading && (
-          <p className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-75 max-w-2xl leading-relaxed">
-            {data.subheading}
-          </p>
+          <EditableText
+            as="p"
+            path="subheading"
+            multiline
+            value={data.subheading}
+            className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-75 max-w-2xl leading-relaxed"
+          />
         )}
       </div>
 
@@ -74,21 +85,31 @@ export default function FeaturesSection({ data, info }: FeaturesSectionProps) {
               </div>
 
               {/* Title & Description */}
-              <h3 className="text-xl font-bold text-[var(--store-text,#0A0E11)] mb-3">
-                {card.title}
-              </h3>
-              <p className="text-sm text-[var(--store-text,#0A0E11)] opacity-70 leading-relaxed mb-8 flex-1">
-                {card.description}
-              </p>
+              <EditableText
+                as="h3"
+                path={`cards.${idx}.title`}
+                value={card.title}
+                className="text-xl font-bold text-[var(--store-text,#0A0E11)] mb-3"
+              />
+              <EditableText
+                as="p"
+                path={`cards.${idx}.description`}
+                multiline
+                value={card.description}
+                className="text-sm text-[var(--store-text,#0A0E11)] opacity-70 leading-relaxed mb-8 flex-1"
+              />
 
               {/* Action Button */}
               {card.buttonText && (
                 <Link
                   href={storeHref(info.slug, card.buttonLink || "/products")}
+                  onClick={(e) => {
+                    if (editing) e.preventDefault();
+                  }}
                   className="w-full py-3 px-5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-95 shadow-sm active:scale-[0.98]"
                   style={{ backgroundColor: "var(--store-primary, #E05315)" }}
                 >
-                  {card.buttonText}
+                  <EditableText as="span" path={`cards.${idx}.buttonText`} value={card.buttonText} />
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               )}

@@ -163,6 +163,7 @@ export interface BannerGridItem {
 }
 
 export interface BannerGridSectionData {
+  heading?: string;
   columns?: 2 | 3 | 4;
   items: BannerGridItem[];
 }

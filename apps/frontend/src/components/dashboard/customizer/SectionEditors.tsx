@@ -680,6 +680,20 @@ function ImageField({
   return (
     <div>
       <label className="font-semibold text-neutral-700 block mb-1">{label}</label>
+      {value ? (
+        <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-border bg-bg-soft mb-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="" className="w-full h-full object-cover" />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute top-2 right-2 p-1 rounded-md bg-white/90 text-danger"
+            title="Remove image"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : null}
       <div className="flex items-center gap-2">
         <input
           type="text"

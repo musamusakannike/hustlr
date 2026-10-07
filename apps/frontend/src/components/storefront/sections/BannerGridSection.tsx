@@ -4,6 +4,9 @@ import React from "react";
 import Link from "next/link";
 import type { BannerGridSectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import EditableImage from "@/components/dashboard/customizer/EditableImage";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 export default function BannerGridSection({
   data,
@@ -12,6 +15,7 @@ export default function BannerGridSection({
   data: BannerGridSectionData;
   info: StorefrontInfo;
 }) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const items = data.items && data.items.length > 0
     ? data.items
     : [
@@ -49,9 +53,12 @@ export default function BannerGridSection({
     <section className="py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#F0EEED] rounded-[32px] sm:rounded-[40px] px-6 sm:px-12 py-10 sm:py-16">
-          <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center uppercase tracking-tight text-black mb-8 sm:mb-12">
-            {"BROWSE BY DRESS STYLE"}
-          </h2>
+          <EditableText
+            as="h2"
+            path="heading"
+            value={data.heading || "BROWSE BY DRESS STYLE"}
+            className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center uppercase tracking-tight text-black mb-8 sm:mb-12"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             {items.map((item, i) => {
@@ -60,16 +67,24 @@ export default function BannerGridSection({
                 <Link
                   key={item.id || i}
                   href={href}
+                  onClick={(e) => {
+                    if (editing) e.preventDefault();
+                  }}
                   className={`${getColSpan(i)} bg-white rounded-3xl overflow-hidden relative h-[220px] sm:h-[280px] p-6 sm:p-8 flex flex-col justify-between group cursor-pointer shadow-xs hover:shadow-md transition-shadow`}
                 >
-                  <span className="text-2xl sm:text-3xl font-bold text-black z-10">
-                    {item.title}
-                  </span>
+                  <EditableText
+                    as="span"
+                    path={`items.${i}.title`}
+                    value={item.title}
+                    className="text-2xl sm:text-3xl font-bold text-black z-10"
+                  />
                   {item.image && (
-                    <img
-                      alt={item.title}
-                      className="absolute right-0 bottom-0 top-0 h-full w-2/3 object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                    <EditableImage
+                      path={`items.${i}.image`}
                       src={item.image}
+                      alt={item.title}
+                      className="absolute right-0 bottom-0 top-0 h-full w-2/3"
+                      imgClassName="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                     />
                   )}
                 </Link>

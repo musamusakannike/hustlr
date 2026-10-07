@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ProductRailSectionData, StorefrontInfo, StorefrontProduct } from "@/types/storefront";
 import ProductCard from "@/components/storefront/ProductCard";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
 
 interface ProductRailSectionProps {
   data: ProductRailSectionData;
@@ -28,9 +29,12 @@ export default function ProductRailSection({
     <section className="py-14 sm:py-20 border-b border-gray-100 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Centered Integral Section Heading */}
-        <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-black mb-10">
-          {data.heading}
-        </h2>
+        <EditableText
+          as="h2"
+          path="heading"
+          value={data.heading}
+          className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-black mb-10"
+        />
 
         {/* 4-column Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-left">

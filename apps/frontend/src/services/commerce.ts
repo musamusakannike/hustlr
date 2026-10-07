@@ -59,6 +59,8 @@ export const aiService = {
   improveTitle: t.improveTitle.bind(t),
   rewriteDescription: t.rewriteDescription.bind(t),
   generateSeo: t.generateSeo.bind(t),
+  storefrontQuestions: t.storefrontQuestions.bind(t),
+  storefrontCopy: t.storefrontCopy.bind(t),
 };
 
 export const aiPartnerService = {

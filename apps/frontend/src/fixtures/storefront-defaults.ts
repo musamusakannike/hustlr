@@ -71,6 +71,7 @@ export const DEFAULT_STOREFRONT_SECTIONS: StorefrontSection[] = [
     isEnabled: true,
     order: 4,
     data: {
+      heading: "BROWSE BY DRESS STYLE",
       columns: 4,
       items: [
         {

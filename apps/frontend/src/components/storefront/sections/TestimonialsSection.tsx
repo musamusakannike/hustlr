@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { TestimonialsSectionData } from "@/types/storefront";
+import EditableText from "@/components/dashboard/customizer/EditableText";
 
 interface TestimonialsSectionProps {
   data: TestimonialsSectionData;
@@ -49,9 +50,12 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header with Arrows */}
         <div className="flex items-center justify-between mb-8 sm:mb-10">
-          <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-black">
-            {data.heading || "OUR HAPPY CUSTOMERS"}
-          </h2>
+          <EditableText
+            as="h2"
+            path="heading"
+            value={data.heading || "OUR HAPPY CUSTOMERS"}
+            className="font-integral text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-black"
+          />
           <div className="flex items-center gap-3">
             <button
               onClick={prev}
@@ -74,7 +78,9 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
 
         {/* Testimonials 3-Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          {visible.map((review, idx) => (
+          {visible.map((review, idx) => {
+            const realIdx = currentIndex + idx;
+            return (
             <div
               key={review.id || idx}
               className="border border-gray-200 rounded-3xl p-6 sm:p-7 flex flex-col justify-between hover:shadow-xs transition-shadow bg-white"
@@ -89,19 +95,20 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
 
                 {/* Reviewer Name & Verified Badge */}
                 <div className="flex items-center gap-1.5 mb-2">
-                  <h3 className="font-bold text-black text-lg">
-                    {review.name}
-                  </h3>
+                  <EditableText as="h3" path={`items.${realIdx}.name`} value={review.name} className="font-bold text-black text-lg" />
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500 text-white" />
                 </div>
 
                 {/* Comment */}
                 <p className="text-sm text-gray-600 leading-relaxed font-normal">
-                  &ldquo;{review.comment}&rdquo;
+                  &ldquo;
+                  <EditableText as="span" path={`items.${realIdx}.comment`} value={review.comment} multiline />
+                  &rdquo;
                 </p>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
     </section>

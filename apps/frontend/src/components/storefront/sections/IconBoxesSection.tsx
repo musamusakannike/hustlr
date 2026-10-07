@@ -3,6 +3,7 @@
 import React from "react";
 import { Headphones, RefreshCw, ShieldCheck, Truck } from "lucide-react";
 import type { IconBoxesSectionData } from "@/types/storefront";
+import EditableText from "@/components/dashboard/customizer/EditableText";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Truck,
@@ -29,8 +30,15 @@ export default function IconBoxesSection({ data }: { data: IconBoxesSectionData 
                 <Icon className="w-6 h-6" />
               </span>
               <div>
-                <p className="text-sm font-bold">{item.title}</p>
-                {item.description && <p className="text-xs opacity-70 mt-1">{item.description}</p>}
+                <EditableText as="p" path={`items.${i}.title`} value={item.title} className="text-sm font-bold" />
+                {item.description && (
+                  <EditableText
+                    as="p"
+                    path={`items.${i}.description`}
+                    value={item.description}
+                    className="text-xs opacity-70 mt-1"
+                  />
+                )}
               </div>
             </div>
           );

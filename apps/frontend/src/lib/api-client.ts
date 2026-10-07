@@ -36,6 +36,7 @@ import type {
   StorefrontFilters,
   StorefrontInfo,
   StorefrontProduct,
+  StorefrontSection,
   TopProductRow,
   AiTextResult,
 } from "@/types/storefront";
@@ -492,6 +493,25 @@ export class ApiTransport implements Transport {
   }
   generateSeo(input: { title: string; description?: string }) {
     return send<AiTextResult>("POST", "/seller/ai/generate-seo", input);
+  }
+  storefrontQuestions(input: {
+    storeName: string;
+    description: string;
+    sectionSummary?: string;
+  }) {
+    return send<{ questions: { id: string; prompt: string }[] }>(
+      "POST",
+      "/seller/ai/storefront-questions",
+      input,
+    );
+  }
+  storefrontCopy(input: {
+    storeName: string;
+    description: string;
+    answers: Record<string, string>;
+    sections: unknown[];
+  }) {
+    return send<{ sections: StorefrontSection[] }>("POST", "/seller/ai/storefront-copy", input);
   }
 
   listAiThreads() {

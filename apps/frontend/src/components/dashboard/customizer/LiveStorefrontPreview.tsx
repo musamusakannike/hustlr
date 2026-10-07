@@ -21,6 +21,7 @@ import type {
   StorefrontSection,
 } from "@/types/storefront";
 import SectionRenderer from "@/components/storefront/sections/SectionRenderer";
+import { CustomizerEditProvider } from "./customizer-edit-context";
 import {
   StorefrontFooter,
   StorefrontHeader,
@@ -37,6 +38,9 @@ interface LiveStorefrontPreviewProps {
   themeSettings: StoreThemeSettings;
   viewport: "desktop" | "tablet" | "mobile";
   previewPage?: "home" | "shop" | "product";
+  editMode?: boolean;
+  onSelectSection?: (sectionId: string) => void;
+  onPatchPath?: (sectionId: string, path: string, value: string) => void;
 }
 
 export default function LiveStorefrontPreview({
@@ -46,6 +50,9 @@ export default function LiveStorefrontPreview({
   themeSettings,
   viewport,
   previewPage = "home",
+  editMode = false,
+  onSelectSection,
+  onPatchPath,
 }: LiveStorefrontPreviewProps) {
   const resolved = resolveTheme(themeSettings);
 
@@ -148,19 +155,27 @@ export default function LiveStorefrontPreview({
 
         <main className="flex-1 w-full">
           {previewPage === "home" && (
-            <SectionRenderer
-              sections={sections}
-              info={info}
-              featuredProducts={dummyProducts}
-              newArrivals={dummyProducts}
-              bestSellers={dummyProducts}
-              categories={[
-                { id: "1", name: "Fashion" },
-                { id: "2", name: "Beauty" },
-                { id: "3", name: "Accessories" },
-                { id: "4", name: "Home & Craft" },
-              ]}
-            />
+            <CustomizerEditProvider
+              value={{
+                enabled: Boolean(editMode),
+                selectSection: (id) => onSelectSection?.(id),
+                patchPath: (id, path, value) => onPatchPath?.(id, path, value),
+              }}
+            >
+              <SectionRenderer
+                sections={sections}
+                info={info}
+                featuredProducts={dummyProducts}
+                newArrivals={dummyProducts}
+                bestSellers={dummyProducts}
+                categories={[
+                  { id: "1", name: "Fashion" },
+                  { id: "2", name: "Beauty" },
+                  { id: "3", name: "Accessories" },
+                  { id: "4", name: "Home & Craft" },
+                ]}
+              />
+            </CustomizerEditProvider>
           )}
 
           {previewPage === "shop" && (

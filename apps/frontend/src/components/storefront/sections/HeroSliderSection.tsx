@@ -5,6 +5,9 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroSliderSectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import EditableImage from "@/components/dashboard/customizer/EditableImage";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 export default function HeroSliderSection({
   data,
@@ -13,6 +16,7 @@ export default function HeroSliderSection({
   data: HeroSliderSectionData;
   info: StorefrontInfo;
 }) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const slides = (data.slides || []).filter((s) => s.heading || s.image);
   const [index, setIndex] = useState(0);
 
@@ -28,31 +32,53 @@ export default function HeroSliderSection({
 
   return (
     <section className="relative overflow-hidden min-h-[420px] sm:min-h-[520px] lg:min-h-[620px] text-white">
+      {editing ? (
+        <EditableImage
+          path={`slides.${index}.image`}
+          src={bg}
+          alt={slide.heading}
+          className="absolute inset-0"
+          imgClassName="w-full h-full object-cover"
+        />
+      ) : (
       <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-700"
         style={{ backgroundImage: `url(${bg})` }}
       />
+      )}
       <div className="absolute inset-0 bg-black/45" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 w-full">
         {slide.badge && (
-          <p className="text-xs font-bold uppercase tracking-widest mb-3 opacity-90">{slide.badge}</p>
+          <EditableText as="p" path={`slides.${index}.badge`} value={slide.badge} className="text-xs font-bold uppercase tracking-widest mb-3 opacity-90" />
         )}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-2xl leading-tight">
-          {slide.heading}
-        </h1>
+        <EditableText
+          as="h1"
+          path={`slides.${index}.heading`}
+          value={slide.heading}
+          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-2xl leading-tight"
+        />
         {slide.subheading && (
-          <p className="mt-4 text-base sm:text-lg text-white/85 max-w-xl">{slide.subheading}</p>
+          <EditableText
+            as="p"
+            path={`slides.${index}.subheading`}
+            multiline
+            value={slide.subheading}
+            className="mt-4 text-base sm:text-lg text-white/85 max-w-xl"
+          />
         )}
         {slide.ctaText && (
           <Link
             href={storeHref(info.slug, slide.ctaLink || "/products")}
+            onClick={(e) => {
+              if (editing) e.preventDefault();
+            }}
             className="inline-flex mt-8 px-7 py-3.5 text-sm font-bold text-white"
             style={{
               backgroundColor: "var(--store-primary)",
               borderRadius: "var(--store-button-radius, 9999px)",
             }}
           >
-            {slide.ctaText}
+            <EditableText as="span" path={`slides.${index}.ctaText`} value={slide.ctaText} />
           </Link>
         )}
       </div>
