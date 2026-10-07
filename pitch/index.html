@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hustlr — JCI Global Digital Economy Hackathon Pitch Deck</title>
+  <title>Hustlr — Team Codiacs Pitch Deck</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -142,7 +142,7 @@
     /* Header in Slide */
     .slide-header {
       margin-top: 14px;
-      max-width: 900px;
+      max-width: 1000px;
     }
 
     .slide-category {
@@ -191,10 +191,10 @@
       min-height: 0;
     }
 
-    /* Split 2-Column Grid */
+    /* Split Grids */
     .grid-2 {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
+      grid-template-columns: 1fr 1fr;
       gap: 40px;
       width: 100%;
       height: 100%;
@@ -205,13 +205,6 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 24px;
-      width: 100%;
-    }
-
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
       width: 100%;
     }
 
@@ -239,14 +232,6 @@
       color: #fff;
     }
 
-    .card-dark .card-title {
-      color: #fff;
-    }
-
-    .card-dark .card-desc {
-      color: #9ea8b0;
-    }
-
     .card-number {
       font-family: var(--font-heading);
       font-size: 1.75rem;
@@ -268,29 +253,7 @@
       line-height: 1.5;
     }
 
-    /* Visual Media Containers */
-    .media-box {
-      width: 100%;
-      height: 100%;
-      max-height: 440px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid var(--border);
-      box-shadow: 0 16px 36px -12px rgba(10, 14, 17, 0.12);
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .media-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* Bullet List Minimal */
+    /* Bullet List */
     .clean-list {
       list-style: none;
       display: flex;
@@ -322,12 +285,7 @@
       margin-top: 2px;
     }
 
-    .clean-list strong {
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    /* Metrics and Highlights */
+    /* Metrics */
     .metric-hero {
       font-family: var(--font-heading);
       font-size: 3.2rem;
@@ -342,41 +300,6 @@
       color: var(--muted);
       margin-top: 6px;
       font-weight: 500;
-    }
-
-    /* Slide specific styles */
-    .hero-slide-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 20px;
-      max-width: 620px;
-    }
-
-    .hero-title {
-      font-family: var(--font-heading);
-      font-size: 3.5rem;
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -0.04em;
-    }
-
-    .hero-title span {
-      color: var(--primary);
-    }
-
-    .badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--primary-bg);
-      color: var(--primary);
-      border: 1px solid var(--primary-light);
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      width: fit-content;
     }
 
     /* Bottom Controls */
@@ -409,7 +332,7 @@
     .progress-bar-fill {
       height: 100%;
       background: var(--primary);
-      width: 10%;
+      width: 16.66%;
       transition: width 0.3s ease;
     }
 
@@ -438,18 +361,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s ease;
       cursor: pointer;
-    }
-
-    .btn-nav:hover {
-      background: var(--bg-soft);
-      border-color: #d1d5db;
-    }
-
-    .btn-nav:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
     }
 
     .btn-nav.primary-btn {
@@ -458,17 +370,6 @@
       border-color: var(--primary);
     }
 
-    .btn-nav.primary-btn:hover {
-      background: var(--primary-hover);
-    }
-
-    .hotkey-hint {
-      font-size: 0.72rem;
-      color: var(--subtle);
-      margin-left: 8px;
-    }
-
-    /* Presenter roles tags */
     .presenter-card {
       display: flex;
       align-items: center;
@@ -495,11 +396,10 @@
 </head>
 <body>
 
-  <!-- Top Navigation & Presentation Context -->
   <header class="deck-topbar">
     <div class="brand-mark">
       <span>Hustlr</span>
-      <span class="brand-badge">Pitch</span>
+      <span class="brand-badge">Team Codiacs</span>
     </div>
     <div class="hackathon-tag">
       <span class="pill-live"></span>
@@ -509,401 +409,180 @@
 
   <main class="deck-container">
 
-    <!-- SLIDE 1: Title & Hook -->
+    <!-- SLIDE 1: The Problem -->
     <section class="slide active" data-slide="1">
       <div class="slide-header">
-        <span class="slide-category">Introduction</span>
-        <h1 class="slide-title">Hustlr</h1>
-        <p class="slide-subtitle">The Intelligent Multi-Tenant Commerce Engine for Emerging Market Micro-Merchants</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-2">
-          <div class="hero-slide-content">
-            <div class="badge-pill">
-              Autonomous Storefronts &bull; Automated Escrow &bull; Seller AI
-            </div>
-            <p style="font-size: 1.15rem; line-height: 1.5; color: var(--muted);">
-              Over 40 million informal merchants sell via WhatsApp and Instagram DMs, losing up to 30% of sales to payment distrust, manual inventory errors, and zero actionable analytics.
-            </p>
-            <div style="display: flex; gap: 24px; margin-top: 10px;">
-              <div>
-                <div class="metric-hero">3 Min</div>
-                <div class="metric-sub">From signup to live store</div>
-              </div>
-              <div style="border-left: 1px solid var(--border); padding-left: 24px;">
-                <div class="metric-hero">0%</div>
-                <div class="metric-sub">Payment fraud with Escrow</div>
-              </div>
-            </div>
-          </div>
-          <div class="media-box">
-            <img src="./assets/hustlr_pitch_hero_1790952321087.jpg" alt="Hustlr Platform Overview" />
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 2: Problem Statement -->
-    <section class="slide" data-slide="2">
-      <div class="slide-header">
-        <span class="slide-category">The Problem</span>
-        <h2 class="slide-title">The Trust & Complexity Barrier in Social Commerce</h2>
-        <p class="slide-subtitle">Emerging market sellers are trapped between informal chaos and expensive software.</p>
+        <span class="slide-category">01 / The Problem</span>
+        <h1 class="slide-title">The Trust & Complexity Barrier in Social Commerce</h1>
+        <p class="slide-subtitle">Over 40 million informal merchants lose up to 30% of sales to payment distrust and manual chaos.</p>
       </div>
       <div class="slide-body">
         <div class="grid-3">
           <div class="card primary-accent">
             <span class="card-number">01</span>
-            <h3 class="card-title">The Escrow Deficit</h3>
-            <p class="card-desc">
-              Buyers refuse to pay upfront to unknown social sellers. Sellers fear shipping without confirmed funds. Fake bank alerts cost billions annually.
-            </p>
+            <h3 class="card-title">The Social Trust Deficit</h3>
+            <p class="card-desc">Buyers refuse to pay upfront to unknown social sellers. Sellers fear shipping without confirmed funds. Fake bank alerts cost billions annually.</p>
           </div>
           <div class="card primary-accent">
             <span class="card-number">02</span>
             <h3 class="card-title">Prohibitive Enterprise Tools</h3>
-            <p class="card-desc">
-              Shopify charges in USD, requires complex gateway approvals, and lacks localized African payment rails and built-in escrow settlement flows.
-            </p>
+            <p class="card-desc">Existing platforms charge in USD, require complex gateway approvals, and lack localized payment rails tailored for Africa.</p>
           </div>
           <div class="card primary-accent">
             <span class="card-number">03</span>
             <h3 class="card-title">Blind Operations</h3>
-            <p class="card-desc">
-              Solo merchants spend 60% of their workday handling repetitive DMs and have zero visibility into real-time margins, cash flow, or stock burn.
-            </p>
+            <p class="card-desc">Solo merchants spend 60% of their workday handling repetitive DMs and have zero visibility into real-time margins or cash flow.</p>
           </div>
         </div>
       </div>
-      <div></div>
     </section>
 
-    <!-- SLIDE 3: The Solution -->
-    <section class="slide" data-slide="3">
+    <!-- SLIDE 2: Our Solution -->
+    <section class="slide" data-slide="2">
       <div class="slide-header">
-        <span class="slide-category">Our Solution</span>
-        <h2 class="slide-title">An All-in-One Commerce Operating System</h2>
-        <p class="slide-subtitle">Instant multi-tenant storefronts with verified KYC and automated escrow settlements.</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-2">
-          <ul class="clean-list">
-            <li>
-              <span class="icon-dot">&check;</span>
-              <div>
-                <strong>Instant Subdomain & Custom Domains:</strong> Sellers launch on <code>{store}.hustlr.shop</code> or connect custom domains with automated CNAME/A verification.
-              </div>
-            </li>
-            <li>
-              <span class="icon-dot">&check;</span>
-              <div>
-                <strong>Isolated Multi-Tenancy Architecture:</strong> Zero cross-store data leakage; buyers enjoy streamlined guest or scoped authentication.
-              </div>
-            </li>
-            <li>
-              <span class="icon-dot">&check;</span>
-              <div>
-                <strong>Tiered Design Catalog:</strong> Premium high-converting templates unlocked transparently by tier (Free, Pro, Pro+).
-              </div>
-            </li>
-            <li>
-              <span class="icon-dot">&check;</span>
-              <div>
-                <strong>Frictionless Local Payments:</strong> Native Paystack integration supporting cards, bank transfers, USSD, and instant wallet credit.
-              </div>
-            </li>
-          </ul>
-          <div class="card card-dark" style="padding: 32px; justify-content: center;">
-            <div style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; color: #fff;">
-              From DM Chaos to Structured Scale
-            </div>
-            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
-              Hustlr removes the manual friction of negotiating prices, confirming payment receipts, and tracking stock in paper notebooks.
-            </p>
-            <div style="display: flex; gap: 16px;">
-              <div style="flex: 1; padding: 14px; background: rgba(255, 255, 255, 0.06); border-radius: 8px;">
-                <div style="font-size: 1.3rem; font-weight: 700; color: #fff;">100%</div>
-                <div style="font-size: 0.78rem; color: #94a3b8;">Automated Order Records</div>
-              </div>
-              <div style="flex: 1; padding: 14px; background: rgba(255, 255, 255, 0.06); border-radius: 8px;">
-                <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-light);">48 Hrs</div>
-                <div style="font-size: 0.78rem; color: #94a3b8;">Escrow Auto-Release</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 4: Automated Escrow Engine -->
-    <section class="slide" data-slide="4">
-      <div class="slide-header">
-        <span class="slide-category">Core Trust Engine</span>
-        <h2 class="slide-title">Built-In Automated Escrow & Settlements</h2>
-        <p class="slide-subtitle">Eliminating payment friction and chargeback risks for both buyers and merchants.</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-2">
-          <div class="media-box">
-            <img src="./assets/hustlr_escrow_trust_diagram_1790952372169.jpg" alt="Automated Escrow Flow" />
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 18px;">
-            <div class="card primary-accent">
-              <h3 class="card-title">1. Payment Lockdown</h3>
-              <p class="card-desc">Funds are authenticated via Paystack webhook (HMAC-SHA512) and locked into platform escrow before dispatch.</p>
-            </div>
-            <div class="card primary-accent">
-              <h3 class="card-title">2. Delivery Verification & Release</h3>
-              <p class="card-desc">Buyer confirms satisfaction upon delivery to instantly release funds directly into the merchant's available wallet balance.</p>
-            </div>
-            <div class="card primary-accent">
-              <h3 class="card-title">3. Automated 48-Hour Fallback Cron</h3>
-              <p class="card-desc">Unresponsive buyers cannot hold funds hostage; automated cron jobs release payments safely after 48 hours unless a dispute is active.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 5: AI Integration (Current & Flagship) -->
-    <section class="slide" data-slide="5">
-      <div class="slide-header">
-        <span class="slide-category">Artificial Intelligence</span>
-        <h2 class="slide-title">AI Seller Co-Founder & Autonomous CFO</h2>
-        <p class="slide-subtitle">A private, tenant-isolated AI partner with complete access to the merchant's financial data.</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-2">
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="card" style="border-left: 4px solid var(--info);">
-              <div style="font-size: 0.75rem; font-weight: 700; color: var(--info); text-transform: uppercase;">Live Today</div>
-              <h3 class="card-title" style="margin-top: 4px;">Smart Catalog & SEO Engine</h3>
-              <p class="card-desc">One-click title optimization, high-converting descriptions, and SEO tags with automatic fallback across DeepSeek, SpaceXAI, and local heuristics.</p>
-            </div>
-            <div class="card primary-accent">
-              <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Upcoming Flagship Feature</div>
-              <h3 class="card-title" style="margin-top: 4px;">Dedicated Seller Business Partner</h3>
-              <ul class="clean-list" style="margin-top: 10px; gap: 10px;">
-                <li><span class="icon-dot">&bull;</span><strong>Financial & Cash Flow Intelligence:</strong> Query revenue runway, pending escrows, and net profit margins instantly.</li>
-                <li><span class="icon-dot">&bull;</span><strong>Predictive Inventory Restock:</strong> Detects sales velocity patterns and recommends exact restocking quantities.</li>
-                <li><span class="icon-dot">&bull;</span><strong>100% Tenant Isolation:</strong> The AI has access only to that specific store's database; zero multi-tenant data bleed.</li>
-              </ul>
-            </div>
-          </div>
-          <div class="media-box">
-            <img src="./assets/hustlr_seller_ai_assistant_1790952340564.jpg" alt="Hustlr AI Seller Co-Founder UI" />
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 6: Technical Architecture & Execution -->
-    <section class="slide" data-slide="6">
-      <div class="slide-header">
-        <span class="slide-category">Technical Execution</span>
-        <h2 class="slide-title">Production-Ready Multi-Tenant Architecture</h2>
-        <p class="slide-subtitle">Engineered for security, sub-millisecond tenancy routing, and strict audit integrity.</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-4">
-          <div class="card">
-            <span class="card-number">Next.js</span>
-            <h3 class="card-title">Frontend & Storefronts</h3>
-            <p class="card-desc">Modern responsive UI, SSR dynamic storefront resolution, clean Tailwind CSS tokens, zero third-party UI bloat.</p>
-          </div>
-          <div class="card">
-            <span class="card-number">Node.js</span>
-            <h3 class="card-title">Express + TypeScript</h3>
-            <p class="card-desc">Stateless modular API, strict Joi schema validations, automated cron runners, and unified error middleware.</p>
-          </div>
-          <div class="card">
-            <span class="card-number">MongoDB</span>
-            <h3 class="card-title">Isolated Data Schemas</h3>
-            <p class="card-desc">Multi-tenant store scoping on every document, transaction integrity, indexing on store slugs and buyer sessions.</p>
-          </div>
-          <div class="card">
-            <span class="card-number">Cloudflare</span>
-            <h3 class="card-title">R2 & Paystack Security</h3>
-            <p class="card-desc">S3-compatible asset storage, HMAC-SHA512 webhook signature verification, HttpOnly secure session cookies.</p>
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 7: Business Model & Monetization -->
-    <section class="slide" data-slide="7">
-      <div class="slide-header">
-        <span class="slide-category">Business Model</span>
-        <h2 class="slide-title">Sustainable SaaS & Transactional Monetization</h2>
-        <p class="slide-subtitle">Low barrier to merchant entry paired with expanding take-rates as volume grows.</p>
+        <span class="slide-category">02 / Our Solution</span>
+        <h2 class="slide-title">Hustlr: All-in-One Commerce Operating System</h2>
+        <p class="slide-subtitle">Instant storefronts, verified milestone settlements, and an AI-powered co-founder.</p>
       </div>
       <div class="slide-body">
         <div class="grid-3">
-          <div class="card">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase;">Entry Tier</div>
-            <div class="card-number" style="margin-top: 4px;">Free</div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">10% Commission</div>
-            <p class="card-desc">Up to 25 catalog products, free store templates, core escrow checkout. Zero upfront cost for new entrepreneurs.</p>
+          <div class="card card-dark">
+            <h3 class="card-title" style="color: #fff;">1. Multi-Tenant Architecture</h3>
+            <p class="card-desc" style="color: #cbd5e1;">Instant subdomains, custom domains, and isolated data schemas. Zero cross-store data leakage, ensuring absolute merchant privacy and frictionless guest checkouts.</p>
           </div>
-          <div class="card primary-accent" style="box-shadow: 0 10px 30px rgba(128, 10, 29, 0.08);">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Growth Tier</div>
-            <div class="card-number" style="margin-top: 4px;">₦15,000<span style="font-size: 0.9rem; color: var(--muted); font-weight: 500;">/mo</span></div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">7% Commission</div>
-            <p class="card-desc">Unlimited products, SEO blog engine, priority payouts, Pro templates, and enhanced catalog AI copy tools.</p>
+          <div class="card primary-accent">
+            <h3 class="card-title">2. Escrow Trust Engine</h3>
+            <p class="card-desc">Funds are authenticated via Paystack webhook and held securely. Payout is instantly cleared only when the buyer confirms delivery, eliminating fraud for both parties.</p>
           </div>
-          <div class="card">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase;">Scale Tier</div>
-            <div class="card-number" style="margin-top: 4px;">₦35,000<span style="font-size: 0.9rem; color: var(--muted); font-weight: 500;">/mo</span></div>
-            <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">5% Commission</div>
-            <p class="card-desc">Custom domain integration, lowest transaction commission, all design themes, and dedicated Seller AI Co-Founder.</p>
+          <div class="card primary-accent">
+            <h3 class="card-title">3. AI Seller Co-Founder</h3>
+            <p class="card-desc">A private, tenant-isolated AI partner. It auto-generates SEO catalog metadata and acts as an autonomous CFO for financial queries and inventory restock predictions.</p>
           </div>
         </div>
       </div>
-      <div></div>
     </section>
 
-    <!-- SLIDE 8: Market Opportunity & Scalability -->
-    <section class="slide" data-slide="8">
+    <!-- SLIDE 3: Market & Traction -->
+    <section class="slide" data-slide="3">
       <div class="slide-header">
-        <span class="slide-category">Market & Scalability</span>
+        <span class="slide-category">03 / Market & Traction So Far</span>
         <h2 class="slide-title">Capturing Africa’s $50B Social Commerce Wave</h2>
         <p class="slide-subtitle">Positioned at the intersection of informal trade and digital financial inclusion.</p>
       </div>
       <div class="slide-body">
         <div class="grid-2">
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="card primary-accent">
-              <h3 class="card-title">Massive Informal TAM</h3>
-              <p class="card-desc">Over 40M micro and small enterprises in Nigeria alone, with over 80% conducting transactions over social and chat channels.</p>
-            </div>
-            <div class="card primary-accent">
-              <h3 class="card-title">Scalable Multi-Currency Architecture</h3>
-              <p class="card-desc">Modular payment abstraction layer allows effortless expansion into Kenya (M-Pesa), Ghana, and South Africa.</p>
-            </div>
-            <div class="card primary-accent">
-              <h3 class="card-title">Data Moat & Embedded Lending</h3>
-              <p class="card-desc">Verified merchant transaction histories unlock credit scoring for micro-inventory financing in Phase 3.</p>
-            </div>
-          </div>
-          <div style="background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; display: flex; flex-direction: column; justify-content: center; gap: 24px;">
+          <div style="background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; display: flex; flex-direction: column; gap: 24px;">
             <div>
               <div class="metric-hero">$50 Billion</div>
               <div class="metric-sub">Projected African Social Commerce Market by 2030</div>
             </div>
             <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-              <div class="metric-hero">85%</div>
-              <div class="metric-sub">Mobile-First Traffic Share</div>
+              <div class="metric-hero">40M+</div>
+              <div class="metric-sub">Micro & Small Enterprises in Nigeria Alone</div>
             </div>
-            <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-              <div class="metric-hero">3x</div>
-              <div class="metric-sub">Higher Buyer Conversion with Escrow Trust</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card primary-accent" style="border-left-color: var(--success);">
+              <h3 class="card-title">Phase 1 Architecture Deployed</h3>
+              <ul class="clean-list" style="margin-top: 10px;">
+                <li><span class="icon-dot">&check;</span> Multi-tenant SSR store routing live</li>
+                <li><span class="icon-dot">&check;</span> Paystack conditional checkout integrated</li>
+                <li><span class="icon-dot">&check;</span> Tenant-isolated AI metadata generation built</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Scalable Business Model</h3>
+              <p class="card-desc">Low barrier to entry with a tiered SaaS and transaction commission structure (Free, Growth, Scale), naturally growing revenue as our merchants process more volume.</p>
             </div>
           </div>
         </div>
       </div>
-      <div></div>
     </section>
 
-    <!-- SLIDE 9: Roadmap & Execution Milestones -->
-    <section class="slide" data-slide="9">
+    <!-- SLIDE 4: Your Team -->
+    <section class="slide" data-slide="4">
       <div class="slide-header">
-        <span class="slide-category">Strategic Roadmap</span>
-        <h2 class="slide-title">From Core Commerce to Autonomous Enterprise</h2>
-        <p class="slide-subtitle">Clear technical milestones delivering sustained customer and shareholder value.</p>
-      </div>
-      <div class="slide-body">
-        <div class="grid-3">
-          <div class="card" style="border-top: 4px solid var(--success);">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--success); text-transform: uppercase;">Phase 1 &bull; Complete</div>
-            <h3 class="card-title" style="margin-top: 6px;">Foundation & Trust</h3>
-            <ul class="clean-list" style="margin-top: 12px; font-size: 0.9rem;">
-              <li>&bull; Multi-tenant routing</li>
-              <li>&bull; Paystack escrow checkout</li>
-              <li>&bull; KYC submission & admin review</li>
-              <li>&bull; Catalog AI metadata generation</li>
-            </ul>
-          </div>
-          <div class="card primary-accent" style="border-top: 4px solid var(--primary);">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Phase 2 &bull; Current Focus</div>
-            <h3 class="card-title" style="margin-top: 6px;">AI Seller Co-Founder</h3>
-            <ul class="clean-list" style="margin-top: 12px; font-size: 0.9rem;">
-              <li>&bull; Full financial query assistant</li>
-              <li>&bull; Cashflow and restock predictions</li>
-              <li>&bull; Tenant-isolated RAG architecture</li>
-              <li>&bull; Automated WhatsApp order bot sync</li>
-            </ul>
-          </div>
-          <div class="card" style="border-top: 4px solid var(--info);">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--info); text-transform: uppercase;">Phase 3 &bull; Scale</div>
-            <h3 class="card-title" style="margin-top: 6px;">Fintech Expansion</h3>
-            <ul class="clean-list" style="margin-top: 12px; font-size: 0.9rem;">
-              <li>&bull; Embedded merchant working capital</li>
-              <li>&bull; Cross-border African settlements</li>
-              <li>&bull; Automated 3PL courier dispatch API</li>
-              <li>&bull; Custom mobile app generator</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div></div>
-    </section>
-
-    <!-- SLIDE 10: Team & Live Pitch Readiness -->
-    <section class="slide" data-slide="10">
-      <div class="slide-header">
-        <span class="slide-category">Hackathon Team</span>
-        <h2 class="slide-title">Ready for Live Q&A and Demo</h2>
+        <span class="slide-category">04 / The Team</span>
+        <h2 class="slide-title">Team Codiacs</h2>
         <p class="slide-subtitle">A balanced team built for innovation, execution, and rapid market deployment.</p>
       </div>
       <div class="slide-body">
         <div class="grid-3" style="width: 100%;">
           <div class="presenter-card">
-            <div class="presenter-avatar">DEV</div>
+            <div class="presenter-avatar">MM</div>
             <div>
-              <div style="font-weight: 700; font-size: 1.05rem;">Lead Developer</div>
-              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">Architecture & Security</div>
-              <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600; margin-top: 6px;">Tenancy, Escrow & AI RAG</div>
+              <div style="font-weight: 700; font-size: 1.05rem;">Musa Musa Kannike</div>
+              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">Team Lead / Engineering</div>
+              <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600; margin-top: 6px;">Backend Developer</div>
             </div>
           </div>
           <div class="presenter-card">
-            <div class="presenter-avatar" style="background: #F0FDF4; color: var(--success);">UX</div>
+            <div class="presenter-avatar" style="background: #F0FDF4; color: var(--success);">AF</div>
             <div>
-              <div style="font-weight: 700; font-size: 1.05rem;">Product Designer</div>
-              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">UI/UX & Design Systems</div>
-              <div style="font-size: 0.78rem; color: var(--success); font-weight: 600; margin-top: 6px;">Mobile-First Merchant Flows</div>
+              <div style="font-weight: 700; font-size: 1.05rem;">Abubakar Faruq</div>
+              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">Product & Infrastructure</div>
+              <div style="font-size: 0.78rem; color: var(--success); font-weight: 600; margin-top: 6px;">UIUX Designer</div>
             </div>
           </div>
           <div class="presenter-card">
-            <div class="presenter-avatar" style="background: #EFF6FF; color: var(--info);">PM</div>
+            <div class="presenter-avatar" style="background: #EFF6FF; color: var(--info);">JA</div>
             <div>
-              <div style="font-weight: 700; font-size: 1.05rem;">Project Manager</div>
-              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">Strategy & Unit Economics</div>
-              <div style="font-size: 0.78rem; color: var(--info); font-weight: 600; margin-top: 6px;">TAM, GTM & Digital Impact</div>
+              <div style="font-weight: 700; font-size: 1.05rem;">Jimoh Abdullahi</div>
+              <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">Strategy & Operations</div>
+              <div style="font-size: 0.78rem; color: var(--info); font-weight: 600; margin-top: 6px;">Frontend Developer</div>
             </div>
           </div>
         </div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 20px;">
-        <div style="font-size: 0.95rem; font-weight: 600; color: var(--text);">
-          Thank You, Judges &bull; Hustlr: Empowering Emerging Market Commerce
+    </section>
+
+    <!-- SLIDE 5: What We Need Next -->
+    <section class="slide" data-slide="5">
+      <div class="slide-header">
+        <span class="slide-category">05 / What We Need Next</span>
+        <h2 class="slide-title">From Core Commerce to Autonomous Enterprise</h2>
+        <p class="slide-subtitle">Our asks to scale Hustlr beyond the hackathon.</p>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card primary-accent">
+            <h3 class="card-title">1. Embedded Capital Partners</h3>
+            <p class="card-desc">As we verify merchant transaction histories, we seek micro-lending partners to provide automated working capital and inventory financing directly inside the Hustlr dashboard.</p>
+          </div>
+          <div class="card primary-accent">
+            <h3 class="card-title">2. Cross-Border API Access</h3>
+            <p class="card-desc">To execute our pan-African roadmap, we need deeper integrations with regional payment rails (e.g., M-Pesa) for seamless cross-border settlements.</p>
+          </div>
+          <div class="card primary-accent">
+            <h3 class="card-title">3. Institutional Mentorship</h3>
+            <p class="card-desc">Guidance on scaling SaaS unit economics, acquiring our first 1,000 active merchants, and navigating regulatory frameworks across diverse African markets.</p>
+          </div>
         </div>
-        <div style="font-family: var(--font-heading); font-size: 0.95rem; color: var(--primary); font-weight: 700;">
-          hustlr.shop
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Live Demo Transition -->
+    <section class="slide" data-slide="6">
+      <div class="slide-header">
+        <span class="slide-category">06 / Live Demo</span>
+        <h2 class="slide-title">Hustlr in Action</h2>
+        <p class="slide-subtitle">Transitioning from concepts to a working product.</p>
+      </div>
+      <div class="slide-body" style="justify-content: center; text-align: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
+          <div class="metric-hero" style="font-size: 4rem;">Live Demonstration</div>
+          <p style="font-size: 1.2rem; color: var(--muted); max-width: 600px;">
+            We will now showcase the end-to-end user journey: from instant store creation to a buyer executing a conditional escrow payment, validating the core Hustlr experience.
+          </p>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- Deck Controls Footer -->
   <footer class="deck-footer">
     <div style="display: flex; align-items: center;">
-      <span class="slide-counter" id="slideCounter">01 / 10</span>
+      <span class="slide-counter" id="slideCounter">01 / 06</span>
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="progressBar"></div>
       </div>
@@ -996,7 +675,6 @@
       }
     });
 
-    // Touch swipe support for tablets/mobile
     let touchStartX = 0;
     window.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
