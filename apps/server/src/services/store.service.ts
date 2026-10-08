@@ -178,6 +178,7 @@ export async function setupStore(
       throw err;
     }
   }
+  await refreshStoreLiveStatus(store);
   return store;
 }
 

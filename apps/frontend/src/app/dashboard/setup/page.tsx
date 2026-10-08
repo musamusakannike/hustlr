@@ -110,6 +110,17 @@ function SetupWizard() {
     return <Spinner size="lg" label="Loading store settings…" />;
   }
 
+  const submitCurrentForm = () => {
+    const form = document.getElementById("setup-step-form") as HTMLFormElement | null;
+    if (form) {
+      if (typeof form.requestSubmit === "function") {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <Stepper steps={STEPS} currentStep={stepIndex} onStepClick={goToStep} />
@@ -168,6 +179,7 @@ function SetupWizard() {
               form="setup-step-form"
               type="submit"
               loading={setup.isPending}
+              onClick={submitCurrentForm}
             >
               {stepIndex === STEPS.length - 1 ? (
                 <>
