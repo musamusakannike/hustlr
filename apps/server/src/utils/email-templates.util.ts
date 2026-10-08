@@ -309,6 +309,48 @@ const templates: Record<string, (data: TemplateData) => { subject: string; html:
       `${p(`The dispute on order ${d.orderNumber} has been resolved.`)}${p(`Resolution: ${d.resolution}`)}${d.note ? p(`Resolution Note: ${d.note}`) : ""}`,
     ),
   }),
+  adminNewTicket: (d) => ({
+    subject: `New support ticket #${d.ticketNumber} — ${d.subject}`,
+    html: layout(
+      "New support ticket",
+      `${p(`A new support ticket #${d.ticketNumber} was submitted by ${d.senderName} (${d.userType}).`)}${p(`<strong>Topic:</strong> ${d.topic}`)}${p(`<strong>Subject:</strong> ${d.subject}`)}${p(`<strong>Message:</strong> "${d.message}"`)}`,
+    ),
+  }),
+  ticketReply: (d) => ({
+    subject: `New reply on ticket #${d.ticketNumber}`,
+    html: layout(
+      "Ticket reply",
+      `${p(`Hi ${d.name},`)}${p(`${d.senderName} (${d.senderRole}) posted a reply on support ticket #${d.ticketNumber}:`)}${p(`"${d.message}"`)}`,
+    ),
+  }),
+  ticketResolved: (d) => ({
+    subject: `Support ticket #${d.ticketNumber} resolved`,
+    html: layout(
+      "Ticket resolved",
+      `${p(`Hi ${d.name},`)}${p(`Your support ticket #${d.ticketNumber} ("${d.subject}") has been marked as resolved.`)}${p("If you require further assistance, you can open a new ticket anytime.")}`,
+    ),
+  }),
+  accountUnbanned: (d) => ({
+    subject: `Account access restored — ${APP_NAME}`,
+    html: layout(
+      "Account restored",
+      `${p(`Hi ${d.name},`)}${p(`Your account suspension on ${APP_NAME} has been lifted. You can now access your dashboard and resume operations.`)}`,
+    ),
+  }),
+  buyerBanned: (d) => ({
+    subject: `Store account suspended — ${d.storeName ?? APP_NAME}`,
+    html: layout(
+      "Account suspended",
+      `${p(`Hi ${d.name},`)}${p(`Your account on ${d.storeName ?? APP_NAME} has been suspended.`)}${p(`Reason: ${d.reason ?? "Policy violation"}`)}`,
+    ),
+  }),
+  reviewReply: (d) => ({
+    subject: `Seller replied to your review on ${d.productTitle}`,
+    html: layout(
+      "Review response",
+      `${p(`Hi ${d.name},`)}${p(`${d.storeName ?? "The seller"} replied to your review on <strong>${d.productTitle}</strong>:`)}${p(`"${d.replyText}"`)}`,
+    ),
+  }),
 };
 
 export function renderEmail(

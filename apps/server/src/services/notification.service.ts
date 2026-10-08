@@ -15,6 +15,34 @@ export async function createNotification(params: {
   metadata?: Record<string, unknown>;
   email?: { to: string; templateName: string; data?: Record<string, string | number | undefined> };
 }): Promise<void> {
+  let emailMeta: Record<string, unknown> = {};
+
+  if (params.email?.to) {
+    try {
+      const result = await sendEmail({
+        to: params.email.to,
+        templateName: params.email.templateName,
+        data: params.email.data,
+      });
+      emailMeta = {
+        emailSent: result.success,
+        emailProvider: result.provider,
+        emailError: result.error,
+        emailTemplate: params.email.templateName,
+      };
+      if (!result.success) {
+        console.warn(`[EmailService] Delivery unsuccessful for ${params.type} -> ${params.email.to}: ${result.error}`);
+      }
+    } catch (err) {
+      console.error(`[EmailService] Unexpected failure sending ${params.email.templateName} to ${params.email.to}:`, err);
+      emailMeta = {
+        emailSent: false,
+        emailError: err instanceof Error ? err.message : String(err),
+        emailTemplate: params.email.templateName,
+      };
+    }
+  }
+
   await Notification.create({
     recipientId: params.recipientId,
     recipientType: params.recipientType,
@@ -23,15 +51,8 @@ export async function createNotification(params: {
     title: params.title,
     message: params.message,
     link: params.link ?? "",
-    metadata: params.metadata ?? {},
+    metadata: { ...(params.metadata ?? {}), ...emailMeta },
   });
-  if (params.email?.to) {
-    await sendEmail({
-      to: params.email.to,
-      templateName: params.email.templateName,
-      data: params.email.data,
-    }).catch(() => undefined);
-  }
 }
 
 export async function listNotifications(params: {

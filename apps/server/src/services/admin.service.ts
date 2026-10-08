@@ -117,6 +117,19 @@ export async function unbanUser(userId: string) {
   await user.save();
   const store = await Store.findOne({ sellerId: userId });
   if (store) await refreshStoreLiveStatus(store);
+  await createNotification({
+    recipientId: user._id,
+    recipientType: "seller",
+    type: "account_unbanned",
+    title: "Account access restored",
+    message: "Your account suspension has been lifted. You can now access your dashboard.",
+    link: "/dashboard",
+    email: {
+      to: user.email,
+      templateName: "accountUnbanned",
+      data: { name: user.name },
+    },
+  });
   return user;
 }
 
@@ -170,6 +183,24 @@ export async function banBuyer(id: string, reason: string) {
   buyer.bannedAt = new Date();
   buyer.banReason = reason;
   await buyer.save();
+  const store = await Store.findById(buyer.storeId);
+  await createNotification({
+    recipientId: buyer._id,
+    recipientType: "buyer",
+    storeId: buyer.storeId,
+    type: "account_banned",
+    title: "Account suspended",
+    message: reason,
+    email: {
+      to: buyer.email,
+      templateName: "buyerBanned",
+      data: {
+        name: buyer.name,
+        storeName: store?.name ?? "",
+        reason,
+      },
+    },
+  });
   return buyer;
 }
 

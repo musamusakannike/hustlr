@@ -2,6 +2,7 @@ import { Review } from "../models/review.model";
 import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 import { User } from "../models/user.model";
+import { BuyerProfile } from "../models/buyer-profile.model";
 import { ApiError } from "../utils/api-error.util";
 import { recomputeProductRating } from "./product.service";
 import { createNotification } from "./notification.service";
@@ -79,6 +80,30 @@ export async function sellerReply(sellerId: string, reviewId: string, text: stri
   if (review.sellerReply?.text) throw ApiError.badRequest("You already replied to this review");
   review.sellerReply = { text, repliedAt: new Date() };
   await review.save();
+
+  const buyer = await BuyerProfile.findById(review.buyerProfileId);
+  if (buyer) {
+    await createNotification({
+      recipientId: buyer._id,
+      recipientType: "buyer",
+      storeId: store._id,
+      type: "review_reply",
+      title: "Seller replied to your review",
+      message: `${store.name} replied to your review on ${review.productTitle}.`,
+      link: `/store/${store.slug}/products/${review.productId}`,
+      email: {
+        to: buyer.email,
+        templateName: "reviewReply",
+        data: {
+          name: buyer.name,
+          storeName: store.name,
+          productTitle: review.productTitle,
+          replyText: text,
+        },
+      },
+    });
+  }
+
   return review;
 }
 
