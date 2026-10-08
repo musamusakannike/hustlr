@@ -17,6 +17,7 @@ import { commissionForSeller, nextOrderNumber } from "./order.service";
 import { decrementStock, restoreStock } from "./product.service";
 import { initializeTransaction, verifyTransaction } from "./paystack.service";
 import { createNotification } from "./notification.service";
+import { verifySubscriptionPayment } from "./subscription.service";
 
 async function buildQuote(
   buyerProfileId: string,
@@ -260,16 +261,53 @@ export async function verifyCheckout(reference: string) {
 export async function handlePaystackWebhook(event: string, data: Record<string, unknown>) {
   const reference = String(data.reference ?? "");
   if (!reference) return;
+  const metadata = (data.metadata ?? {}) as {
+    type?: string;
+    orderId?: string;
+    sellerId?: string;
+    planId?: string;
+  };
+
   if (event === "charge.success") {
-    const metadata = (data.metadata ?? {}) as { type?: string; orderId?: string };
-    if (metadata.type === "order" || data.channel) {
+    if (metadata.type === "subscription") {
+      try {
+        await verifySubscriptionPayment(reference);
+      } catch (err) {
+        console.error(`[PaystackWebhook] Subscription activation failed for ${reference}:`, err);
+      }
+    } else if (metadata.type === "order" || data.channel) {
       const order = await Order.findOne({
         $or: [{ orderNumber: reference }, { paymentReference: reference }, { _id: metadata.orderId }],
       });
       if (order) await fulfillPaidOrder(order);
     }
   }
+
   if (event === "charge.failed") {
+    if (metadata.type === "subscription" && metadata.sellerId) {
+      const seller = await User.findById(metadata.sellerId);
+      if (seller) {
+        const admins = await User.find({ role: "admin" });
+        await Promise.all(
+          admins.map((admin) =>
+            createNotification({
+              recipientId: admin._id,
+              recipientType: "admin",
+              type: "subscription_payment_failed",
+              title: "Subscription payment failed",
+              message: `Subscription payment failed for ${seller.name} (${seller.email}).`,
+              link: "/admin/users",
+              email: {
+                to: admin.email,
+                templateName: "paymentFailedAdmin",
+                data: { sellerName: seller.name, email: seller.email },
+              },
+            }),
+          ),
+        );
+      }
+    }
+
     const order = await Order.findOne({ $or: [{ orderNumber: reference }, { paymentReference: reference }] });
     if (order && order.paymentStatus !== "paid") await failOrder(order);
   }

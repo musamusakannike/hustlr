@@ -1,5 +1,8 @@
 import { TICKET_NUMBER_PREFIX } from "../config/constants.config";
 import { SupportTicket } from "../models/support-ticket.model";
+import { User } from "../models/user.model";
+import { BuyerProfile } from "../models/buyer-profile.model";
+import { createNotification } from "./notification.service";
 import { ApiError } from "../utils/api-error.util";
 import { escapeRegex } from "../utils/pagination.util";
 
@@ -42,6 +45,34 @@ export async function createTicket(input: {
     ],
     awaitingResponseFrom: "admin",
   });
+
+  const admins = await User.find({ role: "admin" });
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        recipientId: admin._id,
+        recipientType: "admin",
+        storeId: input.storeId,
+        type: "ticket_created",
+        title: "New support ticket",
+        message: `Ticket #${ticket.ticketNumber} (${input.userType}): ${input.subject}`,
+        link: "/admin/support-tickets",
+        email: {
+          to: admin.email,
+          templateName: "adminNewTicket",
+          data: {
+            ticketNumber: ticket.ticketNumber,
+            senderName: input.senderName,
+            userType: input.userType,
+            topic: input.topic,
+            subject: input.subject,
+            message: input.message,
+          },
+        },
+      }),
+    ),
+  );
+
   return ticket;
 }
 
@@ -86,6 +117,33 @@ export async function addUserMessage(
   ticket.awaitingResponseFrom = "admin";
   if (ticket.status === "Resolved") ticket.status = "Open";
   await ticket.save();
+
+  const admins = await User.find({ role: "admin" });
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        recipientId: admin._id,
+        recipientType: "admin",
+        storeId: ticket.storeId,
+        type: "ticket_reply",
+        title: "New ticket reply",
+        message: `${senderName} replied to #${ticket.ticketNumber}`,
+        link: "/admin/support-tickets",
+        email: {
+          to: admin.email,
+          templateName: "ticketReply",
+          data: {
+            name: admin.name,
+            ticketNumber: ticket.ticketNumber,
+            senderName,
+            senderRole: role,
+            message,
+          },
+        },
+      }),
+    ),
+  );
+
   return ticket;
 }
 
@@ -151,6 +209,36 @@ export async function addAdminMessage(
   ticket.awaitingResponseFrom = "user";
   if (ticket.status === "Open") ticket.status = "In Progress";
   await ticket.save();
+
+  const recipient =
+    ticket.userType === "seller"
+      ? await User.findById(ticket.userId)
+      : await BuyerProfile.findById(ticket.userId);
+
+  if (recipient) {
+    const link = ticket.userType === "seller" ? "/dashboard/support" : "/orders";
+    await createNotification({
+      recipientId: recipient._id,
+      recipientType: ticket.userType,
+      storeId: ticket.storeId,
+      type: "ticket_reply",
+      title: "Support reply received",
+      message: `${adminName} replied to ticket #${ticket.ticketNumber}`,
+      link,
+      email: {
+        to: recipient.email,
+        templateName: "ticketReply",
+        data: {
+          name: recipient.name,
+          ticketNumber: ticket.ticketNumber,
+          senderName: adminName,
+          senderRole: "Admin Support",
+          message,
+        },
+      },
+    });
+  }
+
   return ticket;
 }
 
@@ -160,5 +248,35 @@ export async function setTicketStatus(ticketId: string, status: "Open" | "In Pro
   if (status === "Resolved") ticket.resolvedAt = new Date();
   if (status === "Closed") ticket.closedAt = new Date();
   await ticket.save();
+
+  if (status === "Resolved") {
+    const recipient =
+      ticket.userType === "seller"
+        ? await User.findById(ticket.userId)
+        : await BuyerProfile.findById(ticket.userId);
+
+    if (recipient) {
+      const link = ticket.userType === "seller" ? "/dashboard/support" : "/orders";
+      await createNotification({
+        recipientId: recipient._id,
+        recipientType: ticket.userType,
+        storeId: ticket.storeId,
+        type: "ticket_resolved",
+        title: "Support ticket resolved",
+        message: `Your ticket #${ticket.ticketNumber} has been resolved.`,
+        link,
+        email: {
+          to: recipient.email,
+          templateName: "ticketResolved",
+          data: {
+            name: recipient.name,
+            ticketNumber: ticket.ticketNumber,
+            subject: ticket.subject,
+          },
+        },
+      });
+    }
+  }
+
   return ticket;
 }

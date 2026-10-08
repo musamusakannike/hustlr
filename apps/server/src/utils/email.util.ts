@@ -30,12 +30,19 @@ function getSmtp(): nodemailer.Transporter | null {
   return smtp;
 }
 
+export interface SendEmailResult {
+  success: boolean;
+  provider?: "resend" | "smtp" | "none";
+  error?: string;
+  messageId?: string;
+}
+
 export async function sendEmail(params: {
   to: string | string[];
   templateName: string;
   data?: Record<string, string | number | undefined>;
   subject?: string;
-}): Promise<void> {
+}): Promise<SendEmailResult> {
   const rendered = renderEmail(params.templateName, params.data ?? {});
   const subject = params.subject ?? rendered.subject;
   const html = rendered.html;
@@ -44,30 +51,36 @@ export async function sendEmail(params: {
   const resendClient = getResend();
   if (resendClient) {
     try {
-      await resendClient.emails.send({
+      const res = await resendClient.emails.send({
         from: getFrom(),
         to,
         subject,
         html,
       });
-      return;
+      return { success: true, provider: "resend", messageId: res.data?.id };
     } catch (error) {
-      console.error(`[${APP_NAME}] Resend failed, trying SMTP`, error);
+      console.error(`[EmailService] Resend failed for ${params.templateName} to ${to.join(",")}, trying SMTP:`, error);
     }
   }
 
   const transporter = getSmtp();
   if (transporter) {
-    await transporter.sendMail({
-      from: getFrom(),
-      to: to.join(","),
-      subject,
-      html,
-    });
-    return;
+    try {
+      const info = await transporter.sendMail({
+        from: getFrom(),
+        to: to.join(","),
+        subject,
+        html,
+      });
+      return { success: true, provider: "smtp", messageId: info.messageId };
+    } catch (error) {
+      console.error(`[EmailService] SMTP failed for ${params.templateName} to ${to.join(",")}:`, error);
+      return { success: false, provider: "smtp", error: error instanceof Error ? error.message : String(error) };
+    }
   }
 
-  console.warn(`[${APP_NAME}] Email skipped (no provider). To=${to.join(",")} subject=${subject}`);
+  console.warn(`[EmailService] Email skipped (no provider). To=${to.join(",")} template=${params.templateName}`);
+  return { success: false, provider: "none", error: "No email provider configured" };
 }
 
 export async function sendRawEmail(to: string, subject: string, html: string): Promise<void> {
