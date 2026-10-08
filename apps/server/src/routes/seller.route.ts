@@ -34,6 +34,7 @@ router.use(protectSeller);
 
 router.put("/store/setup", validate(storeSetupSchema), store.setupStore);
 router.get("/store", store.getStore);
+router.get("/store/slug-check", store.checkSlug);
 router.put("/store/template", validate(templateSelectSchema), store.setTemplate);
 router.put("/store/custom-domain", validate(customDomainSchema), store.setDomain);
 router.post("/store/verify-domain", store.verifyDomain);

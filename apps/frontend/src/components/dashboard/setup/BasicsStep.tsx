@@ -23,15 +23,17 @@ export default function BasicsStep({
   const [slug, setSlug] = useState(store.slug || "");
   const [description, setDescription] = useState(store.description);
   const [slugTouched, setSlugTouched] = useState(Boolean(store.slug));
+  const isCurrentStoreSlug = Boolean(store.slug && slug === store.slug);
   const { data: slugCheck, isFetching: checkingSlug } = useSlugCheck(
-    slugTouched && slug.length >= 3 ? slug : null
+    !isCurrentStoreSlug && slug.length >= 3 ? slug : null
   );
 
-  const slugAvailable = slugCheck?.available;
+  const slugAvailable = isCurrentStoreSlug ? true : slugCheck?.available;
   const canProceed =
     name.trim().length >= 2 &&
     slug.length >= 3 &&
-    (slugAvailable === true || slug === store.slug);
+    !checkingSlug &&
+    slugAvailable === true;
 
   return (
     <form
@@ -78,7 +80,7 @@ export default function BasicsStep({
             </>
           }
         />
-        {slugTouched && slug.length >= 3 && (
+        {slug.length >= 3 && (
           <div className="mt-2">
             {checkingSlug ? (
               <p className="flex items-center gap-2 text-xs text-muted">
