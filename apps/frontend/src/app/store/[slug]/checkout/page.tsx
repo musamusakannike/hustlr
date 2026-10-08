@@ -34,7 +34,7 @@ export default function CheckoutPage() {
 
   if (authLoading) return <Spinner />;
   if (!isAuthenticated) {
-    router.replace(storeHref(slug, "/auth/login"));
+    router.replace(storeHref(slug, "/auth/login?redirect=/checkout"));
     return <Spinner />;
   }
 

@@ -8,9 +8,20 @@ import {
   storefrontService,
   wishlistService,
 } from "@/services/storefront";
-import type { StorefrontFilters } from "@/types/storefront";
-import type { AddCartInput, CheckoutInput } from "@/types/cart";
+import type { StorefrontFilters, StorefrontProduct } from "@/types/storefront";
+import type { AddCartInput, CartItem, CheckoutInput } from "@/types/cart";
 import { useOptionalBuyerAuth } from "@/context/BuyerAuthContext";
+import {
+  addGuestCartItem,
+  clearGuestCart,
+  getGuestCart,
+  getGuestCartCount,
+  getGuestWishlistCount,
+  getGuestWishlistProducts,
+  removeGuestCartItem,
+  toggleGuestWishlist,
+  updateGuestCartItem,
+} from "@/lib/guest-commerce";
 
 export function useStorefrontInfo(slug: string) {
   return useQuery({
@@ -69,9 +80,14 @@ export function useCart() {
   const slug = ctx?.slug ?? "";
   const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
-    queryKey: ["cart", slug],
-    queryFn: () => cartService.get(slug),
-    enabled: isAuthenticated && !!slug,
+    queryKey: ["cart", slug, isAuthenticated],
+    queryFn: async () => {
+      if (isAuthenticated) {
+        return cartService.get(slug);
+      }
+      return getGuestCart(slug);
+    },
+    enabled: !!slug,
   });
 }
 
@@ -80,19 +96,31 @@ export function useCartCount() {
   const slug = ctx?.slug ?? "";
   const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
-    queryKey: ["cart-count", slug],
-    queryFn: () => cartService.count(slug),
-    enabled: isAuthenticated && !!slug,
-    refetchInterval: 20_000,
+    queryKey: ["cart-count", slug, isAuthenticated],
+    queryFn: async () => {
+      if (isAuthenticated) {
+        return cartService.count(slug);
+      }
+      return { count: getGuestCartCount(slug) };
+    },
+    enabled: !!slug,
+    refetchInterval: 10_000,
   });
 }
 
 export function useAddToCart(overrideSlug?: string) {
   const ctx = useOptionalBuyerAuth();
   const slug = overrideSlug || ctx?.slug || "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: AddCartInput) => cartService.add(slug, input),
+    mutationFn: async (input: AddCartInput & { product?: CartItem["product"] }) => {
+      if (isAuthenticated) {
+        const { product, ...payload } = input;
+        return cartService.add(slug, payload);
+      }
+      return addGuestCartItem(slug, input, input.product);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cart", slug] });
       qc.invalidateQueries({ queryKey: ["cart-count", slug] });
@@ -103,20 +131,53 @@ export function useAddToCart(overrideSlug?: string) {
 export function useUpdateCart() {
   const ctx = useOptionalBuyerAuth();
   const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ itemId, quantity }: { itemId: string; quantity: number }) =>
-      cartService.update(slug, itemId, quantity),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart", slug] }),
+    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+      if (isAuthenticated) {
+        return cartService.update(slug, itemId, quantity);
+      }
+      return updateGuestCartItem(slug, itemId, quantity);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cart", slug] });
+      qc.invalidateQueries({ queryKey: ["cart-count", slug] });
+    },
   });
 }
 
 export function useRemoveCartItem() {
   const ctx = useOptionalBuyerAuth();
   const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (itemId: string) => cartService.remove(slug, itemId),
+    mutationFn: async (itemId: string) => {
+      if (isAuthenticated) {
+        return cartService.remove(slug, itemId);
+      }
+      return removeGuestCartItem(slug, itemId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cart", slug] });
+      qc.invalidateQueries({ queryKey: ["cart-count", slug] });
+    },
+  });
+}
+
+export function useClearCart() {
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (isAuthenticated) {
+        return cartService.clear(slug);
+      }
+      return clearGuestCart(slug);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cart", slug] });
       qc.invalidateQueries({ queryKey: ["cart-count", slug] });
@@ -143,12 +204,27 @@ export function useVerifyCheckout() {
 export function useToggleWish() {
   const ctx = useOptionalBuyerAuth();
   const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (productId: string) => wishlistService.toggle(slug, productId),
+    mutationFn: async (
+      arg: string | { productId: string; product?: StorefrontProduct }
+    ) => {
+      const productId = typeof arg === "string" ? arg : arg.productId;
+      const product = typeof arg === "string" ? undefined : arg.product;
+      if (isAuthenticated) {
+        return wishlistService.toggle(slug, productId);
+      }
+      return toggleGuestWishlist(slug, productId, product);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wishlist", slug] });
+      qc.invalidateQueries({ queryKey: ["wishlist-count", slug] });
       qc.invalidateQueries({ queryKey: ["storefront-product", slug] });
+      qc.invalidateQueries({ queryKey: ["storefront-products", slug] });
+      qc.invalidateQueries({ queryKey: ["featured-products", slug] });
+      qc.invalidateQueries({ queryKey: ["new-arrivals", slug] });
+      qc.invalidateQueries({ queryKey: ["best-sellers", slug] });
     },
   });
 }
@@ -158,9 +234,32 @@ export function useWishlist() {
   const slug = ctx?.slug ?? "";
   const isAuthenticated = ctx?.isAuthenticated ?? false;
   return useQuery({
-    queryKey: ["wishlist", slug],
-    queryFn: () => wishlistService.list(slug),
-    enabled: isAuthenticated && !!slug,
+    queryKey: ["wishlist", slug, isAuthenticated],
+    queryFn: async () => {
+      if (isAuthenticated) {
+        return wishlistService.list(slug);
+      }
+      return getGuestWishlistProducts(slug);
+    },
+    enabled: !!slug,
+  });
+}
+
+export function useWishlistCount() {
+  const ctx = useOptionalBuyerAuth();
+  const slug = ctx?.slug ?? "";
+  const isAuthenticated = ctx?.isAuthenticated ?? false;
+  return useQuery({
+    queryKey: ["wishlist-count", slug, isAuthenticated],
+    queryFn: async () => {
+      if (isAuthenticated) {
+        const list = await wishlistService.list(slug).catch(() => []);
+        return { count: list.length };
+      }
+      return { count: getGuestWishlistCount(slug) };
+    },
+    enabled: !!slug,
+    refetchInterval: 10_000,
   });
 }
 

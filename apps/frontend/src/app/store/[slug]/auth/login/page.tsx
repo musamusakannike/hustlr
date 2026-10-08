@@ -26,6 +26,12 @@ export default function BuyerLoginPage() {
 
   const go = (path: string) => router.replace(storeHref(slug, path));
 
+  const getRedirect = () => {
+    if (typeof window === "undefined") return "/";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("redirect") || "/";
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -33,7 +39,7 @@ export default function BuyerLoginPage() {
     try {
       const res = await buyerAuthService.login(slug, { email: email.trim(), password });
       setBuyer(res.user ?? (res as unknown as { buyer?: typeof res.user }).buyer ?? null);
-      go("/");
+      go(getRedirect());
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -48,7 +54,7 @@ export default function BuyerLoginPage() {
       const token = await getGoogleIdToken();
       const res = await buyerAuthService.google(slug, { idToken: token });
       setBuyer(res.user ?? (res as unknown as { buyer?: typeof res.user }).buyer ?? null);
-      go("/");
+      go(getRedirect());
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {

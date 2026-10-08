@@ -11,6 +11,7 @@ export interface CartItem {
     slug: string;
     images: string[];
     price: number;
+    compareAtPrice?: number;
     stock: number;
     status: string;
   };

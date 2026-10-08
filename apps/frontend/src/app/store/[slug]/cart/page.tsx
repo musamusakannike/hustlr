@@ -22,19 +22,10 @@ export default function CartPage() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
 
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Spinner label="Loading cart..." />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    router.replace(storeHref(slug, "/auth/login"));
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner label="Redirecting..." />
       </div>
     );
   }

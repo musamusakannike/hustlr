@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { useQueryClient } from "@tanstack/react-query";
 import type { Buyer } from "@/types/buyer";
 import { buyerAuthService, storefrontService } from "@/services/storefront";
+import { syncGuestDataToServer } from "@/lib/guest-commerce";
 
 interface BuyerAuthValue {
   slug: string;
@@ -27,17 +28,28 @@ export function BuyerAuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  const handleSet = useCallback((next: Buyer | null) => {
-    setBuyer(next);
-    if (typeof window === "undefined") return;
-    if (next) {
-      if (slug) localStorage.setItem(`hustlr_buyer_user_${slug}`, JSON.stringify(next));
-      localStorage.setItem("hustlr_buyer_user", JSON.stringify(next));
-    } else {
-      if (slug) localStorage.removeItem(`hustlr_buyer_user_${slug}`);
-      localStorage.removeItem("hustlr_buyer_user");
-    }
-  }, [slug]);
+  const handleSet = useCallback(
+    (next: Buyer | null) => {
+      setBuyer(next);
+      if (typeof window === "undefined") return;
+      if (next) {
+        if (slug) localStorage.setItem(`hustlr_buyer_user_${slug}`, JSON.stringify(next));
+        localStorage.setItem("hustlr_buyer_user", JSON.stringify(next));
+        if (slug) {
+          syncGuestDataToServer(slug).then(() => {
+            queryClient.invalidateQueries({ queryKey: ["cart", slug] });
+            queryClient.invalidateQueries({ queryKey: ["cart-count", slug] });
+            queryClient.invalidateQueries({ queryKey: ["wishlist", slug] });
+            queryClient.invalidateQueries({ queryKey: ["wishlist-count", slug] });
+          });
+        }
+      } else {
+        if (slug) localStorage.removeItem(`hustlr_buyer_user_${slug}`);
+        localStorage.removeItem("hustlr_buyer_user");
+      }
+    },
+    [slug, queryClient]
+  );
 
   useEffect(() => {
     storefrontService.setSlug(slug);

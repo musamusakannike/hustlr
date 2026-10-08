@@ -17,10 +17,6 @@ export default function WishlistPage() {
   const wish = useToggleWish();
 
   if (authLoading) return <Spinner />;
-  if (!isAuthenticated) {
-    router.replace(storeHref(slug, "/auth/login"));
-    return <Spinner />;
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -32,7 +28,12 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {data!.map((p) => (
-            <ProductCard key={p.id} slug={slug} product={{ ...p, isWishlisted: true }} onWish={(id) => wish.mutate(id)} />
+            <ProductCard
+              key={p.id}
+              slug={slug}
+              product={{ ...p, isWishlisted: true }}
+              onWish={(id, prod) => wish.mutate({ productId: id, product: prod || p })}
+            />
           ))}
         </div>
       )}

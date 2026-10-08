@@ -24,14 +24,14 @@ export default function StoreHomePage() {
   const { data: best } = useBestSellers(slug);
   const { data: cats } = useStorefrontCategories(slug);
   const wish = useToggleWish();
-  const [guest, setGuest] = React.useState(false);
 
-  const onWish = (id: string) => {
-    if (!isAuthenticated) {
-      setGuest(true);
-      return;
-    }
-    wish.mutate(id);
+  const onWish = (id: string, product?: import("@/types/storefront").StorefrontProduct) => {
+    const foundProduct =
+      product ||
+      featured?.find((p) => p.id === id) ||
+      newest?.find((p) => p.id === id) ||
+      best?.find((p) => p.id === id);
+    wish.mutate({ productId: id, product: foundProduct });
   };
 
   if (infoLoading) {
@@ -55,7 +55,6 @@ export default function StoreHomePage() {
         categories={cats ?? []}
         onWish={onWish}
       />
-      <GuestModal slug={slug} open={guest} onClose={() => setGuest(false)} />
     </div>
   );
 }

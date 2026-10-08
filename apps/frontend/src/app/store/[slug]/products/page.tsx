@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import ProductCard from "@/components/storefront/ProductCard";
-import GuestModal from "@/components/storefront/GuestModal";
 import { Spinner } from "@/components/ui/Spinner";
 import {
   useStorefrontCategories,
@@ -15,7 +14,7 @@ import {
 } from "@/hooks/useStorefront";
 import { useBuyerAuth } from "@/context/BuyerAuthContext";
 import { storeHref } from "@/lib/store-path";
-import type { StorefrontFilters } from "@/types/storefront";
+import type { StorefrontFilters, StorefrontProduct } from "@/types/storefront";
 import { formatNaira } from "@/lib/utils";
 
 const COLOR_SWATCHES = [
@@ -51,7 +50,6 @@ function Catalog() {
   const { isAuthenticated } = useBuyerAuth();
   const { data: info } = useStorefrontInfo(slug);
   const wish = useToggleWish();
-  const [guest, setGuest] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -78,12 +76,9 @@ function Catalog() {
 
   const activeCategory = filters.category || "";
 
-  const onWish = (productId: string) => {
-    if (!isAuthenticated) {
-      setGuest(true);
-      return;
-    }
-    wish.mutate(productId);
+  const onWish = (productId: string, product?: StorefrontProduct) => {
+    const foundProduct = product || allItems.find((p) => p.id === productId);
+    wish.mutate({ productId, product: foundProduct });
   };
 
   const allItems = data?.items ?? [];
@@ -439,8 +434,6 @@ function Catalog() {
           </section>
         </div>
       </div>
-
-      <GuestModal slug={slug} open={guest} onClose={() => setGuest(false)} />
     </div>
   );
 }

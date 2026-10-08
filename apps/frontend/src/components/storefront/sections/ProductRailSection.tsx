@@ -10,7 +10,7 @@ interface ProductRailSectionProps {
   data: ProductRailSectionData;
   info: StorefrontInfo;
   products: StorefrontProduct[];
-  onWish?: (id: string) => void;
+  onWish?: (id: string, product?: StorefrontProduct) => void;
 }
 
 export default function ProductRailSection({
