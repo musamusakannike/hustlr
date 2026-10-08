@@ -211,6 +211,31 @@ export async function fulfillPaidOrder(order: InstanceType<typeof Order>) {
       },
     });
   }
+  const admins = await User.find({ role: "admin" });
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        recipientId: admin._id,
+        recipientType: "admin",
+        storeId: order.storeId,
+        type: "admin_transaction",
+        title: "New order payment",
+        message: `Order ${order.orderNumber} for ${DEFAULT_CURRENCY_SYMBOL}${order.totalAmount} in store ${store?.name ?? "Storefront"}.`,
+        link: `/admin/orders`,
+        email: {
+          to: admin.email,
+          templateName: "adminTransactionAlert",
+          data: {
+            orderNumber: order.orderNumber,
+            amount: order.totalAmount,
+            currencySymbol: store?.currencySymbol ?? DEFAULT_CURRENCY_SYMBOL,
+            storeName: store?.name ?? "Storefront",
+            buyerName: buyer?.name ?? "Customer",
+          },
+        },
+      }),
+    ),
+  );
   return order;
 }
 

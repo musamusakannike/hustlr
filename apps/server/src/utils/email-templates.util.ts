@@ -232,6 +232,83 @@ const templates: Record<string, (data: TemplateData) => { subject: string; html:
       `${p(`Subscription payment failed for ${d.sellerName} (${d.email}).`)}`,
     ),
   }),
+  adminTransactionAlert: (d) => ({
+    subject: `New transaction: Order ${d.orderNumber}`,
+    html: layout(
+      "New transaction",
+      `${p(`Order ${d.orderNumber} totaling ${d.currencySymbol ?? "₦"}${d.amount} has been successfully paid.`)}${p(`Store: ${d.storeName ?? "Storefront"} | Buyer: ${d.buyerName ?? "Customer"}`)}${p("Funds are secured in platform escrow pending delivery.")}`,
+    ),
+  }),
+  adminRefundAlert: (d) => ({
+    subject: `Refund processed: Order ${d.orderNumber}`,
+    html: layout(
+      "Refund alert",
+      `${p(`A refund of ${d.currencySymbol ?? "₦"}${d.amount} was issued for order ${d.orderNumber}.`)}${p(`Store: ${d.storeName ?? "Storefront"} | Reason: ${d.reason ?? "Dispute resolution"}`)}`,
+    ),
+  }),
+  orderRefundedBuyer: (d) => ({
+    subject: `Refund processed for order ${d.orderNumber}`,
+    html: layout(
+      "Refund confirmed",
+      `${p(`Hi ${d.name},`)}${p(`A refund of ${d.currencySymbol ?? "₦"}${d.amount} has been processed for order ${d.orderNumber}.`)}${p("The funds will reflect in your account according to your payment provider's timeline.")}`,
+    ),
+  }),
+  orderRefundedSeller: (d) => ({
+    subject: `Refund debit on order ${d.orderNumber}`,
+    html: layout(
+      "Refund deduction",
+      `${p(`Hi ${d.name},`)}${p(`A refund of ${d.currencySymbol ?? "₦"}${d.amount} was issued on order ${d.orderNumber}.`)}${p(`Reason: ${d.reason ?? "Dispute resolution"}.`)}`,
+    ),
+  }),
+  orderInTransit: (d) => ({
+    subject: `Order ${d.orderNumber} is on the way`,
+    html: layout(
+      "Order in transit",
+      `${p(`Hi ${d.name},`)}${p(`Your order ${d.orderNumber} from ${d.storeName ?? "the seller"} is now in transit.`)}${d.trackingNumber ? p(`Tracking Number: ${d.trackingNumber}`) : ""}${d.trackingNote ? p(`Courier Note: ${d.trackingNote}`) : ""}${p("We will notify you as soon as the package arrives.")}`,
+    ),
+  }),
+  orderDeliveredSeller: (d) => ({
+    subject: `Order ${d.orderNumber} delivered`,
+    html: layout(
+      "Delivery completed",
+      `${p(`Hi ${d.name},`)}${p(`Order ${d.orderNumber} was marked as delivered. The buyer has been invited to confirm receipt so escrow funds can be credited to your wallet.`)}`,
+    ),
+  }),
+  orderCompletedBuyer: (d) => ({
+    subject: `Order ${d.orderNumber} completed`,
+    html: layout(
+      "Order completed",
+      `${p(`Hi ${d.name},`)}${p(`Thank you for confirming receipt of order ${d.orderNumber} from ${d.storeName ?? "the store"}.`)}${p("Your order is now complete. We hope you enjoy your purchase!")}`,
+    ),
+  }),
+  adminEscrowReleasedAlert: (d) => ({
+    subject: `Escrow released: Order ${d.orderNumber}`,
+    html: layout(
+      "Escrow released",
+      `${p(`Order ${d.orderNumber} was confirmed and escrow funds of ${d.currencySymbol ?? "₦"}${d.amount} were released to seller ${d.sellerName ?? ""}.`)}`,
+    ),
+  }),
+  buyerDisputeOpened: (d) => ({
+    subject: `Dispute received for order ${d.orderNumber}`,
+    html: layout(
+      "Dispute under review",
+      `${p(`Hi ${d.name},`)}${p(`We received your dispute submission for order ${d.orderNumber}.`)}${p(`Reason: ${d.reason}`)}${p("Our moderation team and the seller are reviewing the details. You can track progress directly in your order portal.")}`,
+    ),
+  }),
+  disputeMessageAlert: (d) => ({
+    subject: `Update on dispute for order ${d.orderNumber}`,
+    html: layout(
+      "Dispute update",
+      `${p(`Hi ${d.name},`)}${p(`${d.senderName} (${d.senderRole}) posted an update on the dispute for order ${d.orderNumber}:`)}${p(`"${d.message}"`)}`,
+    ),
+  }),
+  adminDisputeResolved: (d) => ({
+    subject: `Dispute concluded: Order ${d.orderNumber}`,
+    html: layout(
+      "Dispute resolved",
+      `${p(`The dispute on order ${d.orderNumber} has been resolved.`)}${p(`Resolution: ${d.resolution}`)}${d.note ? p(`Resolution Note: ${d.note}`) : ""}`,
+    ),
+  }),
 };
 
 export function renderEmail(
