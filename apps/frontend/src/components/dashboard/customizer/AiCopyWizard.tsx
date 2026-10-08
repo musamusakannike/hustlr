@@ -89,7 +89,7 @@ export default function AiCopyWizard({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. We sell handmade Ankara dresses and accessories for women in Lagos, with same-week delivery."
-                className="w-full px-3 py-2 rounded-xl border border-border text-sm focus:border-primary focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-bg text-text placeholder:text-subtle text-sm focus:border-primary focus:outline-none"
               />
               <button
                 type="button"
@@ -114,7 +114,7 @@ export default function AiCopyWizard({
                       type="text"
                       value={answers[q.id] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-border text-xs focus:border-primary focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-border bg-bg text-text placeholder:text-subtle text-xs focus:border-primary focus:outline-none"
                     />
                   </div>
                 ))}
