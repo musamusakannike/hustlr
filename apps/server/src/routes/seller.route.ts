@@ -117,6 +117,8 @@ router.get("/analytics/product-performance", misc.analyticsProducts);
 router.post("/ai/improve-title", misc.aiTitle);
 router.post("/ai/rewrite-description", misc.aiDescription);
 router.post("/ai/generate-seo", misc.aiSeo);
+router.post("/ai/storefront-questions", misc.aiStorefrontQuestions);
+router.post("/ai/storefront-copy", misc.aiStorefrontCopy);
 
 router.get("/ai/threads", aiPartner.listThreads);
 router.post("/ai/threads", validate(aiThreadSchema), aiPartner.createThread);

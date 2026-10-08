@@ -19,6 +19,8 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Bot,
+  Undo2,
   Sliders,
   Smartphone,
   Tablet,
@@ -51,6 +53,8 @@ import {
 } from "@/lib/storefront-theme";
 import { SectionEditor } from "./SectionEditors";
 import LiveStorefrontPreview from "./LiveStorefrontPreview";
+import AiCopyWizard from "./AiCopyWizard";
+import { setPathValue } from "./customizer-edit-context";
 
 const ALL_SECTION_TEMPLATES: {
   type: StorefrontSectionType;
@@ -127,6 +131,8 @@ export default function StoreCustomizer({ store }: { store: Store }) {
 
   // Add Section Modal state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAiWizard, setShowAiWizard] = useState(false);
+  const [aiUndo, setAiUndo] = useState<StorefrontSection[] | null>(null);
   const [addModalTab, setAddModalTab] = useState<"builtin" | "library">("builtin");
 
   // Drag and drop state
@@ -351,6 +357,21 @@ export default function StoreCustomizer({ store }: { store: Store }) {
     );
   };
 
+  const handlePatchPath = (sectionId: string, path: string, value: string) => {
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, data: setPathValue((s.data || {}) as Record<string, unknown>, path, value) }
+          : s,
+      ),
+    );
+  };
+
+  const handleSelectSection = (sectionId: string) => {
+    setSelectedSectionId(sectionId);
+    setActiveTab("edit-section");
+  };
+
   const handleApplyPalette = (palette: (typeof COLOR_PALETTE_PRESETS)[0]) => {
     setColorScheme(palette.scheme);
     toast(`Applied "${palette.name}" palette!`, "success");
@@ -471,6 +492,30 @@ export default function StoreCustomizer({ store }: { store: Store }) {
             View Live
             <ExternalLink className="w-3 h-3" />
           </a>
+
+          <button
+            type="button"
+            onClick={() => setShowAiWizard(true)}
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            AI copy
+          </button>
+
+          {aiUndo && (
+            <button
+              type="button"
+              onClick={() => {
+                setSections(aiUndo);
+                setAiUndo(null);
+                toast("Restored previous copy.", "info");
+              }}
+              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              Undo AI
+            </button>
+          )}
 
           <button
             type="button"
@@ -1021,9 +1066,25 @@ export default function StoreCustomizer({ store }: { store: Store }) {
             themeSettings={themeSettings}
             viewport={viewport}
             previewPage={previewPage}
+            editMode={previewPage === "home"}
+            onSelectSection={handleSelectSection}
+            onPatchPath={handlePatchPath}
           />
         </div>
       </div>
+
+      {showAiWizard && (
+        <AiCopyWizard
+          store={store}
+          sections={sections}
+          onApply={(next) => {
+            setAiUndo(sections);
+            setSections(next);
+            toast("Homepage copy updated. Review the preview, then save.", "success");
+          }}
+          onClose={() => setShowAiWizard(false)}
+        />
+      )}
 
       {/* Add Section Modal */}
       {showAddModal && (

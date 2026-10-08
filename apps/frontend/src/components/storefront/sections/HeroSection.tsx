@@ -5,6 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import type { HeroSectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import EditableImage from "@/components/dashboard/customizer/EditableImage";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 interface HeroSectionProps {
   data: HeroSectionData;
@@ -12,6 +15,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ data, info }: HeroSectionProps) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const bgImage = data.backgroundImage || info.banner;
 
   return (
@@ -20,22 +24,38 @@ export default function HeroSection({ data, info }: HeroSectionProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Hero Content */}
           <div className="lg:col-span-7 pb-8 lg:pb-24 z-10">
-            <h1 className="font-integral text-4xl sm:text-5xl lg:text-[58px] leading-[1.05] tracking-tight uppercase font-black text-black">
-              {data.heading || "FIND CLOTHES THAT MATCHES YOUR STYLE"}
-            </h1>
-            <p className="mt-5 sm:mt-6 text-gray-600 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-              {data.subheading ||
-                "Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style."}
-            </p>
+            <EditableText
+              as="h1"
+              path="heading"
+              value={data.heading || "FIND CLOTHES THAT MATCHES YOUR STYLE"}
+              className="font-integral text-4xl sm:text-5xl lg:text-[58px] leading-[1.05] tracking-tight uppercase font-black text-black"
+            />
+            <EditableText
+              as="p"
+              path="subheading"
+              multiline
+              value={
+                data.subheading ||
+                "Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style."
+              }
+              className="mt-5 sm:mt-6 text-gray-600 text-sm sm:text-base leading-relaxed max-w-xl font-normal"
+            />
             <div className="mt-8">
               <Link
                 href={storeHref(info.slug, data.primaryCtaLink || "/products")}
+                onClick={(e) => {
+                  if (editing) e.preventDefault();
+                }}
                 className="inline-block w-full sm:w-auto text-center font-medium py-3.5 px-14 rounded-full transition-all duration-200 text-sm sm:text-base shadow-sm hover:shadow-md cursor-pointer text-white"
                 style={{
                   backgroundColor: "var(--store-primary, #000000)",
                 }}
               >
-                {data.primaryCtaText || "Shop Now"}
+                <EditableText
+                  as="span"
+                  path="primaryCtaText"
+                  value={data.primaryCtaText || "Shop Now"}
+                />
               </Link>
             </div>
 
@@ -96,14 +116,32 @@ export default function HeroSection({ data, info }: HeroSectionProps) {
             {/* Hero Image */}
             {bgImage ? (
               <div className="relative w-full h-full">
-                <Image
-                  src={bgImage}
-                  alt={info.name}
-                  fill
-                  className="object-contain object-bottom"
-                  priority
-                />
+                {editing ? (
+                  <EditableImage
+                    path="backgroundImage"
+                    src={bgImage}
+                    alt={info.name}
+                    fill
+                    imgClassName="object-contain object-bottom w-full h-full"
+                  />
+                ) : (
+                  <Image
+                    src={bgImage}
+                    alt={info.name}
+                    fill
+                    className="object-contain object-bottom"
+                    priority
+                  />
+                )}
               </div>
+            ) : editing ? (
+              <EditableImage
+                path="backgroundImage"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN3VT5_tWdS068qBu7y_BJYlbwMhpe7DOmejQkoWfoiCqLWAUTTHbiVK5ttLbTScZjk2qSghJFTKU4w2W-V94i4GfAgw4HGtEnBpYSgmZzjbaKRVQcEvGK-FSXaC_l61sQ-XIaB8xZHcTjqpQvE7dxvoHGf54au9_cuiTtkm2jS5G0k6bqcOSugFuYzWgso__yOEOkhuMT29kP7RYKxX5i23duIz4Y7MNDHS7liPKtWrqCeGhmKFzc"
+                alt={info.name}
+                className="relative z-0 w-full h-full"
+                imgClassName="max-h-full object-cover object-top w-full"
+              />
             ) : (
               <img
                 alt="Stylish models wearing contemporary streetwear"

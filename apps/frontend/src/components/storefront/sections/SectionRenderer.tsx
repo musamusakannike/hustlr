@@ -19,6 +19,7 @@ import BrandsSection from "./BrandsSection";
 import LookbookGridSection from "./LookbookGridSection";
 import HtmlBlockSection from "./HtmlBlockSection";
 import { DEFAULT_STOREFRONT_SECTIONS } from "@/fixtures/storefront-defaults";
+import { CustomizerSectionFrame } from "@/components/dashboard/customizer/customizer-edit-context";
 
 interface SectionRendererProps {
   sections?: StorefrontSection[];
@@ -50,138 +51,73 @@ export default function SectionRenderer({
   return (
     <div className="flex flex-col w-full">
       {activeSections.map((section) => {
+        const wrap = (node: React.ReactNode) => (
+          <CustomizerSectionFrame key={section.id} id={section.id}>
+            {node}
+          </CustomizerSectionFrame>
+        );
         switch (section.type) {
           case "hero":
-            return (
-              <HeroSection
-                key={section.id}
-                data={section.data}
-                info={info}
-              />
-            );
+            return wrap(<HeroSection data={section.data} info={info} />);
 
           case "stats":
-            return (
-              <StatsSection
-                key={section.id}
-                data={section.data}
-              />
-            );
-
+            return wrap(<StatsSection data={section.data} />);
           case "features":
-            return (
-              <FeaturesSection
-                key={section.id}
-                data={section.data}
-                info={info}
-              />
-            );
-
+            return wrap(<FeaturesSection data={section.data} info={info} />);
           case "how-it-works":
-            return (
-              <HowItWorksSection
-                key={section.id}
-                data={section.data}
-                info={info}
-              />
-            );
-
+            return wrap(<HowItWorksSection data={section.data} info={info} />);
           case "split-story":
-            return (
-              <SplitStorySection
-                key={section.id}
-                data={section.data}
-                info={info}
-              />
-            );
-
+            return wrap(<SplitStorySection data={section.data} info={info} />);
           case "categories":
-            return (
-              <CategoriesSection
-                key={section.id}
-                data={section.data}
-                info={info}
-                categories={categories}
-              />
+            return wrap(
+              <CategoriesSection data={section.data} info={info} categories={categories} />,
             );
-
           case "featured-products":
-            return (
+            return wrap(
               <ProductRailSection
-                key={section.id}
                 data={section.data}
                 info={info}
                 products={featuredProducts}
                 onWish={onWish}
-              />
+              />,
             );
-
           case "new-arrivals":
-            return (
+            return wrap(
               <ProductRailSection
-                key={section.id}
                 data={section.data}
                 info={info}
                 products={newArrivals}
                 onWish={onWish}
-              />
+              />,
             );
-
           case "best-sellers":
-            return (
+            return wrap(
               <ProductRailSection
-                key={section.id}
                 data={section.data}
                 info={info}
                 products={bestSellers}
                 onWish={onWish}
-              />
+              />,
             );
-
           case "testimonials":
-            return (
-              <TestimonialsSection
-                key={section.id}
-                data={section.data}
-              />
-            );
-
+            return wrap(<TestimonialsSection data={section.data} />);
           case "cta-banner":
-            return (
-              <CtaBannerSection
-                key={section.id}
-                data={section.data}
-                info={info}
-              />
-            );
-
+            return wrap(<CtaBannerSection data={section.data} info={info} />);
           case "newsletter":
-            return (
-              <NewsletterSection
-                key={section.id}
-                data={section.data}
-              />
-            );
-
+            return wrap(<NewsletterSection data={section.data} />);
           case "hero-slider":
-            return <HeroSliderSection key={section.id} data={section.data} info={info} />;
-
+            return wrap(<HeroSliderSection data={section.data} info={info} />);
           case "banner-grid":
-            return <BannerGridSection key={section.id} data={section.data} info={info} />;
-
+            return wrap(<BannerGridSection data={section.data} info={info} />);
           case "icon-boxes":
-            return <IconBoxesSection key={section.id} data={section.data} />;
-
+            return wrap(<IconBoxesSection data={section.data} />);
           case "brands":
-            return <BrandsSection key={section.id} data={section.data} />;
-
+            return wrap(<BrandsSection data={section.data} />);
           case "lookbook-grid":
-            return <LookbookGridSection key={section.id} data={section.data} info={info} />;
-
+            return wrap(<LookbookGridSection data={section.data} info={info} />);
           case "html-block":
-            return (
+            return wrap(
               <HtmlBlockSection
-                key={section.id}
                 id={section.id}
                 data={section.data}
                 info={info}
@@ -189,7 +125,7 @@ export default function SectionRenderer({
                 newArrivals={newArrivals}
                 bestSellers={bestSellers}
                 categories={categories}
-              />
+              />,
             );
 
           default:

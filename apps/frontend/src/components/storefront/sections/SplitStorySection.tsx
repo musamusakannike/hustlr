@@ -6,6 +6,9 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import type { SplitStorySectionData, StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
+import EditableText from "@/components/dashboard/customizer/EditableText";
+import EditableImage from "@/components/dashboard/customizer/EditableImage";
+import { useCustomizerEdit } from "@/components/dashboard/customizer/customizer-edit-context";
 
 interface SplitStorySectionProps {
   data: SplitStorySectionData;
@@ -13,6 +16,7 @@ interface SplitStorySectionProps {
 }
 
 export default function SplitStorySection({ data, info }: SplitStorySectionProps) {
+  const editing = Boolean(useCustomizerEdit()?.enabled);
   const imgSrc = data.image || info.banner || info.logo || "/hero.png";
   const isRight = (data.imagePosition ?? "right") === "right";
 
@@ -22,24 +26,32 @@ export default function SplitStorySection({ data, info }: SplitStorySectionProps
         {/* Story Text Column */}
         <div className={`flex flex-col items-start gap-6 ${isRight ? "lg:col-span-6 lg:order-1" : "lg:col-span-6 lg:order-2"}`}>
           {data.badge && (
-            <span
+            <EditableText
+              as="span"
+              path="badge"
+              value={data.badge}
               className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
               style={{
                 backgroundColor: "var(--store-accent, #FFEDE6)",
                 color: "var(--store-primary, #E05315)",
               }}
-            >
-              {data.badge}
-            </span>
+            />
           )}
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)] leading-tight">
-            {data.heading}
-          </h2>
+          <EditableText
+            as="h2"
+            path="heading"
+            value={data.heading}
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)] leading-tight"
+          />
 
-          <p className="text-base text-[var(--store-text,#0A0E11)] opacity-75 leading-relaxed">
-            {data.narrative}
-          </p>
+          <EditableText
+            as="p"
+            path="narrative"
+            multiline
+            value={data.narrative}
+            className="text-base text-[var(--store-text,#0A0E11)] opacity-75 leading-relaxed"
+          />
 
           {/* Bullet points */}
           {data.bullets && data.bullets.length > 0 && (
@@ -55,7 +67,7 @@ export default function SplitStorySection({ data, info }: SplitStorySectionProps
                   >
                     <Check className="w-3 h-3 stroke-[3]" />
                   </span>
-                  <span>{bullet}</span>
+                  <EditableText as="span" path={`bullets.${idx}`} value={bullet} />
                 </li>
               ))}
             </ul>
@@ -65,10 +77,13 @@ export default function SplitStorySection({ data, info }: SplitStorySectionProps
           {data.ctaText && (
             <Link
               href={storeHref(info.slug, data.ctaLink || "/products")}
+              onClick={(e) => {
+                if (editing) e.preventDefault();
+              }}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm text-white shadow-md transition-all hover:opacity-95 hover:scale-[1.02] active:scale-[0.98] mt-2"
               style={{ backgroundColor: "var(--store-primary, #E05315)" }}
             >
-              {data.ctaText}
+              <EditableText as="span" path="ctaText" value={data.ctaText} />
               <ArrowRight className="w-4 h-4" />
             </Link>
           )}
@@ -82,6 +97,15 @@ export default function SplitStorySection({ data, info }: SplitStorySectionProps
             }}
           >
             {imgSrc ? (
+              editing ? (
+                <EditableImage
+                  path="image"
+                  src={imgSrc}
+                  alt={data.heading}
+                  fill
+                  imgClassName="object-cover w-full h-full"
+                />
+              ) : (
               <Image
                 src={imgSrc}
                 alt={data.heading}
@@ -89,6 +113,7 @@ export default function SplitStorySection({ data, info }: SplitStorySectionProps
                 className="object-cover transition-transform duration-700 hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
+              )
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center"

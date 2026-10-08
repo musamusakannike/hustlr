@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type { StatsSectionData } from "@/types/storefront";
+import EditableText from "@/components/dashboard/customizer/EditableText";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Star,
@@ -67,12 +68,18 @@ export default function StatsSection({ data }: StatsSectionProps) {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-base sm:text-lg font-bold tracking-tight text-[var(--store-text,#0A0E11)]">
-                    {item.value}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[var(--store-text,#0A0E11)] opacity-70 truncate">
-                    {item.label}
-                  </p>
+                  <EditableText
+                    as="p"
+                    path={`items.${idx}.value`}
+                    value={item.value}
+                    className="text-base sm:text-lg font-bold tracking-tight text-[var(--store-text,#0A0E11)]"
+                  />
+                  <EditableText
+                    as="p"
+                    path={`items.${idx}.label`}
+                    value={item.label}
+                    className="text-xs sm:text-sm text-[var(--store-text,#0A0E11)] opacity-70 truncate"
+                  />
                 </div>
               </div>
             );

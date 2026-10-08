@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Check, Mail } from "lucide-react";
 import type { NewsletterSectionData } from "@/types/storefront";
+import EditableText from "@/components/dashboard/customizer/EditableText";
 
 interface NewsletterSectionProps {
   data: NewsletterSectionData;
@@ -28,25 +29,33 @@ export default function NewsletterSection({ data }: NewsletterSectionProps) {
         }}
       >
         {data.badge && (
-          <span
+          <EditableText
+            as="span"
+            path="badge"
+            value={data.badge}
             className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
             style={{
               backgroundColor: "var(--store-accent, #FFEDE6)",
               color: "var(--store-primary, #E05315)",
             }}
-          >
-            {data.badge}
-          </span>
+          />
         )}
 
-        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]">
-          {data.heading}
-        </h2>
+        <EditableText
+          as="h2"
+          path="heading"
+          value={data.heading}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--store-text,#0A0E11)]"
+        />
 
         {data.subheading && (
-          <p className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-75 max-w-xl leading-relaxed">
-            {data.subheading}
-          </p>
+          <EditableText
+            as="p"
+            path="subheading"
+            multiline
+            value={data.subheading}
+            className="text-sm sm:text-base text-[var(--store-text,#0A0E11)] opacity-75 max-w-xl leading-relaxed"
+          />
         )}
 
         {submitted ? (
@@ -79,7 +88,7 @@ export default function NewsletterSection({ data }: NewsletterSectionProps) {
               className="w-full sm:w-auto px-7 py-3.5 rounded-full font-bold text-sm text-white shrink-0 shadow-sm transition-all hover:opacity-95 active:scale-[0.98]"
               style={{ backgroundColor: "var(--store-primary, #E05315)" }}
             >
-              {data.buttonText || "Subscribe"}
+              <EditableText as="span" path="buttonText" value={data.buttonText || "Subscribe"} />
             </button>
           </form>
         )}

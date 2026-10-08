@@ -323,6 +323,12 @@ export const aiDescription = asyncHandler(async (req: Request, res: Response) =>
 export const aiSeo = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, await aiService.generateSeo(req.body));
 });
+export const aiStorefrontQuestions = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await aiService.storefrontInterviewQuestions(req.body));
+});
+export const aiStorefrontCopy = asyncHandler(async (req: Request, res: Response) => {
+  sendSuccess(res, await aiService.storefrontRewriteCopy(req.body));
+});
 
 export const uploadImage = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) throw ApiError.badRequest("No file uploaded");
