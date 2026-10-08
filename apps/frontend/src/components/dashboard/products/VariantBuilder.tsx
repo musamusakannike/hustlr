@@ -121,14 +121,14 @@ export default function VariantBuilder({
                 onChange={(e) =>
                   updateVariant(index, { name: e.target.value })
                 }
-                className="max-w-xs"
+                className="w-full sm:max-w-xs"
               />
               <button
                 type="button"
                 onClick={() =>
                   onVariantsChange(variants.filter((_, i) => i !== index))
                 }
-                className="p-2 text-neutral-400 hover:text-danger transition-colors cursor-pointer"
+                className="p-2 text-neutral-400 hover:text-danger transition-colors cursor-pointer shrink-0"
                 aria-label={`Remove ${variant.name || "variant"}`}
               >
                 <Trash2 className="w-4 h-4" />
@@ -159,7 +159,7 @@ export default function VariantBuilder({
               ))}
               <input
                 placeholder="Add option + Enter"
-                className="bg-white border border-border rounded-lg px-2.5 py-1.5 text-sm w-40 focus:outline-none focus:border-primary"
+                className="bg-white border border-border rounded-lg px-2.5 py-1.5 text-sm w-full sm:w-44 focus:outline-none focus:border-primary"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -198,7 +198,7 @@ export default function VariantBuilder({
             from buyers.
           </p>
           <div className="overflow-x-auto no-scrollbar rounded-2xl border border-border">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[500px] text-sm">
               <thead className="bg-bg-soft text-xs text-muted uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-2.5 text-left font-semibold">

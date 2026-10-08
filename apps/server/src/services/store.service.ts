@@ -178,11 +178,25 @@ export async function setupStore(
       throw err;
     }
   }
+  await refreshStoreLiveStatus(store);
   return store;
 }
 
 export async function getMyStore(sellerId: string) {
-  return getSellerStore(sellerId);
+  return Store.findOne({ sellerId });
+}
+
+export async function checkSlug(slug: string, sellerId?: string) {
+  const clean = slugify(slug);
+  if (!clean || !isValidSlug(clean)) {
+    return { slug: clean, available: false };
+  }
+  const existing = await Store.findOne({ slug: clean });
+  if (!existing || (sellerId && String(existing.sellerId) === String(sellerId))) {
+    return { slug: clean, available: true };
+  }
+  const suggestion = await uniqueSlug(clean, async (s) => Boolean(await Store.exists({ slug: s })));
+  return { slug: clean, available: false, suggestion };
 }
 
 export async function listEligibleTemplates(_sellerId: string, tier?: string) {

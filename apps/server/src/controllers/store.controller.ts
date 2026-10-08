@@ -15,6 +15,13 @@ export const getStore = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, store);
 });
 
+export const checkSlug = asyncHandler(async (req: Request, res: Response) => {
+  const slug = String(req.query.slug || "");
+  const sellerId = req.user?._id ? String(req.user._id) : undefined;
+  const result = await storeService.checkSlug(slug, sellerId);
+  sendSuccess(res, result);
+});
+
 export const listTemplates = asyncHandler(async (req: Request, res: Response) => {
   const templates = await storeService.listEligibleTemplates(
     String(req.user!._id),

@@ -63,12 +63,14 @@ import type { AiChatMessage, AiThread, AiThreadDetail } from "@/types/ai-partner
 export class TransportError extends Error {
   status: number;
   errors?: unknown;
+  details?: unknown;
 
-  constructor(message: string, status = 400, errors?: unknown) {
+  constructor(message: string, status = 400, errors?: unknown, details?: unknown) {
     super(message);
     this.name = "TransportError";
     this.status = status;
     this.errors = errors;
+    this.details = details;
   }
 }
 

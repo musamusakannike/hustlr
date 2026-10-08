@@ -28,7 +28,7 @@ interface SectionRendererProps {
   newArrivals?: StorefrontProduct[];
   bestSellers?: StorefrontProduct[];
   categories?: { id: string; name: string }[];
-  onWish?: (id: string) => void;
+  onWish?: (id: string, product?: StorefrontProduct) => void;
 }
 
 export default function SectionRenderer({

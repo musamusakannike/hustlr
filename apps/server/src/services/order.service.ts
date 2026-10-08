@@ -1,6 +1,6 @@
 import { DEFAULT_CURRENCY_SYMBOL, ORDER_NUMBER_PREFIX } from "../config/constants.config";
 import { Order } from "../models/order.model";
-import type { IStore } from "../models/store.model";
+import { Store, type IStore } from "../models/store.model";
 import { User } from "../models/user.model";
 import { BuyerProfile } from "../models/buyer-profile.model";
 import { BuyerReferral } from "../models/buyer-referral.model";
@@ -110,6 +110,32 @@ export async function markInTransit(sellerId: string, orderId: string) {
   if (!order) throw ApiError.notFound("Order not found");
   order.deliveryStatus = "in_transit";
   await order.save();
+  const [buyer, store] = await Promise.all([
+    BuyerProfile.findById(order.buyerProfileId),
+    Store.findById(order.storeId),
+  ]);
+  if (buyer) {
+    await createNotification({
+      recipientId: buyer._id,
+      recipientType: "buyer",
+      storeId: order.storeId,
+      type: "order_in_transit",
+      title: "Order in transit",
+      message: `Your order ${order.orderNumber} is now in transit.`,
+      link: `/orders/${order._id}`,
+      email: {
+        to: buyer.email,
+        templateName: "orderInTransit",
+        data: {
+          name: buyer.name,
+          orderNumber: order.orderNumber,
+          storeName: store?.name ?? "",
+          trackingNumber: order.trackingNumber,
+          trackingNote: order.trackingNote,
+        },
+      },
+    });
+  }
   return order;
 }
 
@@ -119,7 +145,10 @@ export async function markDelivered(sellerId: string, orderId: string) {
   order.deliveryStatus = "delivered";
   order.deliveredAt = new Date();
   await order.save();
-  const buyer = await BuyerProfile.findById(order.buyerProfileId);
+  const [buyer, seller] = await Promise.all([
+    BuyerProfile.findById(order.buyerProfileId),
+    User.findById(order.sellerId),
+  ]);
   if (buyer) {
     await createNotification({
       recipientId: buyer._id,
@@ -133,6 +162,24 @@ export async function markDelivered(sellerId: string, orderId: string) {
         to: buyer.email,
         templateName: "orderDelivered",
         data: { name: buyer.name, orderNumber: order.orderNumber },
+      },
+    });
+  }
+  if (seller) {
+    await createNotification({
+      recipientId: seller._id,
+      recipientType: "seller",
+      type: "order_delivered",
+      title: "Order marked delivered",
+      message: `Order ${order.orderNumber} was marked as delivered. The buyer has been prompted to confirm receipt.`,
+      link: `/dashboard/orders/${order._id}`,
+      email: {
+        to: seller.email,
+        templateName: "orderDeliveredSeller",
+        data: {
+          name: seller.name,
+          orderNumber: order.orderNumber,
+        },
       },
     });
   }
@@ -250,7 +297,51 @@ export async function confirmOrder(order: InstanceType<typeof Order>, auto = fal
         data: { name: buyer.name, orderNumber: order.orderNumber },
       },
     });
+  } else if (!auto && buyer) {
+    const store = await Store.findById(order.storeId);
+    await createNotification({
+      recipientId: buyer._id,
+      recipientType: "buyer",
+      storeId: order.storeId,
+      type: "order_completed",
+      title: "Order completed",
+      message: `Receipt confirmed for order ${order.orderNumber}. Thank you for shopping with ${store?.name ?? "us"}!`,
+      link: `/orders/${order._id}`,
+      email: {
+        to: buyer.email,
+        templateName: "orderCompletedBuyer",
+        data: {
+          name: buyer.name,
+          orderNumber: order.orderNumber,
+          storeName: store?.name ?? "",
+        },
+      },
+    });
   }
+  const admins = await User.find({ role: "admin" });
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        recipientId: admin._id,
+        recipientType: "admin",
+        storeId: order.storeId,
+        type: "escrow_released",
+        title: "Escrow released",
+        message: `Order ${order.orderNumber} escrow of ${DEFAULT_CURRENCY_SYMBOL}${order.payoutAmount} released to seller ${seller?.name ?? ""}.`,
+        link: `/admin/orders`,
+        email: {
+          to: admin.email,
+          templateName: "adminEscrowReleasedAlert",
+          data: {
+            orderNumber: order.orderNumber,
+            amount: order.payoutAmount,
+            currencySymbol: DEFAULT_CURRENCY_SYMBOL,
+            sellerName: seller?.name ?? "Seller",
+          },
+        },
+      }),
+    ),
+  );
   await rewardBuyerReferral(order);
   return order;
 }
@@ -365,7 +456,26 @@ export async function openDispute(
       }),
     ),
   );
-  void buyer;
+  if (buyer) {
+    await createNotification({
+      recipientId: buyer._id,
+      recipientType: "buyer",
+      storeId: order.storeId,
+      type: "dispute_opened",
+      title: "Dispute submitted",
+      message: `Your dispute on order ${order.orderNumber} has been received and is under review.`,
+      link: `/orders/${order._id}`,
+      email: {
+        to: buyer.email,
+        templateName: "buyerDisputeOpened",
+        data: {
+          name: buyer.name,
+          orderNumber: order.orderNumber,
+          reason: input.reason,
+        },
+      },
+    });
+  }
   return dispute;
 }
 

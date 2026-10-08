@@ -67,9 +67,59 @@ function SetupWizard() {
     });
   };
 
-  if (isLoading || !store) {
+  const currentStore = useMemo(() => {
+    if (store) return store;
+    return {
+      id: "",
+      sellerId: "",
+      name: pendingStoreName || "",
+      slug: "",
+      description: "",
+      logo: "",
+      banner: "",
+      favicon: "",
+      socialLinks: {},
+      colorScheme: {
+        primary: "#800A1D",
+        secondary: "#0A0E11",
+        accent: "#FAD4D8",
+        background: "#FFFFFF",
+        text: "#0A0E11",
+      },
+      templateId: null,
+      currency: "NGN",
+      currencySymbol: "₦",
+      contactEmail: "",
+      contactPhone: "",
+      address: "",
+      isLive: false,
+      customDomain: null,
+      customDomainVerified: false,
+      metaTitle: "",
+      metaDescription: "",
+      shippingPolicy: "",
+      returnPolicy: "",
+      termsOfService: "",
+      privacyPolicy: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }, [store, pendingStoreName]);
+
+  if (isLoading) {
     return <Spinner size="lg" label="Loading store settings…" />;
   }
+
+  const submitCurrentForm = () => {
+    const form = document.getElementById("setup-step-form") as HTMLFormElement | null;
+    if (form) {
+      if (typeof form.requestSubmit === "function") {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,20 +140,20 @@ function SetupWizard() {
 
         {stepIndex === 0 && (
           <BasicsStep
-            store={store}
+            store={currentStore}
             pendingStoreName={pendingStoreName}
             onSave={handleSave}
             saving={setup.isPending}
           />
         )}
         {stepIndex === 1 && (
-          <BrandingStep store={store} onSave={handleSave} saving={setup.isPending} />
+          <BrandingStep store={currentStore} onSave={handleSave} saving={setup.isPending} />
         )}
         {stepIndex === 2 && (
-          <ContactStep store={store} onSave={handleSave} saving={setup.isPending} />
+          <ContactStep store={currentStore} onSave={handleSave} saving={setup.isPending} />
         )}
         {stepIndex === 3 && (
-          <SeoPoliciesStep store={store} onSave={handleSave} saving={setup.isPending} />
+          <SeoPoliciesStep store={currentStore} onSave={handleSave} saving={setup.isPending} />
         )}
 
         <div className="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-border">
@@ -129,6 +179,7 @@ function SetupWizard() {
               form="setup-step-form"
               type="submit"
               loading={setup.isPending}
+              onClick={submitCurrentForm}
             >
               {stepIndex === STEPS.length - 1 ? (
                 <>

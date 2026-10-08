@@ -30,7 +30,7 @@ function Inner() {
           setError("");
           try {
             const res = await buyerAuthService.verifyOtp(slug, { email, otp });
-            setBuyer(res.user);
+            setBuyer(res.user ?? (res as unknown as { buyer?: typeof res.user }).buyer ?? null);
             router.replace(storeHref(slug, "/"));
           } catch (err) {
             setError(getErrorMessage(err));

@@ -10,12 +10,27 @@ import {
   LogOut,
   Shield,
   CheckCheck,
+  Loader2,
 } from "lucide-react";
-import { authService, User } from "@/lib/api";
+import { authService, User, adminNotificationService, AdminNotificationItem } from "@/lib/api";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
   pageTitle?: string;
+}
+
+function formatTimeAgo(isoString?: string): string {
+  if (!isoString) return "";
+  try {
+    const date = new Date(isoString);
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  } catch {
+    return "";
+  }
 }
 
 export default function AdminHeader({
@@ -29,6 +44,8 @@ export default function AdminHeader({
 
   const [bellOpen, setBellOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<AdminNotificationItem[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,6 +53,40 @@ export default function AdminHeader({
     const stored = authService.getUser();
     if (stored) setUser(stored);
   }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const count = await adminNotificationService.unreadCount();
+      setUnreadCount(count);
+    } catch {
+      // silent fallback
+    }
+  };
+
+  const fetchNotifications = async () => {
+    setLoadingNotifications(true);
+    try {
+      const res = await adminNotificationService.list({ limit: 10 });
+      setNotifications(res.items);
+    } catch {
+      // silent fallback
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 45000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (bellOpen) {
+      fetchNotifications();
+      fetchUnreadCount();
+    }
+  }, [bellOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,6 +110,34 @@ export default function AdminHeader({
   const handleLogout = async () => {
     await authService.logout();
     router.replace("/login");
+  };
+
+  const handleItemClick = async (item: AdminNotificationItem) => {
+    if (!item.isRead) {
+      try {
+        await adminNotificationService.markRead(item._id);
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === item._id ? { ...n, isRead: true } : n))
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
+      } catch {
+        // silent
+      }
+    }
+    setBellOpen(false);
+    if (item.link) {
+      router.push(item.link);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await adminNotificationService.markAllRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch {
+      // silent
+    }
   };
 
   return (
@@ -114,7 +193,7 @@ export default function AdminHeader({
                 <p className="text-xs font-bold text-slate-800">Admin Alerts</p>
                 {unreadCount > 0 && (
                   <button
-                    onClick={() => setUnreadCount(0)}
+                    onClick={handleMarkAllRead}
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
                   >
                     <CheckCheck className="w-3.5 h-3.5" />
@@ -123,15 +202,58 @@ export default function AdminHeader({
                 )}
               </div>
 
-              <div className="p-6 text-center">
-                <Bell className="w-8 h-8 text-gray-300 mx-auto" />
-                <p className="mt-2 text-xs font-semibold text-gray-600">
-                  No new alerts
-                </p>
-                <p className="mt-0.5 text-[11px] text-gray-400">
-                  New KYC submissions, disputes, and payouts will appear here in
-                  real time.
-                </p>
+              <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                {loadingNotifications ? (
+                  <div className="p-6 text-center text-xs text-gray-500">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary mb-2" />
+                    Loading alerts...
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <Bell className="w-8 h-8 text-gray-300 mx-auto" />
+                    <p className="mt-2 text-xs font-semibold text-gray-600">
+                      No new alerts
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-gray-400">
+                      New transactions, disputes, KYC submissions, and payouts will appear here in real time.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((item) => (
+                    <button
+                      key={item._id}
+                      onClick={() => handleItemClick(item)}
+                      className={`w-full text-left p-3.5 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 items-start ${
+                        !item.isRead ? "bg-primary/5" : ""
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                          !item.isRead ? "bg-primary" : "bg-transparent"
+                        }`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p
+                            className={`text-xs truncate ${
+                              !item.isRead
+                                ? "font-bold text-slate-900"
+                                : "font-semibold text-slate-700"
+                            }`}
+                          >
+                            {item.title}
+                          </p>
+                          <span className="text-[10px] text-gray-400 shrink-0">
+                            {formatTimeAgo(item.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5 leading-relaxed">
+                          {item.message}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           )}

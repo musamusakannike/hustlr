@@ -7,6 +7,7 @@ import { Heart } from "lucide-react";
 import type { StorefrontProduct } from "@/types/storefront";
 import { formatNaira } from "@/lib/utils";
 import { storeHref } from "@/lib/store-path";
+import { isGuestWishlisted } from "@/lib/guest-commerce";
 
 function StarRating({ rating = 4.5 }: { rating?: number }) {
   const stars = [];
@@ -61,10 +62,16 @@ export default function ProductCard({
 }: {
   slug: string;
   product: StorefrontProduct;
-  onWish?: (productId: string) => void;
+  onWish?: (productId: string, product?: StorefrontProduct) => void;
   className?: string;
   variant?: "minimal" | "overlay" | "boxed" | "list";
 }) {
+  const [localWish, setLocalWish] = React.useState<boolean | null>(null);
+  const isWish =
+    localWish !== null
+      ? localWish
+      : product.isWishlisted || isGuestWishlisted(slug, product.id);
+
   const href = storeHref(slug, `/products/${product.slug}`);
   const cover = product.images[0];
 
@@ -104,13 +111,14 @@ export default function ProductCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onWish(product.id);
+              setLocalWish(!isWish);
+              onWish(product.id, product);
             }}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110 active:scale-95 z-10"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110 active:scale-95 z-10 cursor-pointer"
           >
             <Heart
               className={`w-4 h-4 ${
-                product.isWishlisted
+                isWish
                   ? "fill-[var(--store-primary,#000000)] text-[var(--store-primary,#000000)]"
                   : "text-neutral-700"
               }`}

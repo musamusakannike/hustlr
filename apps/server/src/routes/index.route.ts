@@ -28,6 +28,7 @@ router.use("/auth", authRoutes);
 
 router.put("/store/setup", protectSeller, validate(storeSetupSchema), store.setupStore);
 router.get("/store", protectSeller, store.getStore);
+router.get("/store/slug-check", store.checkSlug);
 router.put("/store/template", protectSeller, validate(templateSelectSchema), store.setTemplate);
 router.get("/templates", protectSeller, store.listTemplates);
 router.get("/template-sections", protectSeller, store.listTemplateSections);

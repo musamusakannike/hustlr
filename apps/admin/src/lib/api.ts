@@ -1438,3 +1438,33 @@ export const adminPlansService = {
     return res.data.data ?? [];
   },
 };
+
+// ─── Admin Notifications Service ─────────────────────────────────────────────
+export interface AdminNotificationItem {
+  _id: string;
+  recipientId: string;
+  recipientType: "admin" | "seller" | "buyer";
+  type: string;
+  title: string;
+  message: string;
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const adminNotificationService = {
+  async list(params?: { page?: number; limit?: number }): Promise<{ items: AdminNotificationItem[]; total: number }> {
+    const res = await api.get<ApiResponse<{ items: AdminNotificationItem[]; total: number }>>("/notifications", { params });
+    return res.data.data ?? { items: [], total: 0 };
+  },
+  async unreadCount(): Promise<number> {
+    const res = await api.get<ApiResponse<{ count: number }>>("/notifications/unread-count");
+    return res.data.data?.count ?? 0;
+  },
+  async markRead(id: string): Promise<void> {
+    await api.patch(`/notifications/${id}/read`);
+  },
+  async markAllRead(): Promise<void> {
+    await api.patch("/notifications/mark-all-read");
+  },
+};

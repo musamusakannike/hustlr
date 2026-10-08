@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
-import GuestModal from "@/components/storefront/GuestModal";
 import ProductCard from "@/components/storefront/ProductCard";
 import {
   useAddToCart,
@@ -28,6 +27,7 @@ import {
 import { useBuyerAuth } from "@/context/BuyerAuthContext";
 import { formatNaira, getErrorMessage } from "@/lib/utils";
 import { storeHref } from "@/lib/store-path";
+import { isGuestWishlisted } from "@/lib/guest-commerce";
 
 function StarRating({ rating = 4.5, size = "md" }: { rating?: number; size?: "sm" | "md" }) {
   const iconSize = size === "md" ? "w-5 h-5" : "w-4 h-4";
@@ -59,12 +59,12 @@ export default function ProductDetailPage() {
   const { data: product, isLoading } = useStorefrontProduct(slug, productSlug);
   const { data: reviews } = useProductReviews(slug, productSlug);
   const { data: catalog } = useStorefrontProducts(slug, { limit: 8 });
-  const add = useAddToCart();
+  const add = useAddToCart(slug);
   const wish = useToggleWish();
   const { toast } = useToast();
 
-  const [guest, setGuest] = useState(false);
   const [qty, setQty] = useState(1);
+  const [localWish, setLocalWish] = useState<boolean | null>(null);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<"details" | "reviews" | "faqs">("reviews");
@@ -100,16 +100,27 @@ export default function ProductDetailPage() {
       ? Math.round(((product.compareAtPrice - price) / product.compareAtPrice) * 100)
       : null;
 
+  const isWishlisted =
+    localWish !== null
+      ? localWish
+      : (product.isWishlisted || isGuestWishlisted(slug, product.id));
+
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      setGuest(true);
-      return;
-    }
     add.mutate(
       {
         productId: product.id,
         quantity: qty,
         selectedVariants: selected,
+        product: {
+          id: product.id,
+          title: product.title,
+          slug: product.slug,
+          price,
+          compareAtPrice: product.compareAtPrice ?? undefined,
+          images: activeImage ? [activeImage] : product.images,
+          stock: product.stock ?? 10,
+          status: "active",
+        },
       },
       {
         onSuccess: () => {
@@ -375,16 +386,16 @@ export default function ProductDetailPage() {
                 {/* Wishlist Button */}
                 <button
                   onClick={() => {
-                    if (!isAuthenticated) setGuest(true);
-                    else wish.mutate(product.id);
+                    setLocalWish(!isWishlisted);
+                    wish.mutate({ productId: product.id, product });
                   }}
-                  className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                  className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
                   type="button"
                   aria-label="Wishlist"
                 >
                   <Heart
                     className={`w-5 h-5 ${
-                      product.isWishlisted
+                      isWishlisted
                         ? "fill-[var(--store-primary,#000000)] text-[var(--store-primary,#000000)]"
                         : "text-neutral-700"
                     }`}
@@ -633,8 +644,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
-
-      <GuestModal slug={slug} open={guest} onClose={() => setGuest(false)} />
     </div>
   );
 }

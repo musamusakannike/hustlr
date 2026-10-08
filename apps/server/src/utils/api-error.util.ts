@@ -1,18 +1,29 @@
 export class ApiError extends Error {
   statusCode: number;
   errors?: unknown;
+  details?: { field: string; message: string }[];
   isOperational: boolean;
 
-  constructor(statusCode: number, message: string, errors?: unknown) {
+  constructor(
+    statusCode: number,
+    message: string,
+    errors?: unknown,
+    details?: { field: string; message: string }[],
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.errors = errors;
+    this.details = details;
     this.isOperational = true;
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 
-  static badRequest(message: string, errors?: unknown): ApiError {
-    return new ApiError(400, message, errors);
+  static badRequest(
+    message: string,
+    errors?: unknown,
+    details?: { field: string; message: string }[],
+  ): ApiError {
+    return new ApiError(400, message, errors, details);
   }
 
   static unauthorized(message = "Unauthorized"): ApiError {

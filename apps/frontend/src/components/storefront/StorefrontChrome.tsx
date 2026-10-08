@@ -24,7 +24,7 @@ import {
 import type { StorefrontInfo } from "@/types/storefront";
 import { storeHref } from "@/lib/store-path";
 import { useOptionalBuyerAuth } from "@/context/BuyerAuthContext";
-import { useCartCount } from "@/hooks/useStorefront";
+import { useCartCount, useWishlistCount } from "@/hooks/useStorefront";
 import { resolveTheme } from "@/lib/storefront-theme";
 
 export function StorefrontAnnouncementBar({ info }: { info: StorefrontInfo }) {
@@ -66,6 +66,7 @@ export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
   const slug = buyerAuth?.slug ?? info.slug;
   const isAuthenticated = buyerAuth?.isAuthenticated ?? false;
   const { data: count } = useCartCount();
+  const { data: wishCount } = useWishlistCount();
   const [q, setQ] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
@@ -252,18 +253,26 @@ export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
               <Search className="w-6 h-6" />
             </button>
 
-            {/* Wishlist Link */}
+            {/* Wishlist Link with Dynamic Badge */}
             <Link
-              href={href(isAuthenticated ? "/account/wishlist" : "/auth/login")}
+              href={href("/account/wishlist")}
               className="p-1 text-black hover:opacity-70 transition-opacity relative"
               aria-label="Wishlist"
             >
               <Heart className="w-6 h-6 text-black" />
+              {(wishCount?.count ?? 0) > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-in zoom-in duration-200"
+                  style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                >
+                  {wishCount?.count}
+                </span>
+              )}
             </Link>
 
             {/* Cart Icon with Dynamic Badge */}
             <Link
-              href={href(isAuthenticated ? "/cart" : "/auth/login")}
+              href={href("/cart")}
               aria-label="Shopping Cart"
               className="text-black hover:opacity-70 transition-opacity relative p-1"
             >
@@ -406,7 +415,22 @@ export function StorefrontHeader({ info }: { info: StorefrontInfo }) {
                   Brands
                 </Link>
                 <Link
-                  href={href(isAuthenticated ? "/cart" : "/auth/login")}
+                  href={href("/account/wishlist")}
+                  onClick={() => setOpen(false)}
+                  className="text-lg font-medium text-black hover:opacity-70 py-1 flex items-center justify-between"
+                >
+                  <span>Wishlist</span>
+                  {(wishCount?.count ?? 0) > 0 && (
+                    <span
+                      className="text-white text-xs px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "var(--store-primary, #000000)" }}
+                    >
+                      {wishCount?.count}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href={href("/cart")}
                   onClick={() => setOpen(false)}
                   className="text-lg font-medium text-black hover:opacity-70 py-1 flex items-center justify-between"
                 >

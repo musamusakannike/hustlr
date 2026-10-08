@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, X, Loader2 } from "lucide-react";
 import { Input, Textarea } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
 import type { Store, StoreSetupInput } from "@/types/store";
 import { useSlugCheck } from "@/hooks/useStore";
 import { cn } from "@/lib/utils";
@@ -19,27 +20,48 @@ export default function BasicsStep({
   onSave: (input: StoreSetupInput) => void;
   saving: boolean;
 }) {
+  const { toast } = useToast();
   const [name, setName] = useState(store.name || pendingStoreName || "");
   const [slug, setSlug] = useState(store.slug || "");
-  const [description, setDescription] = useState(store.description);
+  const [description, setDescription] = useState(store.description || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(store.slug));
+
+  useEffect(() => {
+    if (store.name && !name) setName(store.name);
+    if (store.slug && !slug) setSlug(store.slug);
+    if (store.description && !description) setDescription(store.description);
+  }, [store]);
+
+  const isCurrentStoreSlug = Boolean(store.slug && slug === store.slug);
   const { data: slugCheck, isFetching: checkingSlug } = useSlugCheck(
-    slugTouched && slug.length >= 3 ? slug : null
+    !isCurrentStoreSlug && slug.length >= 3 ? slug : null
   );
 
-  const slugAvailable = slugCheck?.available;
+  const slugAvailable = isCurrentStoreSlug ? true : slugCheck?.available;
   const canProceed =
     name.trim().length >= 2 &&
-    slug.length >= 3 &&
-    (slugAvailable === true || slug === store.slug);
+    slug.trim().length >= 3 &&
+    slugAvailable !== false &&
+    !checkingSlug;
 
   return (
     <form
       id="setup-step-form"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!canProceed) return;
-        onSave({ name: name.trim(), slug, description });
+        if (!name.trim() || name.trim().length < 2) {
+          toast("Store name must be at least 2 characters.", "error");
+          return;
+        }
+        if (!slug.trim() || slug.trim().length < 3) {
+          toast("Store URL must be at least 3 characters.", "error");
+          return;
+        }
+        if (slugAvailable === false) {
+          toast(`${slug} is already taken. Please pick another URL.`, "error");
+          return;
+        }
+        onSave({ name: name.trim(), slug: slug.trim().toLowerCase(), description: description.trim() });
       }}
       className="flex flex-col gap-5"
     >
@@ -78,7 +100,7 @@ export default function BasicsStep({
             </>
           }
         />
-        {slugTouched && slug.length >= 3 && (
+        {slug.length >= 3 && (
           <div className="mt-2">
             {checkingSlug ? (
               <p className="flex items-center gap-2 text-xs text-muted">
@@ -122,7 +144,7 @@ export default function BasicsStep({
 
       <button
         type="submit"
-        disabled={!canProceed || saving}
+        disabled={saving}
         className={cn("hidden")}
         aria-hidden
         tabIndex={-1}

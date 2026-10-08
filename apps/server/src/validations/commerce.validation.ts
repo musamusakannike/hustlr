@@ -1,35 +1,76 @@
 import Joi from "joi";
 
 export const productSchema = Joi.object({
-  title: Joi.string().min(2).required(),
+  title: Joi.string().trim().min(2).required().messages({
+    "string.empty": "Product title is required. Please enter a product title.",
+    "string.min": "Product title must be at least 2 characters long.",
+    "any.required": "Product title is required. Please enter a product title.",
+  }),
   description: Joi.string().allow(""),
   category: Joi.string().allow(""),
-  price: Joi.number().min(0).required(),
-  compareAtPrice: Joi.number().min(0).allow(null),
+  price: Joi.number().min(0).required().messages({
+    "number.base": "Price must be a valid number. Please enter a valid price.",
+    "number.min": "Price cannot be negative. Please enter 0 or higher.",
+    "any.required": "Price is required. Please enter a product price.",
+  }),
+  compareAtPrice: Joi.number().min(0).allow(null).messages({
+    "number.base": "Compare-at price must be a valid number.",
+    "number.min": "Compare-at price cannot be negative.",
+  }),
   sku: Joi.string().allow(""),
-  stock: Joi.number().integer().min(0).required(),
+  stock: Joi.number().integer().min(0).required().messages({
+    "number.base": "Stock quantity must be a valid number.",
+    "number.integer": "Stock quantity must be a whole number.",
+    "number.min": "Stock quantity cannot be negative.",
+    "any.required": "Stock quantity is required. Please enter available stock.",
+  }),
   images: Joi.array().items(Joi.string()),
-  weightKg: Joi.number().min(0).allow(null),
+  weightKg: Joi.number().min(0).allow(null).messages({
+    "number.base": "Weight must be a valid number.",
+    "number.min": "Weight cannot be negative.",
+  }),
   hasVariants: Joi.boolean(),
   variants: Joi.array().items(
     Joi.object({
-      name: Joi.string().required(),
-      options: Joi.array().items(Joi.string()).required(),
+      name: Joi.string().trim().required().messages({
+        "string.empty": "Variant option name is required (e.g. Size or Color).",
+        "any.required": "Variant option name is required (e.g. Size or Color).",
+      }),
+      options: Joi.array().items(Joi.string().trim()).min(1).required().messages({
+        "array.min": "Each variant must have at least one option value.",
+        "any.required": "Each variant must have at least one option value.",
+      }),
     }),
   ),
   variantCombinations: Joi.array().items(
     Joi.object({
-      combination: Joi.object().required(),
-      price: Joi.number().min(0).required(),
-      stock: Joi.number().integer().min(0).required(),
+      combination: Joi.object().required().messages({
+        "any.required": "Variant combination options are required.",
+      }),
+      price: Joi.number().min(0).required().messages({
+        "number.base": "Variant price must be a valid number.",
+        "number.min": "Variant price cannot be negative.",
+        "any.required": "Variant price is required.",
+      }),
+      stock: Joi.number().integer().min(0).required().messages({
+        "number.base": "Variant stock must be a valid number.",
+        "number.integer": "Variant stock must be a whole number.",
+        "number.min": "Variant stock cannot be negative.",
+        "any.required": "Variant stock is required.",
+      }),
       sku: Joi.string().allow(""),
       image: Joi.string().allow(""),
     }),
   ),
-  status: Joi.string().valid("draft", "active", "archived"),
+  status: Joi.string().valid("draft", "active", "archived").messages({
+    "any.only": "Status must be draft, active, or archived.",
+  }),
   isFeatured: Joi.boolean(),
   tags: Joi.array().items(Joi.string()),
-  shippingFee: Joi.number().min(0),
+  shippingFee: Joi.number().min(0).messages({
+    "number.base": "Shipping fee must be a valid number.",
+    "number.min": "Shipping fee cannot be negative.",
+  }),
   estimatedDeliveryDays: Joi.string().allow(""),
 });
 
